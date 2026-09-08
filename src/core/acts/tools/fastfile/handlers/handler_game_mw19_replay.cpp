@@ -3,6 +3,7 @@
 #include <tools/mw19/mw19_ff_stream.hpp>
 #include <tools/mw19/mw19_replay_bindings.hpp>
 #include <tools/mw19/mw19_payload.hpp>
+#include <tools/mw19/mw19_mesh.hpp>
 #include <tools/mw19/mw19_xpak.hpp>
 #include <hook/memory.hpp>
 #include <deps/oodle.hpp>
@@ -228,6 +229,19 @@ namespace fastfile::handlers::mw19_replay {
                     item["payload_bytes"] = payload.data.size();
                     item["payload_crc32"] = crc32(0, payload.data.data(), static_cast<uInt>(payload.data.size()));
                     item["format"] = payload.format;
+                    GeometryPayload geometry;
+                    if (state.opt->replayGeometry && type == "xmodelsurfs") {
+                        item["geometry_scope"] = "base surface geometry";
+                        item["geometry_status"] = "pending";
+                        geometry = ExportReplayGeometry(read, reinterpret_cast<uintptr_t>(record.header), payload.data);
+                        item["geometry_surfaces"] = geometry.surfaces;
+                        item["geometry_vertices"] = geometry.vertices;
+                        item["geometry_triangles"] = geometry.triangles;
+                        item["geometry_bytes"] = geometry.payload.data.size();
+                        item["geometry_crc32"] =
+                            crc32(0, geometry.payload.data.data(), static_cast<uInt>(geometry.payload.data.size()));
+                        item["geometry_status"] = "ok";
+                    }
                     if (!state.opt->replayTest) {
                         auto root = state.out / "assets" / type;
                         std::filesystem::path path;
@@ -242,15 +256,32 @@ namespace fastfile::handlers::mw19_replay {
                         if (!utils::WriteFile(path, payload.data.data(), payload.data.size()))
                             throw std::runtime_error("Cannot write Replay asset");
                         item["file"] = path.lexically_relative(state.out).generic_string();
+                        if (!geometry.payload.data.empty()) {
+                            auto meshPath = path;
+                            meshPath += geometry.payload.extension;
+                            if (!utils::WriteFile(
+                                    meshPath,
+                                    geometry.payload.data.data(),
+                                    geometry.payload.data.size()
+                                )) {
+                                item["geometry_status"] = "failed";
+                                throw std::runtime_error("Cannot write Replay geometry");
+                            }
+                            item["geometry_file"] = meshPath.lexically_relative(state.out).generic_string();
+                        }
                     }
                     item["status"] = "ok";
                 }
             } catch (const PayloadUnavailable& e) {
+                if (item.contains("geometry_status") && item["geometry_status"] == "pending")
+                    item["geometry_status"] = "unavailable";
                 item["status"] = "unavailable";
                 item["reason"] = e.reason;
                 item["error"] = e.what();
                 state.report["unavailable"] = state.report.at("unavailable").get<size_t>() + 1;
             } catch (const std::exception& e) {
+                if (item.contains("geometry_status") && item["geometry_status"] == "pending")
+                    item["geometry_status"] = "failed";
                 item["status"] = "failed";
                 item["error"] = e.what();
                 state.report["failed"] = state.report.at("failed").get<size_t>() + 1;

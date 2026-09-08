@@ -124,6 +124,7 @@ namespace fastfile {
         const tool::gsc::formatter::FormatterInfo* gscFormatter{};
         // Replay capability tests never emit asset payloads or decompressed files.
         bool replayTest{};
+        bool replayGeometry{};
         size_t replayLimit{ 1 };
         std::vector<std::filesystem::path> replayPackages;
         std::filesystem::path replayOodle;

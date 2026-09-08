@@ -43,6 +43,7 @@ Remove `--test` to export all selected assets. Files are grouped as `mw19replay/
 | Six shader types | Compiled program bytes (`.cso`) |
 | `image` | DDS with DX10 header, including resident pixels retained by this loader |
 | `xmodelsurfs`, `streamkey` | Shared geometry / stream buffer bytes |
+| `xmodelsurfs` with `--geometry` | Additional `.geometry.glb` with base surface positions, normals, UVs and triangles |
 | `soundbank`, `soundbanktransient` | Loaded SAB bytes; the original index/checksum order is preserved |
 | Other 92 enabled types | Versioned structured `.asset.json` |
 
@@ -53,6 +54,8 @@ Structured exports contain the field graph, named references to other assets, ow
 The manifest distinguishes `complete` (the load/export pass finished) from `success` (no attempted export failed or lacked required data). The journal records per-asset status, format, length and CRC32. Structured failures include field paths and reasons. A failed loader leaves `complete: false` with the last top-level index and consumed byte count. An empty optional payload is reported explicitly when that format needs resident data; it is not counted as successful export.
 
 ## Version and format boundaries
+
+Use `--geometry -a xmodelsurfs` to create GLB sidecars for a 3D viewer. Keep `--test` to encode and validate them only in memory. The journal records geometry status, surface/vertex/triangle counts, length, CRC32 and, for a disk export, `geometry_file`. This is base surface geometry; it does not assemble XModel LODs, assign game materials/textures, or implement skinning, morphs or subdivision. The matching XPak is still required for a streamed shared buffer.
 
 The required final fastfile XFile version is **`0xff7`**, with eleven header reservations and eight native streams. Use ACTS's `-p` option when matching `.fp`/`.fc` patches must be applied to obtain that final version. Other revisions need their own layout and loader validation.
 
@@ -69,6 +72,7 @@ Build `AtianCodToolsCLI` in Release first. The reusable regression suite only wr
 ```powershell
 python scripts/mw19/verify_fastfile_bindings.py "D:/Replay/game_dx12_ship_replay.exe"
 python scripts/mw19/test_fastfile.py "D:/Replay/game_dx12_ship_replay.exe" --out build/mw19-tests/fastfile-run
+python scripts/mw19/test_fastfile_geometry.py "D:/Replay/game_dx12_ship_replay.exe" --out build/mw19-tests/geometry-run
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mw19/test_schema.ps1
 ```
 
@@ -77,3 +81,5 @@ Use a new directory for `--out`. The fastfile suite tests all 111 native loaders
 Bounded stock checks also loaded `code_pre_gfx.ff`, `techsets_common_mp.ff`, and `mp_shipment.ff`. Shipment consumed all **385,140,167 serialized bytes**, loaded **10,478 assets** from **8,848 top-level entries**, and successfully encoded one real sample from each of **51 types** with the matching model XPak: zero failed/unavailable samples. This included both world records, tactical graphs, map entities, weapons, material/technique records, resident DDS pixels, compiled shaders, a streamed model buffer and a loaded SAB. These tests kept all game payloads in memory and wrote only reports. They do not claim that every asset in every stock zone has been tested.
 
 A subsequent run raised the cap to three samples per type and supplied the 14 nonempty Replay XPaks: **122 successful samples across 56 types** (5 in `code_pre_gfx`, 17 in `techsets_common_mp`, and 100 in Shipment), with zero failures or unavailable payloads. Only six report files were written. Independent Python/Oodle decoding also matched the sampled mesh's 85,168 bytes and CRC32 `de4b13ed`. Shipment's 8,390-entry script-string table was validated in memory.
+
+The optional fastfile GLB path also passed a populated synthetic triangle through the native loader, file export, independent position/CRC checks, report-only mode and invalid-index rejection. Three Shipment model-surface samples passed `--test --geometry`: 2,501/1,094/544 vertices and 2,838/850/340 triangles. Their GLBs were encoded in memory; only the two capability reports were written.

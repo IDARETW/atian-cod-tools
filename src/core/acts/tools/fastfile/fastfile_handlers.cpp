@@ -427,6 +427,8 @@ namespace fastfile {
                 testDump = true;
             } else if (!_strcmpi("--test", arg)) {
                 replayTest = true;
+            } else if (!_strcmpi("--geometry", arg)) {
+                replayGeometry = true;
             } else if (!_strcmpi("--limit-per-pool", arg)) {
                 if (i + 1 == endIndex)
                     return false;
@@ -536,6 +538,7 @@ namespace fastfile {
         LOG_INFO("--test                    : Replay report-only exporter checks, one sample per type");
         LOG_INFO("--limit-per-pool [1..32]   : Replay --test sample count per type");
         LOG_INFO("--xpak [file]             : Replay streamed payload archive (repeatable)");
+        LOG_INFO("--geometry                : Replay XModelSurfs base geometry GLB sidecars");
         LOG_INFO("--oodle [absolute DLL]    : Replay XPak Oodle decoder");
         LOG_INFO("--dumpBinaryAssets        : Dump binary assets");
         LOG_INFO("--dumpBinaryAssetsMap     : Dump binary assets map");
@@ -1014,11 +1017,14 @@ namespace fastfile {
         }
 
         void Init() {
-            if ((opt.replayTest || opt.replayLimit != 1 || !opt.replayPackages.empty() || !opt.replayOodle.empty()) &&
+            if ((opt.replayTest || opt.replayGeometry || opt.replayLimit != 1 || !opt.replayPackages.empty() ||
+                 !opt.replayOodle.empty()) &&
                 (!opt.handler || std::strcmp(opt.handler->name, "mw19replay")))
                 throw std::runtime_error("Replay test and package options require the mw19replay fastfile handler");
             if (opt.replayLimit != 1 && !opt.replayTest)
                 throw std::runtime_error("--limit-per-pool requires --test");
+            if (opt.replayGeometry && opt.noAssetDump)
+                throw std::runtime_error("--geometry requires asset export; remove --noAssetDump");
             if (opt.replayTest && (opt.dump_decompressed || opt.m_header || opt.headerDump || opt.dumpBinaryAssets ||
                                    opt.dumpCompiledZone || opt.dumpXStrings || opt.dumpXHash || opt.dumpAssetNames ||
                                    opt.dumpBinaryAssetsMap || opt.workflow != FFW_READER))
