@@ -1,11 +1,5 @@
 # Atian Tools
 
-## MW2019 Replay fork
-
-This fork adds a versioned **117-pool MW2019 1.20 Replay catalog**, asset dumping and bounded report-only tests, plus an IW8 fastfile linker. The dumper covers 112 nonzero pool roots with 19 conventional exporters and 93 structured exporters. Fastfile linking currently supports eight concrete asset types; all-pool reconstruction and live unsigned-file loading remain unfinished.
-
-Start with the [MW2019 documentation](docs/mw19/README.md), [complete pool map](docs/mw19/pools.md), and [IW8 linker instructions](docs/mw19/linker.md). The download links below point to upstream builds; they do not include this fork's additions.
-
 [![Build](https://github.com/ate47/atian-cod-tools/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ate47/atian-cod-tools/actions/workflows/build.yml)
 
 My set of tools. The code is more important than the features, so feel free to reuse it. 🙂
@@ -69,6 +63,12 @@ The linkers create custom fast files.
 | Black&nbsp;Ops&nbsp;Cold&nbsp;War    | `cw`     | `rawfile`, `scriptparsetree`, `scriptparsetreedbg`, `using`, `bgcache`, `localize`, `keyvaluepairs`  |
 
 See the wiki page [*Fast Files Linker*](https://github.com/ate47/atian-cod-tools/wiki/Fast-Files---Linker).
+
+### MW2019 Replay additions in this fork
+
+This fork adds a **117-pool MW2019 1.20 Replay catalog**, asset dumping and bounded report-only tests, plus an IW8 fastfile linker. Dumping covers 112 nonzero pool roots with 19 conventional exporters and 93 structured exporters. Fastfile linking currently supports eight concrete asset types; all-pool reconstruction and live unsigned-file loading remain unfinished.
+
+See the [MW2019 documentation](docs/mw19/README.md), [complete pool map](docs/mw19/pools.md), and [IW8 linker instructions](docs/mw19/linker.md). The original download links above point to upstream builds and do not include this fork's additions.
 
 ## Game Script Code (GSC)
 
