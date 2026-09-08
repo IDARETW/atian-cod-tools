@@ -87,8 +87,9 @@ namespace {
         uint32_t unk1c;
         uint64_t size;
         uint64_t preloadWalkSize;
-        uint64_t blockSize[8];
-        EncryptionHeader encryption;
+        // Replay 0xff7 uses all 11 serialized reservation slots. Later retail
+        // versions use eight slots followed by encryption metadata in this area.
+        uint64_t blockSize[11];
     };
     static_assert(sizeof(DB_FFHeaderMW19) == 0x88);
 
@@ -511,7 +512,11 @@ namespace {
             case IWFV_MW19: {
                 reader.Read(&ffHeader.mw19, sizeof(ffHeader.mw19));
                 secureType = ST_MW19;
-                ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks : 8;
+                ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks
+                                  : ffHeader.mw19.xfileVersion == 0xff7       ? 11
+                                                                              : 8;
+                if (ctx.blocksCount > 11)
+                    throw std::runtime_error("MW2019 block count exceeds header capacity");
                 endSize = ffHeader.mw19.size;
 
                 uint64_t* blockSizes{ ffHeader.mw19.blockSize };

@@ -1412,6 +1412,7 @@ namespace fastfile {
         }
         RegisterCrypts();
 
+        bool failed = false;
         for (const char* file : opt.files) {
             try {
                 FastFileLinkerContext ctx{ opt, file };
@@ -1427,6 +1428,7 @@ namespace fastfile {
 
                 if (!ctx.linker) {
                     LOG_ERROR("No linker for {}", file);
+                    failed = true;
                     continue;
                 }
 
@@ -1448,12 +1450,13 @@ namespace fastfile {
                 if (ctx.compressor) {
                     ctx.compressor->Compress(ctx);
                 }
-            } catch (std::runtime_error& err) {
+            } catch (const std::exception& err) {
                 LOG_ERROR("Can't read {}: {}", file, err.what());
+                failed = true;
             }
         }
 
-        return tool::OK;
+        return failed ? tool::BASIC_ERROR : tool::OK;
     }
 
     int fastfile(int argc, const char* argv[]) { return FastfileLoader(argc, argv, FFW_READER); }

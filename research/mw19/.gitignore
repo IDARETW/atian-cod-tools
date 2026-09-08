@@ -1,0 +1,4 @@
+# Local source/type oracles, decompilation, process results and checkpoints.
+# The checked-in schema is sufficient to build and use the command.
+*
+!.gitignore

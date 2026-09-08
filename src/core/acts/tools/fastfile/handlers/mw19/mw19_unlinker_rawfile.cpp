@@ -30,13 +30,18 @@ namespace {
             std::unique_ptr<byte[]> decomp{ std::make_unique<byte[]>(asset->uncompressedLen + 1) };
 
             if (asset->uncompressedLen) {
-                if (utils::compress::Decompress2(
-                        utils::compress::COMP_ZLIB,
-                        decomp.get(),
-                        asset->uncompressedLen,
-                        asset->data,
-                        asset->compressedLen
-                    ) < 0) {
+                if (!asset->data) {
+                    throw std::runtime_error("MW2019 rawfile has a null payload");
+                }
+                if (!asset->compressedLen) {
+                    std::memcpy(decomp.get(), asset->data, asset->uncompressedLen);
+                } else if (utils::compress::Decompress2(
+                               utils::compress::COMP_ZLIB,
+                               decomp.get(),
+                               asset->uncompressedLen,
+                               asset->data,
+                               asset->compressedLen
+                           ) < 0) {
                     LOG_ERROR("Error when decompresing {}", outFile.string());
                     return;
                 }
