@@ -34,7 +34,7 @@ The dumpers extract the fast files assets.
 | Black Ops 3           | ✅      | `bo3`     | `rawfile`, `scriptparsetree` |
 | Black Ops 4           | ✅      | `bo4`     | `aitype`, `arenaseasons`, `bgcache`, `character`, `characterbodytype`, `cpu_occlusion_data`, `customization`, `ddl`, `entitlement`, `entitlementlist`, `firstpartyentitlement`, `firstpartyentitlementlist`, `gametypetable`, `hierarchical_task_network`, `keyvaluepairs`, `localize_entry`, `luafile`, `comworld`, `entity_list`, `gfxworld`, `maptable`, `maptable_list`, `maptable_preview_images`, `trigger_list`, `objective`, `player_outfit`, `player_role_category`, `player_role_category_table`, `player_role_template`, `playlists`, `playlist_global_settings`, `playlist_schedule`, `rank`, `ranktable`, `prestige`, `prestigetable`, `rawstring`, `scriptbundle`, `scriptbundlelist`, `scriptparsetree`, `scriptparsetreedbg`, `sound`, `sprayorgestureitem`, `sprayorgesturelist`, `storagefile`, `storagefilelist`, `storeproduct`, `storecategory`, `storecategorylist`, `labelstore`, `labelstorelist`, `sku`, `streamkey`, `stringtable`, `structured_table`, `unlockable_item`, `unlockable_item_table`, `weapon`, `weapon_camo`, `weapon_tunables`, `zbarrier` |
 | Modern Warfare 2019 (fastfiles) | ✅      | `mw19`      | `rawfile`, `scriptfile` (gpl\*), `luafile`, `localize` |
-| Modern Warfare 2019 (1.20 Replay pools) | Process / XPak | `mw19pools` | `xmodelsurfs`, `computeshader`, `libshader`, `vertexshader`, `hullshader`, `domainshader`, `pixelshader`, `image`, `soundbank`, `soundbanktransient`, `localize`, `rawfile`, `scriptfile`, `stringtable`, `netconststrings`, `luafile`, `ttf`, `streamkey`, `soundbanklist`; [93 additional structured types](#mw2019-replay-additions-in-this-fork) |
+| Modern Warfare 2019 (1.20-replay) | Process / XPak | `mw19pools` | `xmodelsurfs`, `computeshader`, `libshader`, `vertexshader`, `hullshader`, `domainshader`, `pixelshader`, `image`, `soundbank`, `soundbanktransient`, `localize`, `rawfile`, `scriptfile`, `stringtable`, `netconststrings`, `luafile`, `ttf`, `streamkey`, `soundbanklist`, `physicslibrary`, `physicssfxeventasset`, `physicsvfxeventasset`, `physicsasset`, `physicsfxpipeline`, `physicsfxshape`, `physicsdebugdata`, `xanim`, `xmodel`, `mayhem`, `material`, `techset`, `soundglobals`, `col_map`, `com_map`, `glass_map`, `aipaths`, `navmesh`, `tacgraph`, `map_ents`, `fx_map`, `gfx_map`, `gfx_map_trzone`, `iesprofile`, `lightdef`, `gradingclut`, `fogspline`, `animclass`, `playeranim`, `gesture`, `attachment`, `weapon`, `vfx`, `impactfx`, `surfacefx`, `scriptdebugdata`, `leaderboarddef`, `virtualleaderboarddef`, `ddl`, `tracer`, `vehicle`, `addon_map_ents`, `scriptable`, `equipsndtable`, `vectorfield`, `particlesimanimation`, `streaminginfo`, `laser`, `suit`, `suitanimpackage`, `camera`, `hudoutline`, `spaceshiptarget`, `rumble`, `rumblegraph`, `animpkg`, `sfxpkg`, `vfxpkg`, `footstepvfx`, `behaviortree`, `aianimset`, `aiasm`, `proceduralbones`, `dynamicbones`, `reticle`, `xanimcurve`, `coverselector`, `enemyselector`, `clientcharacter`, `clothasset`, `cinematicmotion`, `accessory`, `locdmgtable`, `bulletpenetration`, `scriptbundle`, `blendspace2d`, `xcam`, `camo`, `xcompositemodel`, `xmodeldetailcollision`, `streamtreeoverride`, `keyvaluepairs`, `stterrain`, `nativescriptpatch`, `collisiontile`, `execution`, `carryobject`, `decalvolumematerial`, `decalvolumemask`, `dynentitylist`, `fx_map_trzone`, `dlogschema`, `edgelist`
 | Black Ops Cold War    | ✅      | `cw`      | `rawfile`, `scriptparsetree`, `using`, `scriptbundle`, `bgcache`, `ddl`, `localizeentry`, `keyvaluepairs`, `weapon_frontend`, `zbarrier` |
 | Vanguard              | ✅      | `vg`      | `rawfile`, `scriptfile` (gpl\*), `luafile`, `localize` |
 | Modern Warfare II     | ✅      | `mwii`    | `rawfile`, `scriptfile` (gpl\*), `luafile`, `stringtable`, `ddl`, `scriptbundle`, `localize` |
@@ -62,7 +62,7 @@ The linkers create custom fast files.
 | Black Ops 3           | `bo3`     | `scriptparsetree` |
 | Black Ops 4           | `bo4`     | `aitype`, `character`, `rawfile`, `scriptparsetree`, `scriptparsetreedbg`, `scriptparsetreeforced`, `structuredtable`, `luafile`, `rawstring`, `scriptbundle`, `stringtable`, `image`, `keyvaluepairs`, `objective`,  `rank`, `ranktable`, `prestige`, `prestigetable`, `localize`, `ttf`, `bgcache`, `zbarrier` |
 | Black&nbsp;Ops&nbsp;Cold&nbsp;War    | `cw`     | `rawfile`, `scriptparsetree`, `scriptparsetreedbg`, `using`, `bgcache`, `localize`, `keyvaluepairs`  |
-| Modern Warfare 2019 (1.20 Replay) | `iw8` / `mw19` | `localize`, `rawfile`, `scriptfile`, `stringtable`, `netconststrings`, `luafile`, `ttf`, `soundbanklist` |
+| Modern Warfare 2019 (1.20-replay) | `iw8` / `mw19` | `localize`, `rawfile`, `scriptfile`, `stringtable`, `netconststrings`, `luafile`, `ttf`, `soundbanklist` |
 
 See the wiki page [*Fast Files Linker*](https://github.com/ate47/atian-cod-tools/wiki/Fast-Files---Linker).
 
@@ -71,20 +71,6 @@ See the wiki page [*Fast Files Linker*](https://github.com/ate47/atian-cod-tools
 The `mw19pools` command maps **all 117 Replay pool IDs** and dumps allocated process assets, with optional XPak retrieval for streamed payloads. The original `mw19` fastfile handler retains the four asset types listed above; the new process/XPak row lists all **19 conventional payload exporters**. Images export as DDS, model surfaces and stream keys retain their binary buffers, and sound banks export as SAB. Optional `--geometry` produces a base-surface GLB view; `--audio` extracts supported FLAC samples.
 
 The remaining **93 nonzero pool roots** support structured `.asset.json` dumps with fields, owned byte buffers and named asset references. Available data and complete traversal are required; unavailable payloads and unresolved fields remain explicit. Together, conventional and structured exporters cover **112 nonzero roots**.
-
-<details>
-<summary>All 93 structured asset types</summary>
-
-- `physicslibrary`, `physicssfxeventasset`, `physicsvfxeventasset`, `physicsasset`, `physicsfxpipeline`, `physicsfxshape`, `physicsdebugdata`, `xanim`, `xmodel`, `mayhem`, `material`, `techset`
-- `soundglobals`, `col_map`, `com_map`, `glass_map`, `aipaths`, `navmesh`, `tacgraph`, `map_ents`, `fx_map`, `gfx_map`, `gfx_map_trzone`, `iesprofile`
-- `lightdef`, `gradingclut`, `fogspline`, `animclass`, `playeranim`, `gesture`, `attachment`, `weapon`, `vfx`, `impactfx`, `surfacefx`, `scriptdebugdata`
-- `leaderboarddef`, `virtualleaderboarddef`, `ddl`, `tracer`, `vehicle`, `addon_map_ents`, `scriptable`, `equipsndtable`, `vectorfield`, `particlesimanimation`, `streaminginfo`, `laser`
-- `suit`, `suitanimpackage`, `camera`, `hudoutline`, `spaceshiptarget`, `rumble`, `rumblegraph`, `animpkg`, `sfxpkg`, `vfxpkg`, `footstepvfx`, `behaviortree`
-- `aianimset`, `aiasm`, `proceduralbones`, `dynamicbones`, `reticle`, `xanimcurve`, `coverselector`, `enemyselector`, `clientcharacter`, `clothasset`, `cinematicmotion`, `accessory`
-- `locdmgtable`, `bulletpenetration`, `scriptbundle`, `blendspace2d`, `xcam`, `camo`, `xcompositemodel`, `xmodeldetailcollision`, `streamtreeoverride`, `keyvaluepairs`, `stterrain`, `nativescriptpatch`
-- `collisiontile`, `execution`, `carryobject`, `decalvolumematerial`, `decalvolumemask`, `dynentitylist`, `fx_map_trzone`, `dlogschema`, `edgelist`
-
-</details>
 
 `iesprofile` has a mapped structure but is disabled in Replay (capacity zero). The five unused pool IDs, `ui_map`, `aitype`, `mptype`, `character`, `xmodelalias`, are catalog entries without asset payloads.
 
