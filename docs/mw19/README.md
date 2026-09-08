@@ -56,7 +56,7 @@ Source-confirmed runtime references retain their addresses, reasons and evidence
 
 Visibility view 32 uses separately identified renderer extents: the static word counts, or 32 bytes per dynamic-entity word. It is not counted as an additional serialized view by the source loader. Known stream-key behaviors (terrain, sound, stream tree and clutter) select a runtime user-context pointer; behavior zero selects the asset hash, and unrecognized behavior values remain unresolved. The static audit currently finds no unclassified pointer slots along the exported field graph. This measures policy coverage only: it does not certify native layouts, every conditional traversal context, external residency or native-format conversion.
 
-The current serializers do not retrieve nonresident shader programs or released nonstreamed image pixels. Complete model conversion, remaining sound codecs and some pointer extents still need additional native verification and serializers. GPU runtime records are retained as opaque record bytes. Fastfile writing/linking and additional GSC compiler/decompiler work are outside this change.
+The current serializers do not retrieve nonresident shader programs or released nonstreamed image pixels. Complete model conversion, remaining sound codecs and some pointer extents still need additional native verification and serializers. GPU runtime records are retained as opaque record bytes. Fastfile linking coverage is documented below; additional GSC compiler/decompiler work remains outside this change.
 
 ## Replay PC image export
 
