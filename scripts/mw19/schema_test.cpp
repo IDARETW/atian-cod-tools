@@ -701,6 +701,56 @@ int main(int argc, char** argv) {
             );
         }
         MustFail([&] { ExportStructuredAsset(replay, db.Pool(replay, "rawfile"), record); }, "Wrong pool accepted");
+        // Populated Replay-only offsets and integer bitset rounding. These
+        // were exposed by stock fastfiles, not by zero-filled root fixtures.
+        std::fill(memory.begin(), memory.end(), 0);
+        put(6008, uint16_t{ 2 });
+        put(6016, uint64_t{ base + 6500 });
+        put(6500, uint16_t{ 1 });
+        put(6502, uint16_t{ 12 });
+        put(6508, uint64_t{ base + 7000 });
+        memory[7000] = 0xab;
+        memory[7001] = 0xcd;
+        auto tacticalGraph = replayInspector.Inspect("TacticalGraph", base + 6000);
+        Check(
+            tacticalGraph["read_errors"] == 0 && tacticalGraph["fields"]["m_VisGraph"]["count"] == 1 &&
+                tacticalGraph["fields"]["m_VisGraph"]["values"][0]["m_Vis"]["bytes"] == "abcd",
+            "Tactical graph row count or partial visibility byte was lost"
+        );
+        std::fill(memory.begin(), memory.end(), 0);
+        put(512 + 1904, uint64_t{ base + 7000 });
+        put(7000, float{ 12.5 });
+        put(512 + 2852, float{ 0.75 });
+        auto replayWeapon = replayInspector.Inspect("WeaponDef", base + 512);
+        Check(
+            replayWeapon["read_errors"] == 0 && replayWeapon["fields"]["parallelBounce"]["values"][0] == 12.5 &&
+                replayWeapon["fields"]["weaponOffsetCurveHoldFireSlow"]["blendTime"] == 0.75 &&
+                !replayWeapon["fields"].contains("hyperBurstInfo"),
+            "Replay WeaponDef offsets"
+        );
+        // Bulk arrays preserve exact bits and element layout, stay within
+        // byte limits, and do not spend one traversal node per scalar.
+        memory.assign(32768, 0);
+        put(0, uint64_t{ base + 1024 });
+        put(8, uint32_t{ 4096 });
+        put(12, uint32_t{ 131072 });
+        put(1024, uint32_t{ 0x1234abcd });
+        put(1024 + 4095 * 4, uint32_t{ 0xfedcba98 });
+        Limits bulkLimits;
+        bulkLimits.compactArrays = true;
+        bulkLimits.maxNodes = 32;
+        Inspector bulkInspector(db, read, bulkLimits, "replay-1.20");
+        auto bulk = bulkInspector.Inspect("bitarray_dynamic", base);
+        const auto& array = bulk["fields"]["array"];
+        auto hex = array.at("bytes").get<std::string>();
+        Check(
+            bulk["read_errors"] == 0 && array["encoding"] == "hex-little-endian" && array["stride"] == 4 &&
+                hex.size() == 4096 * 8 && hex.starts_with("cdab3412") && hex.ends_with("98badcfe"),
+            "Compact typed array did not preserve complete bytes"
+        );
+        bulkLimits.maxBytes = 1000;
+        Inspector bulkLimited(db, read, bulkLimits, "replay-1.20");
+        Check(bulkLimited.Inspect("bitarray_dynamic", base)["read_errors"] == 1, "Compact array bypassed byte bounds");
         std::cout << "MW2019 schema, 112 Replay roots, version separation, pointer arrays, payloads, allocation, "
                      "corruption, bounds and path checks passed\n";
         return 0;

@@ -212,6 +212,11 @@ int main(int argc, char** argv) {
         Put(bank, 48, uint64_t{ 900 });
         std::copy(bank.begin() + 688, bank.begin() + 732, bank.begin() + 732);
         fails([&] { sound::Bank b(read, bank.size()); }, "Duplicate key accepted");
+        Put(bank, 732, 0x1200u);
+        auto originalBank = bank;
+        sound::Bank storageOrder(read, bank.size());
+        if (!storageOrder.Find(0x1200) || !storageOrder.Find(0x1234) || bank != originalBank)
+            throw std::runtime_error("Storage-order SAB lookup or byte preservation failed");
         setup();
         fails([&] { sound::Bank b(read, bank.size(), 700); }, "Metadata budget ignored");
         fails(

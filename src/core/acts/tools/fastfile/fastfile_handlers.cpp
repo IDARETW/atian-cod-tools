@@ -425,6 +425,25 @@ namespace fastfile {
                 graphic = true;
             } else if (!_strcmpi("--testDump", arg)) {
                 testDump = true;
+            } else if (!_strcmpi("--test", arg)) {
+                replayTest = true;
+            } else if (!_strcmpi("--limit-per-pool", arg)) {
+                if (i + 1 == endIndex)
+                    return false;
+                std::string value{ args[++i] };
+                if (value.empty() || value.find_first_not_of("0123456789") != std::string::npos || value.size() > 2)
+                    return false;
+                replayLimit = std::stoul(value);
+                if (!replayLimit || replayLimit > 32)
+                    return false;
+            } else if (!_strcmpi("--xpak", arg)) {
+                if (i + 1 == endIndex || replayPackages.size() >= 64)
+                    return false;
+                replayPackages.emplace_back(args[++i]);
+            } else if (!_strcmpi("--oodle", arg)) {
+                if (i + 1 == endIndex)
+                    return false;
+                replayOodle = args[++i];
             } else if (!_strcmpi("--alpha", arg)) {
                 alpha = true;
             } else if (!_strcmpi("--assertContainer", arg)) {
@@ -514,6 +533,10 @@ namespace fastfile {
         LOG_INFO("-k --rsa-key [k]          : Set the rsa public key (by default game's key)");
         LOG_INFO("-l --reduced-logs         : Reduce the logs");
         LOG_INFO("--noAssetDump             : No asset dump");
+        LOG_INFO("--test                    : Replay report-only exporter checks, one sample per type");
+        LOG_INFO("--limit-per-pool [1..32]   : Replay --test sample count per type");
+        LOG_INFO("--xpak [file]             : Replay streamed payload archive (repeatable)");
+        LOG_INFO("--oodle [absolute DLL]    : Replay XPak Oodle decoder");
         LOG_INFO("--dumpBinaryAssets        : Dump binary assets");
         LOG_INFO("--dumpBinaryAssetsMap     : Dump binary assets map");
         LOG_INFO("--dumpAssetNames          : Dump binary assets");
@@ -991,6 +1014,15 @@ namespace fastfile {
         }
 
         void Init() {
+            if ((opt.replayTest || opt.replayLimit != 1 || !opt.replayPackages.empty() || !opt.replayOodle.empty()) &&
+                (!opt.handler || std::strcmp(opt.handler->name, "mw19replay")))
+                throw std::runtime_error("Replay test and package options require the mw19replay fastfile handler");
+            if (opt.replayLimit != 1 && !opt.replayTest)
+                throw std::runtime_error("--limit-per-pool requires --test");
+            if (opt.replayTest && (opt.dump_decompressed || opt.m_header || opt.headerDump || opt.dumpBinaryAssets ||
+                                   opt.dumpCompiledZone || opt.dumpXStrings || opt.dumpXHash || opt.dumpAssetNames ||
+                                   opt.dumpBinaryAssetsMap || opt.workflow != FFW_READER))
+                throw std::runtime_error("Replay --test cannot be combined with file dumping or asset-pool mode");
             if (opt.workflow == FFW_ASSET_POOL) {
                 // ignore the asset loading
                 opt.assetTypes = "$assetpool_ignore";
@@ -1276,8 +1308,11 @@ namespace fastfile {
         currentOpt = &opt;
 
         bool anyPrint{};
-        if (!opt.Compute(argv, 2, argc) || opt.m_help ||
-            (opt.files.empty() && !((anyPrint = PrintAny(opt)) || workflow == FFW_ASSET_POOL))) {
+        if (!opt.Compute(argv, 2, argc)) {
+            opt.PrintHelp();
+            return tool::BASIC_ERROR;
+        }
+        if (opt.m_help || (opt.files.empty() && !((anyPrint = PrintAny(opt)) || workflow == FFW_ASSET_POOL))) {
             opt.PrintHelp();
             if (opt.files.empty() && !opt.handler) {
                 LOG_ERROR("Missing entry");

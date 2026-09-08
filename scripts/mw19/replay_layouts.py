@@ -85,8 +85,32 @@ def apply(types, profile):
 
     effects = clone('ClientSideEffects', 120)
     effects['members'] = [m for m in effects['members'] if m['offset_bits'] < 120 * 8]
+    # E305D0 fixes surfaces/bounds/materials/data at 28/30/38/40 hex,
+    # followed by the 64-byte GPU buffer. Replay has none of the source's
+    # himip arrays or transient-zone surface indices.
     surfaces = clone('GfxWorldSurfaces', 136)
-    surfaces['members'] = [m for m in surfaces['members'] if m['name'] != 'surfDataBuffer']
+    surfaces['members'] = [m for m in surfaces['members'] if m['offset_bits'] < 40 * 8] + [
+        member('surfaces', 'GfxSurface *', 40, 8),
+        member('surfaceBounds', 'GfxSurfaceBounds *', 48, 8),
+        member('surfaceMaterials', 'GfxDrawSurf *', 56, 8),
+        member('surfData', 'GfxWorldSurfData *', 64, 8),
+        member('surfDataBuffer', 'GfxWrappedBuffer', 72, 64)]
+    # D9C260 copies 776 bytes and fixes aliases through +768. The last
+    # two DLC pairs in the game-test record do not exist in Replay.
+    sounds = clone('WeaponSFXPackageSounds', 776)
+    sounds['members'] = [m for m in sounds['members'] if m['offset_bits'] < 776 * 8]
+    # D9A580 fixes the bounce arrays at 1904/1912, the ignition effect at
+    # 1976 and patterns at 3048. The six source stepped-explosion integers
+    # are absent. D26520 independently selects the six unchanged 32-byte
+    # curves beginning at 2852. In the loader tail, BallisticInfo +5208 is
+    # followed directly by notifyTypes +5248, without HyperBurstInfo.
+    weapon = clone('WeaponDef', 5296)
+    weapon['members'] = [m for m in weapon['members']
+                         if not m['name'].startswith('iExplosionStepped') and m['name'] != 'hyperBurstInfo']
+    for m in weapon['members']:
+        offset = m['offset_bits'] // 8
+        if offset >= 1916: m['offset_bits'] -= 24 * 8
+        if offset >= 5288: m['offset_bits'] -= 16 * 8
     # D96710 proceeds directly from lightmapTransientIndex to volumetrics;
     # the source's displacement parameter/count/GPU fields are absent.
     draw = clone('GfxWorldDraw', 12760)
@@ -145,6 +169,12 @@ def apply(types, profile):
             assert found[field] == offset, (name, field, found[field], offset)
 
     check('StClutterSamplePoints', 80, dict(samplePointBuffer=16))
+    check('GfxWorldSurfaces', 136, dict(surfaces=40, surfaceBounds=48, surfaceMaterials=56,
+                                     surfData=64, surfDataBuffer=72))
+    check('WeaponSFXPackageSounds', 776, dict(dlcSound1Player=768))
+    check('WeaponDef', 5296, dict(parallelBounce=1904, projIgnitionEffect=1976,
+                                weaponOffsetCurveHoldFireSlow=2852, weaponOffsetPatterns=3048,
+                                mountRumble=4968, ballisticInfo=5208, notifyTypes=5248))
     check('GfxImage', 232, dict(levelCount=48, streamedPartCount=50, streams=56, pixels=224))
     check('StTerrain', 152, dict(clutterSamplePoints=56, lightmapCount=140, lightmaps=144))
     check('StDiskTerrainSurface', 496, {})

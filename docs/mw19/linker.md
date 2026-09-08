@@ -85,3 +85,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mw19/test_fields.ps1
 ```
 
 The linker suite creates tiny synthetic inputs under `build/mw19-tests`. Its independent Python reader verifies both stored and LZ4 multi-block containers, all eight asset values, pointer markers, column-major table layout and exact stream reservations. It checks the registered CLI writer and the existing ACTS decompressor, then verifies that an unsupported asset returns failure without writing a fastfile. The pool suites use a synthetic process and write only report files. These commands do not launch Replay or extract game assets.
+
+The separate [Replay fastfile exporter suite](fastfile.md#validation) also loads these eight linked types through the matching executable's native serialization routines, exports them, and compares their values independently. That round trip does not establish live unsigned-fastfile acceptance or add linker serializers for the other pools.

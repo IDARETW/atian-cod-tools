@@ -599,8 +599,7 @@ namespace tool::mw19::schema {
                 result["bytes"] = HexBytes(Read(ptr, count));
                 return result;
             }
-            if (!stride || count > limits.maxArray || count > limits.maxNodes - std::min(nodes, limits.maxNodes) ||
-                count > (limits.maxBytes - bytes) / stride)
+            if (!stride || count > limits.maxArray || count > (limits.maxBytes - bytes) / stride)
                 throw std::runtime_error("Pointer extent exceeds traversal budget");
             result["count"] = count;
             result["extent_evidence"] = rule->at("evidence");
@@ -608,6 +607,17 @@ namespace tool::mw19::schema {
                 result["status"] = "reference_already_exported";
                 return result;
             }
+            // Large geometry/light-grid arrays have no pointer fixups. Keep
+            // their exact little-endian representation and element schema
+            // instead of expanding millions of duplicate scalar union views.
+            if (limits.compactArrays && count >= 4096 && !ContainsPointers(target)) {
+                result["encoding"] = "hex-little-endian";
+                result["stride"] = stride;
+                result["bytes"] = HexBytes(Read(ptr, count * stride));
+                return result;
+            }
+            if (count > limits.maxNodes - std::min(nodes, limits.maxNodes))
+                throw std::runtime_error("Pointer extent exceeds node budget");
             result["values"] = Json::array();
             for (uint64_t i = 0; i < count; i++)
                 result["values"].push_back(Value(

@@ -175,8 +175,6 @@ namespace tool::mw19::sound {
                      Get<uint32_t>(table, at + 12), Get<uint32_t>(table, at + 16), Get<uint64_t>(table, at + 20),
                      Get<uint32_t>(table, at + 28), Get<uint8_t>(table, at + 32),  Get<uint8_t>(table, at + 33),
                      Get<uint8_t>(table, at + 34) };
-            if (!entries.empty() && entries.back().key >= e.key)
-                throw std::runtime_error("Sound-bank keys must be sorted and unique");
             const uint64_t extent = static_cast<uint64_t>(e.seekBytes) + e.size + e.hybridPcmBytes;
             Range(e.offset, extent, size);
             if (extent && (e.offset < header.size() || Overlaps(e.offset, extent, indexOffset, indexBytes) ||
@@ -184,6 +182,13 @@ namespace tool::mw19::sound {
                 throw std::runtime_error("Sound sample overlaps bank metadata");
             entries.push_back(e);
         }
+        // Fastfile-resident SAB indices can arrive in storage order, before
+        // runtime bank setup. Sort our lookup copy; the exported SAB and its
+        // paired checksum table remain byte-for-byte unchanged.
+        std::sort(entries.begin(), entries.end(), [](const Entry& a, const Entry& b) { return a.key < b.key; });
+        for (size_t i = 1; i < entries.size(); ++i)
+            if (entries[i - 1].key == entries[i].key)
+                throw std::runtime_error("Duplicate sound-bank key: " + std::to_string(entries[i].key));
     }
 
     const Entry* Bank::Find(uint32_t key) const {

@@ -511,6 +511,7 @@ namespace {
             switch (header->headerVersion) {
             case IWFV_MW19: {
                 reader.Read(&ffHeader.mw19, sizeof(ffHeader.mw19));
+                opt.replayFileVersion = ffHeader.mw19.xfileVersion;
                 secureType = ST_MW19;
                 ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks
                                   : ffHeader.mw19.xfileVersion == 0xff7       ? 11
@@ -836,8 +837,10 @@ namespace {
 
                     switch (header->headerVersion) {
                     case IWFV_MW19: {
-                        ctx.blocksCount =
-                            opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks : 8;
+                        opt.replayFileVersion = newHeader.mw19.xfileVersion;
+                        ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks
+                                          : opt.replayFileVersion == 0xff7            ? 11
+                                                                                      : 8;
                         // endSize = ...;
                         blockSizes = newHeader.mw19.blockSize;
                         break;
@@ -1111,6 +1114,11 @@ namespace {
             if (hasFcFile) {
                 ApplyDeltaFile(fileFCBuff, fcfile, "fc");
             }
+            if (opt.handler && !std::strcmp(opt.handler->name, "mw19replay") &&
+                (header->headerVersion != IWFV_MW19 || opt.replayFileVersion != 0xff7))
+                throw std::runtime_error(
+                    "mw19replay requires final fastfile XFile version 0xff7 (apply matching patches with -p)"
+                );
             if (opt.m_header) {
                 WriteHeaderFile("Decompressed size: 0x{:x}", ffdata.size());
             }

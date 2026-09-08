@@ -1,6 +1,8 @@
-# MW2019 Replay pool reader and asset dump support
+# MW2019 Replay pool reader and fastfile exporter
 
 The `mw19pools` command provides a versioned pool catalog, allocated-asset inventory, raw headers, structured field traversal, and format exporters. It uses a read-only Windows process handle and does not inject code or call game functions.
+
+The separate [`mw19replay` fastfile handler](fastfile.md) loads all 111 enabled Replay types from final XFile version `0xff7` and exports the same conventional or structured formats. It maps the owner's matching executable locally and redirects its generated serialization routines to bounded streams; the game entrypoint, renderer and runtime asset registration are not started. Its `--test` mode exercises a bounded sample per type entirely in memory and writes only two reports per zone.
 
 The current target is **1.20.4.7623265 Replay**, `game_dx12_ship_replay.exe`. The catalog contains **117 pool IDs**: 112 nonzero root structures, including the disabled IES pool, and five unused types. All 117 names, sizes, alignments, capacities, defaults and allocator bindings were checked against the executable. Native loader bindings exist for the 111 enabled types. See [the complete pool table](pools.md).
 
@@ -64,7 +66,7 @@ The DDS exporter covers the 46 usable pixel-format entries verified against Repl
 
 The output uses Microsoft's [DDS header](https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-header) and [DX10 extension](https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-header-dxt10). Native layout evidence is recorded under the Replay profile's `image_layout`: conversion tables at RVAs `0x23E25F0`/`0x23E4140`, aligned mip size at `0x193BA50`, and subresource offset at `0x193BAE0`.
 
-**Replay clears nonstreamed `GfxImage.pixels` after GPU upload**, confirmed by the native instruction at RVA `0x193888D`. Those images require retained CPU bytes, such as a loader capture, and report `image_uploaded` when unavailable. Fastfile capture/GPU readback remain unfinished. The game-test console image layout is not treated as the PC layout.
+**Replay clears nonstreamed `GfxImage.pixels` after GPU upload**, confirmed by the native instruction at RVA `0x193888D`. The process reader reports `image_uploaded` when those CPU bytes are unavailable. The `mw19replay` fastfile exporter retains the serialized pixels before that upload, allowing resident DDS export without a running game. GPU readback remains outside these commands. The game-test console image layout is not treated as the PC layout.
 
 For streamed images, supply the loose XPak archives that contain the selected image's keys:
 

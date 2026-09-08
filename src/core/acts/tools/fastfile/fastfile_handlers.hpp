@@ -122,6 +122,12 @@ namespace fastfile {
         std::unordered_map<uint64_t, const char*> translationKeys{};
         core::memory_allocator::MemoryAllocator alloc{};
         const tool::gsc::formatter::FormatterInfo* gscFormatter{};
+        // Replay capability tests never emit asset payloads or decompressed files.
+        bool replayTest{};
+        size_t replayLimit{ 1 };
+        std::vector<std::filesystem::path> replayPackages;
+        std::filesystem::path replayOodle;
+        uint32_t replayFileVersion{};
 
         FastFileOption();
         ~FastFileOption();

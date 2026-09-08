@@ -7,6 +7,19 @@ from copy import deepcopy
 
 
 def apply(rules, types):
+    # Native DF4880 reads 16 * (m_NumPoints - 1) bytes, not the
+    # decompiler's incorrectly parenthesized (16 * m_NumPoints - 1).
+    if 'TacticalGraph' in types:
+        rules.setdefault('TacticalGraph', {})['m_VisGraph'] = dict(
+            count=dict(op='sub', args=[dict(owner='TacticalGraph', path=['m_NumPoints']), 1]),
+            evidence='native_replay_loader', native_rva=0xdf4880,
+            expression='m_NumPoints - 1')
+        rules.setdefault('TacVisGraphRow', {})['m_Vis'] = dict(
+            count=dict(op='add', args=[dict(op='shr', args=[dict(op='sub', args=[
+                dict(owner='TacVisGraphRow', path=['m_End']),
+                dict(owner='TacVisGraphRow', path=['m_Start'])]), 3]), 1]),
+            evidence='game_test_integer_bitset_extent', source_file='archive_impl_tactical_graph_db.h',
+            source_line=2221, expression='((m_End - m_Start) >> 3) + 1')
     references = [
         ('TTFDef', 'ftFace', 'FreeType face created by FT_New_Memory_Face from the font file',
          'gfx_d3d/r_fontcache.cpp', 496, 'TTFDef.file'),

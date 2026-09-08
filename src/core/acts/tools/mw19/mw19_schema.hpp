@@ -19,6 +19,7 @@ namespace tool::mw19::schema {
         size_t maxArray{ 65536 };
         size_t maxString{ 65536 };
         size_t maxDepth{ 32 };
+        bool compactArrays{ false }; // Lossless typed bytes for large pointer-free arrays.
     };
 
     class Database {

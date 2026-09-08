@@ -3484,6 +3484,8 @@
         "GfxShaderBufferView": "Replay::GfxShaderBufferView",
         "ClientSideEffects": "Replay::ClientSideEffects",
         "GfxWorldSurfaces": "Replay::GfxWorldSurfaces",
+        "WeaponSFXPackageSounds": "Replay::WeaponSFXPackageSounds",
+        "WeaponDef": "Replay::WeaponDef",
         "GfxWorldDraw": "Replay::GfxWorldDraw",
         "WeaponAttachment": "Replay::WeaponAttachment",
         "StDiskTerrainSurface": "Replay::StDiskTerrainSurface",
@@ -74937,82 +74939,5676 @@
           "type": "unsigned int"
         },
         {
-          "name": "himipRadiusInvSqCompactedCount",
-          "offset_bits": 320,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "himipRadiusInvSqBModelCompactedCount",
-          "offset_bits": 352,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "himipRadiusInvSqBModelSurfaceCount",
-          "offset_bits": 384,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
           "name": "surfaces",
-          "offset_bits": 448,
-          "size_bits": 64,
-          "type": "GfxSurface *"
-        },
-        {
-          "name": "surfacesTransientZone",
-          "offset_bits": 512,
-          "size_bits": 64,
-          "type": "unsigned __int16 *"
+          "type": "GfxSurface *",
+          "offset_bits": 320,
+          "size_bits": 64
         },
         {
           "name": "surfaceBounds",
-          "offset_bits": 576,
-          "size_bits": 64,
-          "type": "GfxSurfaceBounds *"
-        },
-        {
-          "name": "himipRadiusInvSqIndirection",
-          "offset_bits": 640,
-          "size_bits": 64,
-          "type": "unsigned int *"
-        },
-        {
-          "name": "himipRadiusInvSqCompacted",
-          "offset_bits": 704,
-          "size_bits": 64,
-          "type": "float *"
-        },
-        {
-          "name": "himipRadiusInvSqBmodelIndirection",
-          "offset_bits": 768,
-          "size_bits": 64,
-          "type": "unsigned int *"
-        },
-        {
-          "name": "himipRadiusInvSqBmodelSurfaceIndirection",
-          "offset_bits": 832,
-          "size_bits": 64,
-          "type": "unsigned int *"
-        },
-        {
-          "name": "himipRadiusInvSqBModelCompacted",
-          "offset_bits": 896,
-          "size_bits": 64,
-          "type": "float *"
+          "type": "GfxSurfaceBounds *",
+          "offset_bits": 384,
+          "size_bits": 64
         },
         {
           "name": "surfaceMaterials",
-          "offset_bits": 960,
-          "size_bits": 64,
-          "type": "GfxDrawSurf *"
+          "type": "GfxDrawSurf *",
+          "offset_bits": 448,
+          "size_bits": 64
         },
         {
           "name": "surfData",
+          "type": "GfxWorldSurfData *",
+          "offset_bits": 512,
+          "size_bits": 64
+        },
+        {
+          "name": "surfDataBuffer",
+          "type": "GfxWrappedBuffer",
+          "offset_bits": 576,
+          "size_bits": 512
+        }
+      ]
+    },
+    "Replay::WeaponSFXPackageSounds": {
+      "name": "Replay::WeaponSFXPackageSounds",
+      "size": 776,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "name",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "pickupSound",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "pickupSoundPlayer",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "ammoPickupSound",
+          "offset_bits": 192,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "ammoPickupSoundPlayer",
+          "offset_bits": 256,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "projectileSound",
+          "offset_bits": 320,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "pullbackSound",
+          "offset_bits": 384,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "pullbackSoundPlayer",
+          "offset_bits": 448,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "pullbackSoundQuick",
+          "offset_bits": 512,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "pullbackSoundQuickPlayer",
+          "offset_bits": 576,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "preFireSound",
+          "offset_bits": 640,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "preFireSoundPlayer",
+          "offset_bits": 704,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSound",
+          "offset_bits": 768,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundPlayer",
+          "offset_bits": 832,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundPlayerAkimbo",
+          "offset_bits": 896,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundPlayerAkimboRight",
+          "offset_bits": 960,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundAtmosphere",
           "offset_bits": 1024,
           "size_bits": 64,
-          "type": "GfxWorldSurfData *"
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundAtmospherePlayer",
+          "offset_bits": 1088,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundAtmospherePlayerAkimbo",
+          "offset_bits": 1152,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireSoundAtmospherePlayerAkimboRight",
+          "offset_bits": 1216,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireStartSound",
+          "offset_bits": 1280,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireStartSoundPlayer",
+          "offset_bits": 1344,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLoopSound",
+          "offset_bits": 1408,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLoopSoundPlayer",
+          "offset_bits": 1472,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireStopSound",
+          "offset_bits": 1536,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireStopSoundPlayer",
+          "offset_bits": 1600,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireFirstSound",
+          "offset_bits": 1664,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireFirstSoundPlayer",
+          "offset_bits": 1728,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireFirstSoundPlayerAkimbo",
+          "offset_bits": 1792,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireFirstSoundPlayerAkimboRight",
+          "offset_bits": 1856,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireHyperBurstSound",
+          "offset_bits": 1920,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireHyperBurstSoundPlayer",
+          "offset_bits": 1984,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireHyperBurstSoundPlayerAkimbo",
+          "offset_bits": 2048,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireHyperBurstSoundPlayerAkimboRight",
+          "offset_bits": 2112,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLastSound",
+          "offset_bits": 2176,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLastSoundPlayer",
+          "offset_bits": 2240,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLastSoundPlayerAkimbo",
+          "offset_bits": 2304,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "fireLastSoundPlayerAkimboRight",
+          "offset_bits": 2368,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "regenerateSound",
+          "offset_bits": 2432,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "regenerateSoundPlayer",
+          "offset_bits": 2496,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "regenerateAddSound",
+          "offset_bits": 2560,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "regenerateAddSoundPlayer",
+          "offset_bits": 2624,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "emptyFireSound",
+          "offset_bits": 2688,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "emptyFireSoundPlayer",
+          "offset_bits": 2752,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "emptyRegenFireSound",
+          "offset_bits": 2816,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "emptyRegenFireSoundPlayer",
+          "offset_bits": 2880,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "rechamberSound",
+          "offset_bits": 2944,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "rechamberSoundPlayer",
+          "offset_bits": 3008,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadSound",
+          "offset_bits": 3072,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadSoundPlayer",
+          "offset_bits": 3136,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEmptySound",
+          "offset_bits": 3200,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEmptySoundPlayer",
+          "offset_bits": 3264,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadStartSound",
+          "offset_bits": 3328,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadStartSoundPlayer",
+          "offset_bits": 3392,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEndSound",
+          "offset_bits": 3456,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEndSoundPlayer",
+          "offset_bits": 3520,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEndRechamberSound",
+          "offset_bits": 3584,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "reloadEndRechamberSoundPlayer",
+          "offset_bits": 3648,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "detonateSound",
+          "offset_bits": 3712,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "detonateSoundPlayer",
+          "offset_bits": 3776,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "nightVisionWearSound",
+          "offset_bits": 3840,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "nightVisionWearSoundPlayer",
+          "offset_bits": 3904,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "nightVisionRemoveSound",
+          "offset_bits": 3968,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "nightVisionRemoveSoundPlayer",
+          "offset_bits": 4032,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "altSwitchSound",
+          "offset_bits": 4096,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "altSwitchSoundPlayer",
+          "offset_bits": 4160,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "raiseSound",
+          "offset_bits": 4224,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "raiseSoundPlayer",
+          "offset_bits": 4288,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "firstRaiseSound",
+          "offset_bits": 4352,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "firstRaiseSoundPlayer",
+          "offset_bits": 4416,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "putawaySound",
+          "offset_bits": 4480,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "putawaySoundPlayer",
+          "offset_bits": 4544,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "enterAdsSound",
+          "offset_bits": 4608,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "enterAdsSoundPlayer",
+          "offset_bits": 4672,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "leaveAdsSound",
+          "offset_bits": 4736,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "leaveAdsSoundPlayer",
+          "offset_bits": 4800,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "scanSound",
+          "offset_bits": 4864,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "changeVariableZoomSound",
+          "offset_bits": 4928,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "bulletRicochetImpact",
+          "offset_bits": 4992,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "projExplosionSound",
+          "offset_bits": 5056,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "projDudSound",
+          "offset_bits": 5120,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "projTimeoutSound",
+          "offset_bits": 5184,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "projIgnitionSound",
+          "offset_bits": 5248,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "bounceSound",
+          "offset_bits": 5312,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "bounceSoundHeavy",
+          "offset_bits": 5376,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "bounceSoundMedium",
+          "offset_bits": 5440,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "bounceSoundSoft",
+          "offset_bits": 5504,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "rollingSound",
+          "offset_bits": 5568,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "turretSpinSnd",
+          "offset_bits": 5632,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "turretStopSnd",
+          "offset_bits": 5696,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "triggerDisconnectSound",
+          "offset_bits": 5760,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "triggerDisconnectSoundPlayerAkimbo",
+          "offset_bits": 5824,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "triggerDisconnectSoundPlayerAkimboRight",
+          "offset_bits": 5888,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "dlcSound0",
+          "offset_bits": 5952,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "dlcSound0Player",
+          "offset_bits": 6016,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "dlcSound1",
+          "offset_bits": 6080,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "dlcSound1Player",
+          "offset_bits": 6144,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        }
+      ]
+    },
+    "Replay::WeaponDef": {
+      "name": "Replay::WeaponDef",
+      "size": 5296,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "szOverlayName",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "gunXModel",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "gunXModelLeftHand",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "gunXModelRightHand",
+          "offset_bits": 192,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "defaultViewModel",
+          "offset_bits": 256,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "defaultWorldModelLeftHand",
+          "offset_bits": 320,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "defaultWorldModelRightHand",
+          "offset_bits": 384,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "worldModel",
+          "offset_bits": 448,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "worldXModelLeftHand",
+          "offset_bits": 512,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "worldXModelRightHand",
+          "offset_bits": 576,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "defaultWorldModel",
+          "offset_bits": 640,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "censorshipWorldModel",
+          "offset_bits": 704,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "censorshipWorldModelLeftHand",
+          "offset_bits": 768,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "censorshipWorldModelRightHand",
+          "offset_bits": 832,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "playerShadowModel",
+          "offset_bits": 896,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "playerShadowModelLeftHand",
+          "offset_bits": 960,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "playerShadowModelRightHand",
+          "offset_bits": 1024,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "handXModel",
+          "offset_bits": 1088,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "szXAnims",
+          "offset_bits": 1152,
+          "size_bits": 64,
+          "type": "WeaponAnimPackage *"
+        },
+        {
+          "name": "szXAnimsRightHanded",
+          "offset_bits": 1216,
+          "size_bits": 64,
+          "type": "WeaponAnimPackage *"
+        },
+        {
+          "name": "szXAnimsLeftHanded",
+          "offset_bits": 1280,
+          "size_bits": 64,
+          "type": "WeaponAnimPackage *"
+        },
+        {
+          "name": "turretRaiseAnim",
+          "offset_bits": 1344,
+          "size_bits": 64,
+          "type": "XAnimParts *"
+        },
+        {
+          "name": "turretIdleAnim",
+          "offset_bits": 1408,
+          "size_bits": 64,
+          "type": "XAnimParts *"
+        },
+        {
+          "name": "turretFireAnim",
+          "offset_bits": 1472,
+          "size_bits": 64,
+          "type": "XAnimParts *"
+        },
+        {
+          "name": "damageInfo",
+          "offset_bits": 1536,
+          "size_bits": 1024,
+          "type": "WeaponDamageInfo"
+        },
+        {
+          "name": "iFireTime",
+          "offset_bits": 2560,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iFireDelay",
+          "offset_bits": 2592,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iFireTimeAkimbo",
+          "offset_bits": 2624,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iFireDelayAkimbo",
+          "offset_bits": 2656,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "sprintOutTimerScale",
+          "offset_bits": 2688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "szModeName",
+          "offset_bits": 2752,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "notetrackRumbleMapKeys",
+          "offset_bits": 2816,
+          "size_bits": 64,
+          "type": "scr_string_t *"
+        },
+        {
+          "name": "notetrackRumbleMapValues",
+          "offset_bits": 2880,
+          "size_bits": 64,
+          "type": "scr_string_t *"
+        },
+        {
+          "name": "notetrackFXMapKeys",
+          "offset_bits": 2944,
+          "size_bits": 64,
+          "type": "scr_string_t *"
+        },
+        {
+          "name": "notetrackFXMapValues",
+          "offset_bits": 3008,
+          "size_bits": 64,
+          "type": "FxCombinedDef *"
+        },
+        {
+          "name": "notetrackFXMapTagValues",
+          "offset_bits": 3072,
+          "size_bits": 64,
+          "type": "scr_string_t *"
+        },
+        {
+          "name": "playerAnimType",
+          "offset_bits": 3136,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "scriptedAnimEvent",
+          "offset_bits": 3168,
+          "size_bits": 32,
+          "type": "scriptedAnimEvent_t"
+        },
+        {
+          "name": "scriptedAnimType",
+          "offset_bits": 3200,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "weapType",
+          "offset_bits": 3232,
+          "size_bits": 32,
+          "type": "weapType_t"
+        },
+        {
+          "name": "weapClass",
+          "offset_bits": 3264,
+          "size_bits": 32,
+          "type": "weapClass_t"
+        },
+        {
+          "name": "penetrateType",
+          "offset_bits": 3296,
+          "size_bits": 32,
+          "type": "PenetrateType"
+        },
+        {
+          "name": "inventoryType",
+          "offset_bits": 3328,
+          "size_bits": 32,
+          "type": "weapInventoryType_t"
+        },
+        {
+          "name": "fireType",
+          "offset_bits": 3360,
+          "size_bits": 32,
+          "type": "weapFireType_t"
+        },
+        {
+          "name": "turretFireType",
+          "offset_bits": 3392,
+          "size_bits": 32,
+          "type": "turretFireType_t"
+        },
+        {
+          "name": "burstCount",
+          "offset_bits": 3424,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "targetAssistType",
+          "offset_bits": 3456,
+          "size_bits": 32,
+          "type": "targetAssistType_t"
+        },
+        {
+          "name": "targetAssistBehavior",
+          "offset_bits": 3488,
+          "size_bits": 32,
+          "type": "targetAssistBehavior_t"
+        },
+        {
+          "name": "targetAssistRange",
+          "offset_bits": 3520,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "targetAssistAngle",
+          "offset_bits": 3552,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "targetAssistLosOffsetForward",
+          "offset_bits": 3584,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "targetAssistLosOffsetRight",
+          "offset_bits": 3616,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "targetAssistLosOffsetUp",
+          "offset_bits": 3648,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "targetAssistOnlyAvailableInAds",
+          "offset_bits": 3680,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "reloadType",
+          "offset_bits": 3712,
+          "size_bits": 32,
+          "type": "ReloadType"
+        },
+        {
+          "name": "burstFireCooldown",
+          "offset_bits": 3744,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "burstFireAuto",
+          "offset_bits": 3776,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "viewPitchMaxSpeed",
+          "offset_bits": 3808,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewYawMaxSpeed",
+          "offset_bits": 3840,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "alignBarrelWithTurretBody",
+          "offset_bits": 3872,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "keepOrientationOnExit",
+          "offset_bits": 3880,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "kickBackForceMultiplier",
+          "offset_bits": 3904,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "autoAdjust",
+          "offset_bits": 3936,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "networkLODRangeOverride",
+          "offset_bits": 3944,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "networkLODRangeOverrideDistance",
+          "offset_bits": 3968,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "offhandClass",
+          "offset_bits": 4000,
+          "size_bits": 32,
+          "type": "OffhandClass"
+        },
+        {
+          "name": "stance",
+          "offset_bits": 4032,
+          "size_bits": 32,
+          "type": "weapStance_t"
+        },
+        {
+          "name": "vfxPackage",
+          "offset_bits": 4096,
+          "size_bits": 64,
+          "type": "WeaponVFXPackage *"
+        },
+        {
+          "name": "sfxPackage",
+          "offset_bits": 4160,
+          "size_bits": 64,
+          "type": "WeaponSFXPackage *"
+        },
+        {
+          "name": "disableBreathOffhand",
+          "offset_bits": 4224,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "reticleType",
+          "offset_bits": 4256,
+          "size_bits": 32,
+          "type": "ReticleType"
+        },
+        {
+          "name": "hitmarkerType",
+          "offset_bits": 4288,
+          "size_bits": 32,
+          "type": "HitmarkerType"
+        },
+        {
+          "name": "reticleCenter",
+          "offset_bits": 4352,
+          "size_bits": 64,
+          "type": "Material *"
+        },
+        {
+          "name": "reticleSide",
+          "offset_bits": 4416,
+          "size_bits": 64,
+          "type": "Material *"
+        },
+        {
+          "name": "reticleOnePiece",
+          "offset_bits": 4480,
+          "size_bits": 64,
+          "type": "Material *"
+        },
+        {
+          "name": "iReticleCenterSize",
+          "offset_bits": 4544,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iReticleSideSize",
+          "offset_bits": 4576,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iReticleMinOfs",
+          "offset_bits": 4608,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "reticleCenterPulse",
+          "offset_bits": 4640,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "iReticleShakeDuration",
+          "offset_bits": 4672,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iReticleSettleDuration",
+          "offset_bits": 4704,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iReticleNumBulletsToRapidFire",
+          "offset_bits": 4736,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "activeReticleType",
+          "offset_bits": 4768,
+          "size_bits": 32,
+          "type": "activeReticleType_t"
+        },
+        {
+          "name": "useTurretViewmodelAnims",
+          "offset_bits": 4800,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useTurret3pIK",
+          "offset_bits": 4808,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "turret3pAnimType",
+          "offset_bits": 4832,
+          "size_bits": 32,
+          "type": "turret3pAnimType_t"
+        },
+        {
+          "name": "turretFireAnimMinTime",
+          "offset_bits": 4864,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "vStandOfs",
+          "offset_bits": 4896,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vStandOfsRot",
+          "offset_bits": 4992,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vStandOfsRotPivot",
+          "offset_bits": 5088,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vStandMove",
+          "offset_bits": 5184,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vStandRot",
+          "offset_bits": 5280,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "strafeMove",
+          "offset_bits": 5376,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "strafeRot",
+          "offset_bits": 5472,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "hipOffsetLerpType",
+          "offset_bits": 5568,
+          "size_bits": 32,
+          "type": "AdsOffsetInterpolationType"
+        },
+        {
+          "name": "vDuckedOfs",
+          "offset_bits": 5600,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vDuckedOfsRot",
+          "offset_bits": 5696,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vDuckedOfsRotPivot",
+          "offset_bits": 5792,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vDuckedMove",
+          "offset_bits": 5888,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vDuckedRot",
+          "offset_bits": 5984,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vProneOfs",
+          "offset_bits": 6080,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vProneMove",
+          "offset_bits": 6176,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "vProneRot",
+          "offset_bits": 6272,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "adsForwardOffset",
+          "offset_bits": 6368,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsRoll",
+          "offset_bits": 6400,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fPosMoveRate",
+          "offset_bits": 6432,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fPosProneMoveRate",
+          "offset_bits": 6464,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fStandMoveMinSpeed",
+          "offset_bits": 6496,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fDuckedMoveMinSpeed",
+          "offset_bits": 6528,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fProneMoveMinSpeed",
+          "offset_bits": 6560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fPosRotRate",
+          "offset_bits": 6592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fPosProneRotRate",
+          "offset_bits": 6624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fDuckedOfsRotRate",
+          "offset_bits": 6656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fStandRotMinSpeed",
+          "offset_bits": 6688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fDuckedRotMinSpeed",
+          "offset_bits": 6720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fProneRotMinSpeed",
+          "offset_bits": 6752,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fReticleShakeMagnitude",
+          "offset_bits": 6784,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fReticleRapidFireMultiplier",
+          "offset_bits": 6816,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "worldClipModel",
+          "offset_bits": 6848,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "rocketModel",
+          "offset_bits": 6912,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "hudIcon",
+          "offset_bits": 6976,
+          "size_bits": 64,
+          "type": "GfxImage *"
+        },
+        {
+          "name": "pickupIcon",
+          "offset_bits": 7040,
+          "size_bits": 64,
+          "type": "GfxImage *"
+        },
+        {
+          "name": "dangerIconImg",
+          "offset_bits": 7104,
+          "size_bits": 64,
+          "type": "GfxImage *"
+        },
+        {
+          "name": "throwBackIconImg",
+          "offset_bits": 7168,
+          "size_bits": 64,
+          "type": "GfxImage *"
+        },
+        {
+          "name": "dangerIconMat",
+          "offset_bits": 7232,
+          "size_bits": 64,
+          "type": "Material *"
+        },
+        {
+          "name": "throwBackIconMat",
+          "offset_bits": 7296,
+          "size_bits": 64,
+          "type": "Material *"
+        },
+        {
+          "name": "hideWarningIcons",
+          "offset_bits": 7360,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "warningIconsDelay",
+          "offset_bits": 7392,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "ammoCounterClip",
+          "offset_bits": 7424,
+          "size_bits": 32,
+          "type": "ammoCounterClipType_t"
+        },
+        {
+          "name": "iStartAmmo",
+          "offset_bits": 7456,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iPerkStartAmmo",
+          "offset_bits": 7488,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iPerkMaxAmmo",
+          "offset_bits": 7520,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "szAmmoName",
+          "offset_bits": 7552,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "iAmmoIndex",
+          "offset_bits": 7616,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iMaxAmmo",
+          "offset_bits": 7648,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "shotCount",
+          "offset_bits": 7680,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "szSharedAmmoCapName",
+          "offset_bits": 7744,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "iSharedAmmoCapIndex",
+          "offset_bits": 7808,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iSharedAmmoCap",
+          "offset_bits": 7840,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iAmmoUsedPerShot",
+          "offset_bits": 7872,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "requireAmmoUsedPerShot",
+          "offset_bits": 7904,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableNoAmmoWarning",
+          "offset_bits": 7912,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "lowAmmoWarningThreshold",
+          "offset_bits": 7936,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "lowAmmoWarningCount",
+          "offset_bits": 7968,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iDamageType",
+          "offset_bits": 8000,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iMeleeDamage",
+          "offset_bits": 8032,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iMeleeCountToFinisher",
+          "offset_bits": 8064,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "hasMeleeFinisher",
+          "offset_bits": 8096,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "autoAimRange",
+          "offset_bits": 8128,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistRange",
+          "offset_bits": 8160,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistRangeAds",
+          "offset_bits": 8192,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistPitchSlowdown",
+          "offset_bits": 8224,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistPitchSlowdownAds",
+          "offset_bits": 8256,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistYawSlowdown",
+          "offset_bits": 8288,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistYawSlowdownAds",
+          "offset_bits": 8320,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimAssistLockonStrength",
+          "offset_bits": 8352,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aimPadding",
+          "offset_bits": 8384,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "enemyCrosshairRange",
+          "offset_bits": 8416,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "moveSpeedScale",
+          "offset_bits": 8448,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsMoveSpeedScale",
+          "offset_bits": 8480,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "sprintDurationScale",
+          "offset_bits": 8512,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "sprintRestoreDelay",
+          "offset_bits": 8544,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "overlay",
+          "offset_bits": 8576,
+          "size_bits": 896,
+          "type": "ADSOverlay"
+        },
+        {
+          "name": "overlayInterface",
+          "offset_bits": 9472,
+          "size_bits": 32,
+          "type": "WeapOverlayInteface_t"
+        },
+        {
+          "name": "fAdsBobFactor",
+          "offset_bits": 9504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewBobMult",
+          "offset_bits": 9536,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobPitchScale",
+          "offset_bits": 9568,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobYawScale",
+          "offset_bits": 9600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobTiltPitchScale",
+          "offset_bits": 9632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobTiltYawScale",
+          "offset_bits": 9664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobTiltRollScale",
+          "offset_bits": 9696,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobTiltBulletDirScale",
+          "offset_bits": 9728,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobTiltOffset",
+          "offset_bits": 9760,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunBobCrouchFactor",
+          "offset_bits": 9792,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsCrouchViewKickFactor",
+          "offset_bits": 9824,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsCrouchGunKickFactor",
+          "offset_bits": 9856,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsProneViewKickFactor",
+          "offset_bits": 9888,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsProneGunKickFactor",
+          "offset_bits": 9920,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadStandMin",
+          "offset_bits": 9952,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadDuckedMin",
+          "offset_bits": 9984,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadProneMin",
+          "offset_bits": 10016,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadSprintMin",
+          "offset_bits": 10048,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadInAirMin",
+          "offset_bits": 10080,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadStandMax",
+          "offset_bits": 10112,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadDuckedMax",
+          "offset_bits": 10144,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadProneMax",
+          "offset_bits": 10176,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadSprintMax",
+          "offset_bits": 10208,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadInAirMax",
+          "offset_bits": 10240,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadDecayRate",
+          "offset_bits": 10272,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadFireAdd",
+          "offset_bits": 10304,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadTurnAdd",
+          "offset_bits": 10336,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadMoveAdd",
+          "offset_bits": 10368,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadDuckedDecay",
+          "offset_bits": 10400,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipSpreadProneDecay",
+          "offset_bits": 10432,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadSprintDecay",
+          "offset_bits": 10464,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadInAirDecay",
+          "offset_bits": 10496,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipReticleSidePos",
+          "offset_bits": 10528,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsIdleAmount",
+          "offset_bits": 10560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipIdleAmount",
+          "offset_bits": 10592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsIdleSpeed",
+          "offset_bits": 10624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipIdleSpeed",
+          "offset_bits": 10656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fIdleCrouchFactor",
+          "offset_bits": 10688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fIdleProneFactor",
+          "offset_bits": 10720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fGunMaxPitch",
+          "offset_bits": 10752,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fGunMaxYaw",
+          "offset_bits": 10784,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fViewMaxPitch",
+          "offset_bits": 10816,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fViewMaxYaw",
+          "offset_bits": 10848,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsIdleLerpStartTime",
+          "offset_bits": 10880,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsIdleLerpTime",
+          "offset_bits": 10912,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "useUninterruptedAdsIdleMotion",
+          "offset_bits": 10944,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableInputDrivenViewReturnDampening",
+          "offset_bits": 10952,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "slideSpreadMin",
+          "offset_bits": 10976,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "slideSpreadMax",
+          "offset_bits": 11008,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "slideSpreadDecayRate",
+          "offset_bits": 11040,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "slideSpreadFireAdd",
+          "offset_bits": 11072,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "slideSpreadTurnAdd",
+          "offset_bits": 11104,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "swaySettings",
+          "offset_bits": 11136,
+          "size_bits": 2048,
+          "type": "SwaySettings"
+        },
+        {
+          "name": "adsFireRateScale",
+          "offset_bits": 13184,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsDamageRangeScale",
+          "offset_bits": 13216,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsFireAnimFrac",
+          "offset_bits": 13248,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fireTimerLerpToAdsScale",
+          "offset_bits": 13280,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "alwaysFireAtMaxRangeInAds",
+          "offset_bits": 13312,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "adsAlignEnabled",
+          "offset_bits": 13320,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableTagAlignX",
+          "offset_bits": 13328,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "adsAlignOffset",
+          "offset_bits": 13344,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "adsAlignOffsetLerpType",
+          "offset_bits": 13440,
+          "size_bits": 32,
+          "type": "AdsOffsetInterpolationType"
+        },
+        {
+          "name": "adsAlignLerpType",
+          "offset_bits": 13472,
+          "size_bits": 32,
+          "type": "AdsOffsetInterpolationType"
+        },
+        {
+          "name": "adsMovementAnimLerpStart",
+          "offset_bits": 13504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsMovementAnimLerpEnd",
+          "offset_bits": 13536,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "dualWieldViewModelOffset",
+          "offset_bits": 13568,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftDelay",
+          "offset_bits": 13600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftLerpInTime",
+          "offset_bits": 13632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftSteadyTime",
+          "offset_bits": 13664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftLerpOutTime",
+          "offset_bits": 13696,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftSteadyFactor",
+          "offset_bits": 13728,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fScopeDriftUnsteadyFactor",
+          "offset_bits": 13760,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "killIconRatio",
+          "offset_bits": 13792,
+          "size_bits": 32,
+          "type": "weaponIconRatioType_t"
+        },
+        {
+          "name": "iReloadAmmoAdd",
+          "offset_bits": 13824,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iReloadStartAdd",
+          "offset_bits": 13856,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "reloadTwoRound",
+          "offset_bits": 13888,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "ammoDropStockMin",
+          "offset_bits": 13920,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "ammoDropClipPercentMin",
+          "offset_bits": 13952,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "ammoDropClipPercentMax",
+          "offset_bits": 13984,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "cameraShakeScale",
+          "offset_bits": 14016,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "cameraShakeDuration",
+          "offset_bits": 14048,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "cameraShakeRadius",
+          "offset_bits": 14080,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "iExplosionRadius",
+          "offset_bits": 14112,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iExplosionRadiusMin",
+          "offset_bits": 14144,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iExplosionForceRadius",
+          "offset_bits": 14176,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iExplosionInnerDamage",
+          "offset_bits": 14208,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iExplosionOuterDamage",
+          "offset_bits": 14240,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "explosionForceScalar",
+          "offset_bits": 14272,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "damageConeAngle",
+          "offset_bits": 14304,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletExplDmgMultMin",
+          "offset_bits": 14336,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletExplDmgMult",
+          "offset_bits": 14368,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletExplRadiusMult",
+          "offset_bits": 14400,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "iProjectileSpeed",
+          "offset_bits": 14432,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iProjectileSpeedUp",
+          "offset_bits": 14464,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iProjectileSpeedForward",
+          "offset_bits": 14496,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iProjectileActivateDist",
+          "offset_bits": 14528,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "iProjectileDetonationRadius",
+          "offset_bits": 14560,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "projLifetime",
+          "offset_bits": 14592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "projLifetimeStdDeviation",
+          "offset_bits": 14624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "timeToAccelerate",
+          "offset_bits": 14656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "projectileCurvature",
+          "offset_bits": 14688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "projectileModel",
+          "offset_bits": 14720,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "projExplosion",
+          "offset_bits": 14784,
+          "size_bits": 32,
+          "type": "weapProjExposion_t"
+        },
+        {
+          "name": "projExplosionEffect",
+          "offset_bits": 14848,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "projDudEffect",
+          "offset_bits": 14912,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "projTimeoutEffect",
+          "offset_bits": 14976,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "disableFxOnTimeout",
+          "offset_bits": 15040,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stickiness",
+          "offset_bits": 15072,
+          "size_bits": 32,
+          "type": "WeapStickinessType"
+        },
+        {
+          "name": "ricochetChance",
+          "offset_bits": 15104,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "riotShieldEnableDamage",
+          "offset_bits": 15136,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "riotShieldHealth",
+          "offset_bits": 15168,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "riotShieldDamageMult",
+          "offset_bits": 15200,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "parallelBounce",
+          "offset_bits": 15232,
+          "size_bits": 64,
+          "type": "float *"
+        },
+        {
+          "name": "perpendicularBounce",
+          "offset_bits": 15296,
+          "size_bits": 64,
+          "type": "float *"
+        },
+        {
+          "name": "vmProjBodyEffect",
+          "offset_bits": 15360,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "projBodyEffect",
+          "offset_bits": 15424,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "projTrailEffect",
+          "offset_bits": 15488,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "projBeaconEffect",
+          "offset_bits": 15552,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "vProjectileColor",
+          "offset_bits": 15616,
+          "size_bits": 96,
+          "type": "vec3_t"
+        },
+        {
+          "name": "guidedMissileType",
+          "offset_bits": 15712,
+          "size_bits": 32,
+          "type": "guidedMissileType_t"
+        },
+        {
+          "name": "maxSteeringAccel",
+          "offset_bits": 15744,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "projIgnitionDelay",
+          "offset_bits": 15776,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "projIgnitionEffect",
+          "offset_bits": 15808,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "fAdsAimPitch",
+          "offset_bits": 15872,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsInCrosshairAlphaStart",
+          "offset_bits": 15904,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsInCrosshairAlphaEnd",
+          "offset_bits": 15936,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsOutCrosshairAlphaStart",
+          "offset_bits": 15968,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsOutCrosshairAlphaEnd",
+          "offset_bits": 16000,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsShouldShowCrosshair",
+          "offset_bits": 16032,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "fAdsGunKickPitchMin",
+          "offset_bits": 16064,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickPitchMax",
+          "offset_bits": 16096,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickYawMin",
+          "offset_bits": 16128,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickYawMax",
+          "offset_bits": 16160,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickMagMin",
+          "offset_bits": 16192,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickAccel",
+          "offset_bits": 16224,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickSpeedMax",
+          "offset_bits": 16256,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickSpeedDecay",
+          "offset_bits": 16288,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsGunKickStaticDecay",
+          "offset_bits": 16320,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewKickPitchMin",
+          "offset_bits": 16352,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewKickPitchMax",
+          "offset_bits": 16384,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewKickYawMin",
+          "offset_bits": 16416,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewKickYawMax",
+          "offset_bits": 16448,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewKickMagMin",
+          "offset_bits": 16480,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewScatterMin",
+          "offset_bits": 16512,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsViewScatterMax",
+          "offset_bits": 16544,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsSpread",
+          "offset_bits": 16576,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAdsSpreadNVG",
+          "offset_bits": 16608,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsSpreadStartFrac",
+          "offset_bits": 16640,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsSpreadEndFrac",
+          "offset_bits": 16672,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "iVisibilityAxis",
+          "offset_bits": 16704,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "fVisibilityUpOffset",
+          "offset_bits": 16736,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickPitchMin",
+          "offset_bits": 16768,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickPitchMax",
+          "offset_bits": 16800,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickYawMin",
+          "offset_bits": 16832,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickYawMax",
+          "offset_bits": 16864,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickMagMin",
+          "offset_bits": 16896,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickAccel",
+          "offset_bits": 16928,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickSpeedMax",
+          "offset_bits": 16960,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickSpeedDecay",
+          "offset_bits": 16992,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipGunKickStaticDecay",
+          "offset_bits": 17024,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewKickPitchMin",
+          "offset_bits": 17056,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewKickPitchMax",
+          "offset_bits": 17088,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewKickYawMin",
+          "offset_bits": 17120,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewKickYawMax",
+          "offset_bits": 17152,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewKickMagMin",
+          "offset_bits": 17184,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewScatterMin",
+          "offset_bits": 17216,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fHipViewScatterMax",
+          "offset_bits": 17248,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "multipleReloadClipPercentage",
+          "offset_bits": 17280,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipStartingGunKickPercent",
+          "offset_bits": 17312,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipStartingViewKickPercent",
+          "offset_bits": 17344,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsStartingKickBullets",
+          "offset_bits": 17376,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "adsStartingGunKickPercent",
+          "offset_bits": 17408,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsStartingViewKickPercent",
+          "offset_bits": 17440,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipEndingGunKickPercent",
+          "offset_bits": 17472,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipEndingViewKickPercent",
+          "offset_bits": 17504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsEndingKickBullets",
+          "offset_bits": 17536,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "adsEndingGunKickPercent",
+          "offset_bits": 17568,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsEndingViewKickPercent",
+          "offset_bits": 17600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "kickAlignedInputScalar",
+          "offset_bits": 17632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "kickOpposedInputScalar",
+          "offset_bits": 17664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewKickMaintainFraction",
+          "offset_bits": 17696,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunTiltPitchFactor",
+          "offset_bits": 17728,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunTiltYawFactor",
+          "offset_bits": 17760,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunTiltRollFactor",
+          "offset_bits": 17792,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunTiltOffset",
+          "offset_bits": 17824,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunTiltPitchFactor",
+          "offset_bits": 17856,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunTiltYawFactor",
+          "offset_bits": 17888,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunTiltRollFactor",
+          "offset_bits": 17920,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunTiltOffset",
+          "offset_bits": 17952,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "useNewViewKick",
+          "offset_bits": 17984,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useNewGunKick",
+          "offset_bits": 17992,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useAngularViewKick",
+          "offset_bits": 18000,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useAngularGunKick",
+          "offset_bits": 18008,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "hipAngularViewKickDir",
+          "offset_bits": 18016,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularViewKickDev",
+          "offset_bits": 18208,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularViewKickStrengthMin",
+          "offset_bits": 18400,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularViewKickStrengthMax",
+          "offset_bits": 18592,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularViewKickPitchScale",
+          "offset_bits": 18784,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickDir",
+          "offset_bits": 18976,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickDev",
+          "offset_bits": 19168,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickStrengthMin",
+          "offset_bits": 19360,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickStrengthMax",
+          "offset_bits": 19552,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickPitchScale",
+          "offset_bits": 19744,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularViewKickBullet",
+          "offset_bits": 19936,
+          "size_bits": 192,
+          "type": "int[6]"
+        },
+        {
+          "name": "adsAngularViewKickUseSet",
+          "offset_bits": 20128,
+          "size_bits": 48,
+          "type": "bool[6]"
+        },
+        {
+          "name": "hipAngularGunKickDir",
+          "offset_bits": 20192,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularGunKickDev",
+          "offset_bits": 20384,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularGunKickStrengthMin",
+          "offset_bits": 20576,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularGunKickStrengthMax",
+          "offset_bits": 20768,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "hipAngularGunKickPitchScale",
+          "offset_bits": 20960,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickDir",
+          "offset_bits": 21152,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickDev",
+          "offset_bits": 21344,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickStrengthMin",
+          "offset_bits": 21536,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickStrengthMax",
+          "offset_bits": 21728,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickPitchScale",
+          "offset_bits": 21920,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "adsAngularGunKickBullet",
+          "offset_bits": 22112,
+          "size_bits": 192,
+          "type": "int[6]"
+        },
+        {
+          "name": "adsAngularGunKickUseSet",
+          "offset_bits": 22304,
+          "size_bits": 48,
+          "type": "bool[6]"
+        },
+        {
+          "name": "hipViewKickReturnAccelScale",
+          "offset_bits": 22368,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsViewKickReturnAccelScale",
+          "offset_bits": 22400,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipViewKickReturnSpeedCurveScale",
+          "offset_bits": 22432,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsViewKickReturnSpeedCurveScale",
+          "offset_bits": 22464,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunKickReturnAccelScale",
+          "offset_bits": 22496,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunKickReturnAccelScale",
+          "offset_bits": 22528,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipGunKickReturnSpeedCurveScale",
+          "offset_bits": 22560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsGunKickReturnSpeedCurveScale",
+          "offset_bits": 22592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadStandMoveMax",
+          "offset_bits": 22624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadDuckedMoveMax",
+          "offset_bits": 22656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadProneMoveMax",
+          "offset_bits": 22688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadSprintMoveMax",
+          "offset_bits": 22720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipSpreadInAirMoveMax",
+          "offset_bits": 22752,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "slideSpreadMoveMax",
+          "offset_bits": 22784,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "weaponOffsetCurveHoldFireSlow",
+          "offset_bits": 22816,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "weaponOffsetCurveHoldFireFast",
+          "offset_bits": 23072,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "weaponOffsetCurveAds",
+          "offset_bits": 23328,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "weaponOffsetCurveAlwaysOn",
+          "offset_bits": 23584,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "weaponOffsetCurveKick",
+          "offset_bits": 23840,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "weaponOffsetCurveSnapDecay",
+          "offset_bits": 24096,
+          "size_bits": 256,
+          "type": "WeaponOffsetCurveDescription"
+        },
+        {
+          "name": "numWeaponOffsetPatterns",
+          "offset_bits": 24352,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "weaponOffsetPatterns",
+          "offset_bits": 24384,
+          "size_bits": 64,
+          "type": "WeaponOffsetPatternDescription *"
+        },
+        {
+          "name": "numWeaponOffsetPatternsKickOrSnapDecay",
+          "offset_bits": 24448,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "weaponOffsetPatternsKickOrSnapDecay",
+          "offset_bits": 24512,
+          "size_bits": 64,
+          "type": "WeaponOffsetPatternDescription **"
+        },
+        {
+          "name": "fightDist",
+          "offset_bits": 24576,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "maxDist",
+          "offset_bits": 24608,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "accuracyGraphName",
+          "offset_bits": 24640,
+          "size_bits": 128,
+          "type": "const char *[2]"
+        },
+        {
+          "name": "originalAccuracyGraphKnots",
+          "offset_bits": 24768,
+          "size_bits": 128,
+          "type": "vec2_t *[2]"
+        },
+        {
+          "name": "originalAccuracyGraphKnotCount",
+          "offset_bits": 24896,
+          "size_bits": 32,
+          "type": "unsigned __int16[2]"
+        },
+        {
+          "name": "iPositionReloadTransTime",
+          "offset_bits": 24928,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "leftArc",
+          "offset_bits": 24960,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "rightArc",
+          "offset_bits": 24992,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "topArc",
+          "offset_bits": 25024,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bottomArc",
+          "offset_bits": 25056,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "visualPitchLimitTop",
+          "offset_bits": 25088,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "visualPitchLimitBottom",
+          "offset_bits": 25120,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "softLeftRightArc",
+          "offset_bits": 25152,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "accuracy",
+          "offset_bits": 25184,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aiSpread",
+          "offset_bits": 25216,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerSpread",
+          "offset_bits": 25248,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "minTurnSpeed",
+          "offset_bits": 25280,
+          "size_bits": 64,
+          "type": "float[2]"
+        },
+        {
+          "name": "maxTurnSpeed",
+          "offset_bits": 25344,
+          "size_bits": 64,
+          "type": "float[2]"
+        },
+        {
+          "name": "pitchConvergenceTime",
+          "offset_bits": 25408,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "yawConvergenceTime",
+          "offset_bits": 25440,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "suppressTime",
+          "offset_bits": 25472,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "suppressTimeTargetKilled",
+          "offset_bits": 25504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aiReturnToDefaultSpeed",
+          "offset_bits": 25536,
+          "size_bits": 64,
+          "type": "float[2]"
+        },
+        {
+          "name": "maxRange",
+          "offset_bits": 25600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fAnimHorRotateInc",
+          "offset_bits": 25632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "fPlayerPositionDist",
+          "offset_bits": 25664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "szUseHintString",
+          "offset_bits": 25728,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "dropHintString",
+          "offset_bits": 25792,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "iUseHintStringIndex",
+          "offset_bits": 25856,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "dropHintStringIndex",
+          "offset_bits": 25888,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "horizViewJitter",
+          "offset_bits": 25920,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "vertViewJitter",
+          "offset_bits": 25952,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "enableViewBounceFire",
+          "offset_bits": 25984,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "viewBounceFireDecay",
+          "offset_bits": 26016,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewBounceFireFrequency",
+          "offset_bits": 26048,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewBounceFirePitchScale",
+          "offset_bits": 26080,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewBounceFireRollScale",
+          "offset_bits": 26112,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "scanSpeed",
+          "offset_bits": 26144,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "scanAccel",
+          "offset_bits": 26176,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "scanPauseTime",
+          "offset_bits": 26208,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "szScript",
+          "offset_bits": 26240,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "adsSpeedMs",
+          "offset_bits": 26304,
+          "size_bits": 64,
+          "type": "float[2]"
+        },
+        {
+          "name": "adsAccelSec",
+          "offset_bits": 26368,
+          "size_bits": 64,
+          "type": "float[2]"
+        },
+        {
+          "name": "deferDamageToParentVehicle",
+          "offset_bits": 26432,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useSteppedExplosionDamage",
+          "offset_bits": 26440,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "destabilizationRateTime",
+          "offset_bits": 26464,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "destabilizationCurvatureMax",
+          "offset_bits": 26496,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "destabilizeDistance",
+          "offset_bits": 26528,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "robotechMaxPitch",
+          "offset_bits": 26560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "robotechMaxYaw",
+          "offset_bits": 26592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "robotechFrequency",
+          "offset_bits": 26624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "robotechVariancePitch",
+          "offset_bits": 26656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "robotechVarianceYaw",
+          "offset_bits": 26688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "robotechVarianceFrequency",
+          "offset_bits": 26720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "locationDamageMultipliers",
+          "offset_bits": 26752,
+          "size_bits": 64,
+          "type": "float *"
+        },
+        {
+          "name": "hitLocPriorityMap",
+          "offset_bits": 26816,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "unittypeMultipliers",
+          "offset_bits": 26880,
+          "size_bits": 224,
+          "type": "float[7]"
+        },
+        {
+          "name": "fireRumble",
+          "offset_bits": 27136,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "meleeImpactRumble",
+          "offset_bits": 27200,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "heatAccumulationPerShot",
+          "offset_bits": 27264,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "heatDissipationPerSecond",
+          "offset_bits": 27296,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "heatSmokeStartThreshold",
+          "offset_bits": 27328,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "heatSmokeStopThreshold",
+          "offset_bits": 27360,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "heatIsOpenBolt",
+          "offset_bits": 27392,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "tracerStyle",
+          "offset_bits": 27424,
+          "size_bits": 32,
+          "type": "tracerStyle_t"
+        },
+        {
+          "name": "tracerType",
+          "offset_bits": 27456,
+          "size_bits": 64,
+          "type": "TracerDef *"
+        },
+        {
+          "name": "overchargeTracerType",
+          "offset_bits": 27520,
+          "size_bits": 64,
+          "type": "TracerDef *"
+        },
+        {
+          "name": "laserTypeViewModel",
+          "offset_bits": 27584,
+          "size_bits": 64,
+          "type": "LaserDef *"
+        },
+        {
+          "name": "laserTypeViewModelAlt",
+          "offset_bits": 27648,
+          "size_bits": 64,
+          "type": "LaserDef *"
+        },
+        {
+          "name": "laserTypeFriendly",
+          "offset_bits": 27712,
+          "size_bits": 64,
+          "type": "LaserDef *"
+        },
+        {
+          "name": "laserTypeEnemy",
+          "offset_bits": 27776,
+          "size_bits": 64,
+          "type": "LaserDef *"
+        },
+        {
+          "name": "turretADSEnabled",
+          "offset_bits": 27840,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "turretADSTime",
+          "offset_bits": 27872,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretFov",
+          "offset_bits": 27904,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretFovADS",
+          "offset_bits": 27936,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretScopeZoomRate",
+          "offset_bits": 27968,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretScopeZoomMin",
+          "offset_bits": 28000,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretScopeZoomMax",
+          "offset_bits": 28032,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretOverheatPenalty",
+          "offset_bits": 28064,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretOverheatSound",
+          "offset_bits": 28096,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "turretOverheatEffect",
+          "offset_bits": 28160,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "turretBarrelSpinRumble",
+          "offset_bits": 28224,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "turretBarrelSpinSpeed",
+          "offset_bits": 28288,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretBarrelSpinUpTime",
+          "offset_bits": 28320,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretBarrelSpinDownTime",
+          "offset_bits": 28352,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "turretBarrelSpinMaxSnd",
+          "offset_bits": 28416,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "turretBarrelSpinUpSnd",
+          "offset_bits": 28480,
+          "size_bits": 256,
+          "type": "SndAliasLookup[4]"
+        },
+        {
+          "name": "turretBarrelSpinDownSnd",
+          "offset_bits": 28736,
+          "size_bits": 256,
+          "type": "SndAliasLookup[4]"
+        },
+        {
+          "name": "missileConeSoundAlias",
+          "offset_bits": 28992,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "missileConeSoundAliasAtBase",
+          "offset_bits": 29056,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "missileConeSoundRadiusAtTop",
+          "offset_bits": 29120,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundRadiusAtBase",
+          "offset_bits": 29152,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundHeight",
+          "offset_bits": 29184,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundOriginOffset",
+          "offset_bits": 29216,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundVolumescaleAtCore",
+          "offset_bits": 29248,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundVolumescaleAtEdge",
+          "offset_bits": 29280,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundVolumescaleCoreSize",
+          "offset_bits": 29312,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundPitchAtTop",
+          "offset_bits": 29344,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundPitchAtBottom",
+          "offset_bits": 29376,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundPitchTopSize",
+          "offset_bits": 29408,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundPitchBottomSize",
+          "offset_bits": 29440,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundCrossfadeTopSize",
+          "offset_bits": 29472,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileConeSoundCrossfadeBottomSize",
+          "offset_bits": 29504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "meleeOverrideValues",
+          "offset_bits": 29536,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "aim_automelee_lerp",
+          "offset_bits": 29568,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aim_automelee_region_height",
+          "offset_bits": 29600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aim_automelee_region_width",
+          "offset_bits": 29632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aim_automelee_maxPitchMovement",
+          "offset_bits": 29664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "aim_automelee_maxYawMovement",
+          "offset_bits": 29696,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "player_meleeHeight",
+          "offset_bits": 29728,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "player_meleeWidth",
+          "offset_bits": 29760,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeRangeStanding",
+          "offset_bits": 29792,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeRangeCrouched",
+          "offset_bits": 29824,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeRangeProne",
+          "offset_bits": 29856,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeRangeChargeStanding",
+          "offset_bits": 29888,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeRangeChargeCrouched",
+          "offset_bits": 29920,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "playerMeleeChargeHeightTolerance",
+          "offset_bits": 29952,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldAllowFiring",
+          "offset_bits": 29984,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "shieldMaxSpeed",
+          "offset_bits": 30016,
+          "size_bits": 32,
+          "type": "offhandShieldMaxSpeed_t"
+        },
+        {
+          "name": "shieldAlwaysDisplay",
+          "offset_bits": 30048,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "shieldDeployGesture",
+          "offset_bits": 30080,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "shieldFireWeapGesture",
+          "offset_bits": 30144,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "shieldDeployWhileFiring",
+          "offset_bits": 30208,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "shieldRetractWhileFiring",
+          "offset_bits": 30272,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "shieldBashGesture",
+          "offset_bits": 30336,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "shieldMeleeFx",
+          "offset_bits": 30400,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "shieldMeleeFxDelay",
+          "offset_bits": 30464,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "HitEarthquakeScale",
+          "offset_bits": 30496,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "HitEarthquakeDuration",
+          "offset_bits": 30528,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "HitEarthquakeRadius",
+          "offset_bits": 30560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldHitRumble",
+          "offset_bits": 30592,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "MissEarthquakeScale",
+          "offset_bits": 30656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "MissEarthquakeDuration",
+          "offset_bits": 30688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "MissEarthquakeRadius",
+          "offset_bits": 30720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldMissRumble",
+          "offset_bits": 30784,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "shieldDeployButton",
+          "offset_bits": 30848,
+          "size_bits": 32,
+          "type": "offhandShieldButton_t"
+        },
+        {
+          "name": "shieldUsesEnergy",
+          "offset_bits": 30880,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "shieldMaxEnergy",
+          "offset_bits": 30912,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldConsumptionRate",
+          "offset_bits": 30944,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldMeleeEnergyCost",
+          "offset_bits": 30976,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "shieldMeleeHitEnergyCost",
+          "offset_bits": 31008,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "reactiveMotionRadiusScale",
+          "offset_bits": 31040,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "reactiveMotionFrequencyScale",
+          "offset_bits": 31072,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "reactiveMotionAmplitudeScale",
+          "offset_bits": 31104,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "reactiveMotionFalloff",
+          "offset_bits": 31136,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "reactiveMotionLifetime",
+          "offset_bits": 31168,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "transientBaseViewFlags",
+          "offset_bits": 31200,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "transientBaseWorldFlags",
+          "offset_bits": 31208,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "hasAnyTransientModels",
+          "offset_bits": 31216,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "blendFireAnimations",
+          "offset_bits": 31224,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "sharedAmmo",
+          "offset_bits": 31232,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "lockonSupported",
+          "offset_bits": 31240,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "requireLockonToFire",
+          "offset_bits": 31248,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "isAirburstWeapon",
+          "offset_bits": 31256,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bigExplosion",
+          "offset_bits": 31264,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "noAdsWhenMagEmpty",
+          "offset_bits": 31272,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "avoidDropCleanup",
+          "offset_bits": 31280,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "allowGrenadeSwitching",
+          "offset_bits": 31288,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "inheritsPerks",
+          "offset_bits": 31296,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "forceUse",
+          "offset_bits": 31304,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "ladderWeapon",
+          "offset_bits": 31312,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "executionVictimHiddenWeapon",
+          "offset_bits": 31320,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "crosshairColorChange",
+          "offset_bits": 31328,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bRifleBullet",
+          "offset_bits": 31336,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bEnergyBullet",
+          "offset_bits": 31344,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bIncendiaryBullet",
+          "offset_bits": 31352,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "armorPiercing",
+          "offset_bits": 31360,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "impaling",
+          "offset_bits": 31368,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bBoltAction",
+          "offset_bits": 31376,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "aimDownSight",
+          "offset_bits": 31384,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "canHoldBreath",
+          "offset_bits": 31392,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "meleeOnly",
+          "offset_bits": 31400,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "supportsAlternateMelee",
+          "offset_bits": 31408,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bRechamberWhileAds",
+          "offset_bits": 31416,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "reloadWhileAds",
+          "offset_bits": 31424,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bBulletExplosiveDamage",
+          "offset_bits": 31432,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bCookOffHold",
+          "offset_bits": 31440,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "overCookIsNotLethal",
+          "offset_bits": 31448,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "reticleSpin45",
+          "offset_bits": 31456,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bClipOnly",
+          "offset_bits": 31464,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bDoesNotConsumeAmmo",
+          "offset_bits": 31472,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bRemoveWeaponOnEmpty",
+          "offset_bits": 31480,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "noAmmoPickup",
+          "offset_bits": 31488,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "adsFireOnly",
+          "offset_bits": 31496,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "cancelAutoHolsterWhenEmpty",
+          "offset_bits": 31504,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableSwitchToWhenEmpty",
+          "offset_bits": 31512,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "suppressAmmoPrimaryDisplay",
+          "offset_bits": 31520,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "suppressAmmoReserveDisplay",
+          "offset_bits": 31528,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "laserSettings",
+          "offset_bits": 31536,
+          "size_bits": 80,
+          "type": "LaserSettings"
+        },
+        {
+          "name": "markableViewmodel",
+          "offset_bits": 31616,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "isPredictedProjectile",
+          "offset_bits": 31624,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "clientTrajectoryBlendOutTime",
+          "offset_bits": 31648,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "serverTrajectoryBlendInTime",
+          "offset_bits": 31680,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "dualWieldType",
+          "offset_bits": 31712,
+          "size_bits": 32,
+          "type": "DualWieldType"
+        },
+        {
+          "name": "flipKillIcon",
+          "offset_bits": 31744,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bNoPartialReload",
+          "offset_bits": 31752,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "reloadDisabled",
+          "offset_bits": 31760,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "blocksProne",
+          "offset_bits": 31768,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "silenced",
+          "offset_bits": 31776,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "doNotSuppressAI",
+          "offset_bits": 31784,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "isRollingGrenade",
+          "offset_bits": 31792,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "dropGrenadeHeldOnDeath",
+          "offset_bits": 31800,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "projExplosionEffectForceNormalUp",
+          "offset_bits": 31808,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "projExplosionEffectInheritParentDirection",
+          "offset_bits": 31816,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bProjImpactExplode",
+          "offset_bits": 31824,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "spawnProjAtMuzzle",
+          "offset_bits": 31832,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "correctBulletTrajectory",
+          "offset_bits": 31840,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "maxCorrectionAngle",
+          "offset_bits": 31872,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "disableProjectileCrumpleCheck",
+          "offset_bits": 31904,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bProjTrajectoryEvents",
+          "offset_bits": 31912,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "bProjWhizByEnabled",
+          "offset_bits": 31920,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stickToPlayers",
+          "offset_bits": 31928,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stickToVehicles",
+          "offset_bits": 31936,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stickToTurrets",
+          "offset_bits": 31944,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stickToNonStick",
+          "offset_bits": 31952,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "projEnableMissileStickiness",
+          "offset_bits": 31960,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "enableMissileRicochet",
+          "offset_bits": 31968,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "thrownSideways",
+          "offset_bits": 31976,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableFiring",
+          "offset_bits": 31984,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "firesOnWeaponSwitch",
+          "offset_bits": 31992,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableHolding",
+          "offset_bits": 32000,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "timedDetonation",
+          "offset_bits": 32008,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "missileRicochetMinAngleOfIncidence",
+          "offset_bits": 32032,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "missileCrumpleMinSpeed",
+          "offset_bits": 32064,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "detonateType",
+          "offset_bits": 32096,
+          "size_bits": 32,
+          "type": "WeapDetonateType"
+        },
+        {
+          "name": "detonatorWorldModel",
+          "offset_bits": 32128,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "explosiveDamageDelay",
+          "offset_bits": 32192,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "fuseTime",
+          "offset_bits": 32224,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "aiFuseTime",
+          "offset_bits": 32256,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "maxHoldTime",
+          "offset_bits": 32288,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "rotationParams",
+          "offset_bits": 32320,
+          "size_bits": 416,
+          "type": "GrenadeRotationParams"
+        },
+        {
+          "name": "holdButtonToThrow",
+          "offset_bits": 32736,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "autoHold",
+          "offset_bits": 32744,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "infiniteHold",
+          "offset_bits": 32752,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "freezeMovementWhenFiring",
+          "offset_bits": 32760,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "offhandAllowsSprint",
+          "offset_bits": 32768,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "thermalScope",
+          "offset_bits": 32776,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "thermalToggle",
+          "offset_bits": 32784,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "outlineEnemies",
+          "offset_bits": 32792,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "outlineDepthTest",
+          "offset_bits": 32800,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "outlineFill",
+          "offset_bits": 32808,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "enemyOutlineR",
+          "offset_bits": 32832,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "enemyOutlineG",
+          "offset_bits": 32864,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "enemyOutlineB",
+          "offset_bits": 32896,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "enemyOutlineA",
+          "offset_bits": 32928,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "allyOutlineR",
+          "offset_bits": 32960,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "allyOutlineG",
+          "offset_bits": 32992,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "allyOutlineB",
+          "offset_bits": 33024,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "allyOutlineA",
+          "offset_bits": 33056,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScan",
+          "offset_bits": 33088,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "depthScanThickness",
+          "offset_bits": 33120,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanR",
+          "offset_bits": 33152,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanG",
+          "offset_bits": 33184,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanB",
+          "offset_bits": 33216,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanA",
+          "offset_bits": 33248,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOutlineThickness",
+          "offset_bits": 33280,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOutlineR",
+          "offset_bits": 33312,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOutlineG",
+          "offset_bits": 33344,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOutlineB",
+          "offset_bits": 33376,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOutlineA",
+          "offset_bits": 33408,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOverlay",
+          "offset_bits": 33440,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "depthScanOverlayStrength",
+          "offset_bits": 33472,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOverlayXTiles",
+          "offset_bits": 33504,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOverlayYTiles",
+          "offset_bits": 33536,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOverlayXScroll",
+          "offset_bits": 33568,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "depthScanOverlayYScroll",
+          "offset_bits": 33600,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "blurSceneAdsInFraction",
+          "offset_bits": 33632,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "blurSceneAdsOutFraction",
+          "offset_bits": 33664,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "altModeSameWeapon",
+          "offset_bits": 33696,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "playAltGesturesForOffhandWeapons",
+          "offset_bits": 33704,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "turretBarrelSpinEnabled",
+          "offset_bits": 33712,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "missileConeSoundEnabled",
+          "offset_bits": 33720,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "missileConeSoundPitchshiftEnabled",
+          "offset_bits": 33728,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "missileConeSoundCrossfadeEnabled",
+          "offset_bits": 33736,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "offhandHoldIsCancelable",
+          "offset_bits": 33744,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "doNotAllowAttachmentsToOverrideSpread",
+          "offset_bits": 33752,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "useScopeDrift",
+          "offset_bits": 33760,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "alwaysShatterGlassOnImpact",
+          "offset_bits": 33768,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "jumpSpread",
+          "offset_bits": 33776,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "noFullViewmodelAnimations",
+          "offset_bits": 33784,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "killcamOffset",
+          "offset_bits": 33792,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "useDualFOV",
+          "offset_bits": 33824,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "showViewModelInDualFOV",
+          "offset_bits": 33832,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "syncedFOVInDualFOV",
+          "offset_bits": 33840,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "disableDrop",
+          "offset_bits": 33848,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "preferredDrop",
+          "offset_bits": 33856,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "gestureAnimation",
+          "offset_bits": 33920,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gestureFireStateTime",
+          "offset_bits": 33984,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "gesturePullback",
+          "offset_bits": 34048,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gesturePullbackAlt",
+          "offset_bits": 34112,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "minPullbackTime",
+          "offset_bits": 34176,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "minPullbackToThrowBlendTime",
+          "offset_bits": 34208,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "maxPullbackToThrowBlendTime",
+          "offset_bits": 34240,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "gestureThrow",
+          "offset_bits": 34304,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gestureThrowAlt",
+          "offset_bits": 34368,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gestureFireTime",
+          "offset_bits": 34432,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "gestureDetonate",
+          "offset_bits": 34496,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gestureDetonateAlt",
+          "offset_bits": 34560,
+          "size_bits": 64,
+          "type": "Gesture *"
+        },
+        {
+          "name": "gestureDetonationTime",
+          "offset_bits": 34624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "gesturesDisablePrimary",
+          "offset_bits": 34656,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "cameraFireEffect",
+          "offset_bits": 34688,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "cameraFireEffectDurationSec",
+          "offset_bits": 34752,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "changedFireTime",
+          "offset_bits": 34784,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "changedFireTimeAkimbo",
+          "offset_bits": 34816,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "changedFireTimeNumBullets",
+          "offset_bits": 34848,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "chargeType",
+          "offset_bits": 34880,
+          "size_bits": 32,
+          "type": "WeaponChargeType"
+        },
+        {
+          "name": "chargeGain",
+          "offset_bits": 34912,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "chargeCostPerShot",
+          "offset_bits": 34944,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "chargeLossWhenIdle",
+          "offset_bits": 34976,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "chargeEmptyCooldown",
+          "offset_bits": 35008,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "chargeFireAtMaxDamageMultiplier",
+          "offset_bits": 35040,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "chargeMeterEffectBoneCount",
+          "offset_bits": 35072,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "chargeMeterEffect",
+          "offset_bits": 35136,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "chargeUpSound",
+          "offset_bits": 35200,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeDownSound",
+          "offset_bits": 35264,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeUpSoundPlayer",
+          "offset_bits": 35328,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeDownSoundPlayer",
+          "offset_bits": 35392,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeDownToUpSound",
+          "offset_bits": 35456,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeDownToUpSoundPlayer",
+          "offset_bits": 35520,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeUpToDownSound",
+          "offset_bits": 35584,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeUpToDownSoundPlayer",
+          "offset_bits": 35648,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeMaxSound",
+          "offset_bits": 35712,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeMaxSoundPlayer",
+          "offset_bits": 35776,
+          "size_bits": 64,
+          "type": "SndAliasLookup"
+        },
+        {
+          "name": "chargeHudReveal",
+          "offset_bits": 35840,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "chargeRumble",
+          "offset_bits": 35904,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "stowTag",
+          "offset_bits": 35968,
+          "size_bits": 32,
+          "type": "scr_string_t"
+        },
+        {
+          "name": "stowOffsetModel",
+          "offset_bits": 36032,
+          "size_bits": 64,
+          "type": "XModel *"
+        },
+        {
+          "name": "stowOffsetAttachTag",
+          "offset_bits": 36096,
+          "size_bits": 32,
+          "type": "scr_string_t"
+        },
+        {
+          "name": "slot",
+          "offset_bits": 36128,
+          "size_bits": 32,
+          "type": "WeaponSlot"
+        },
+        {
+          "name": "maxTargetAngle",
+          "offset_bits": 36160,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "spaceshipSecondaryWeapon",
+          "offset_bits": 36192,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "impulseFieldRadius",
+          "offset_bits": 36224,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldInitialSpeed",
+          "offset_bits": 36256,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldMaxSpeed",
+          "offset_bits": 36288,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldAcceleration",
+          "offset_bits": 36320,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldInAirImpulseMultiplier",
+          "offset_bits": 36352,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldInAirImpulseMultiplierInterpTime",
+          "offset_bits": 36384,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldSlideMultiplier",
+          "offset_bits": 36416,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldSlideMultiplierInterpTime",
+          "offset_bits": 36448,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "impulseFieldIsPush",
+          "offset_bits": 36480,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "impulseFieldAffectsFriendlies",
+          "offset_bits": 36488,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "impulseFieldAffectsSelf",
+          "offset_bits": 36496,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "impulseFieldAffectsProne",
+          "offset_bits": 36504,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "regenerationEnabled",
+          "offset_bits": 36512,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "regenerationTimeMs",
+          "offset_bits": 36544,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "regenerationAddTimeMs",
+          "offset_bits": 36576,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "regenerationAmount",
+          "offset_bits": 36608,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "regenerationConsumeStock",
+          "offset_bits": 36640,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "regenerationDisableWhileFiring",
+          "offset_bits": 36648,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployType",
+          "offset_bits": 36672,
+          "size_bits": 32,
+          "type": "DeployType"
+        },
+        {
+          "name": "deployRequireOnWalkableSurface",
+          "offset_bits": 36704,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployRequireOnNavmesh",
+          "offset_bits": 36712,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployRequireSkyAbove",
+          "offset_bits": 36720,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployRequireNoOverhang",
+          "offset_bits": 36728,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployAlwaysUpright",
+          "offset_bits": 36736,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployEdgeSnap",
+          "offset_bits": 36744,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "deployCylinderRadius",
+          "offset_bits": 36768,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployCylinderHeight",
+          "offset_bits": 36800,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployMaxDistance",
+          "offset_bits": 36832,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployMaxHeightAboveEye",
+          "offset_bits": 36864,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployEffectHeightOffset",
+          "offset_bits": 36896,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployMaxSlope",
+          "offset_bits": 36928,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "deployEffect",
+          "offset_bits": 36992,
+          "size_bits": 64,
+          "type": "FxCombinedDef"
+        },
+        {
+          "name": "deployValidGroupId",
+          "offset_bits": 37056,
+          "size_bits": 32,
+          "type": "ParticleGroupID"
+        },
+        {
+          "name": "deployIndoorGroupId",
+          "offset_bits": 37088,
+          "size_bits": 32,
+          "type": "ParticleGroupID"
+        },
+        {
+          "name": "deployInvalidGroupId",
+          "offset_bits": 37120,
+          "size_bits": 32,
+          "type": "ParticleGroupID"
+        },
+        {
+          "name": "deployOutOfRangeGroupId",
+          "offset_bits": 37152,
+          "size_bits": 32,
+          "type": "ParticleGroupID"
+        },
+        {
+          "name": "numAnimOverrides",
+          "offset_bits": 37184,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "animOverrides",
+          "offset_bits": 37248,
+          "size_bits": 64,
+          "type": "AnimOverride *"
+        },
+        {
+          "name": "carryAnimOverrides",
+          "offset_bits": 37312,
+          "size_bits": 960,
+          "type": "CarryAnimOverride[5]"
+        },
+        {
+          "name": "numSfxOverrides",
+          "offset_bits": 38272,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "sfxOverrides",
+          "offset_bits": 38336,
+          "size_bits": 64,
+          "type": "SFXOverride *"
+        },
+        {
+          "name": "numVfxOverrides",
+          "offset_bits": 38400,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "vfxOverrides",
+          "offset_bits": 38464,
+          "size_bits": 64,
+          "type": "VFXOverride *"
+        },
+        {
+          "name": "reactiveEmitterDelay",
+          "offset_bits": 38528,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "grenadeDangerIconDistance",
+          "offset_bits": 38560,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierIdleHip",
+          "offset_bits": 38592,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierIdleAds",
+          "offset_bits": 38624,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierGunKickHip",
+          "offset_bits": 38656,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierGunKickAds",
+          "offset_bits": 38688,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierGunTiltHip",
+          "offset_bits": 38720,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "bulletDirGunAngleModifierGunTiltAds",
+          "offset_bits": 38752,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewClampPitchCatchUpTimeSec",
+          "offset_bits": 38784,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "viewClampYawCatchUpTimeSec",
+          "offset_bits": 38816,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopEnable",
+          "offset_bits": 38848,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "mountTopYawClamp",
+          "offset_bits": 38856,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "mountTopYawMax",
+          "offset_bits": 38880,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopGunKickScale",
+          "offset_bits": 38912,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopGunCenterScale",
+          "offset_bits": 38944,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopViewKickScale",
+          "offset_bits": 38976,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopViewCenterScale",
+          "offset_bits": 39008,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopGunIdleMotionScale",
+          "offset_bits": 39040,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopViewIdleMotionScale",
+          "offset_bits": 39072,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopEnterDurationMs",
+          "offset_bits": 39104,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "mountTopExitDurationMs",
+          "offset_bits": 39136,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "mountTopEdgeToEyeDistanceForward",
+          "offset_bits": 39168,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountTopEdgeToEyeDistanceAbove",
+          "offset_bits": 39200,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideEnable",
+          "offset_bits": 39232,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "mountSideTransitionEnable",
+          "offset_bits": 39240,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "mountSideRoll",
+          "offset_bits": 39264,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideRollStartFrac",
+          "offset_bits": 39296,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideRollEndFrac",
+          "offset_bits": 39328,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideGunKickScale",
+          "offset_bits": 39360,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideGunCenterScale",
+          "offset_bits": 39392,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideViewKickScale",
+          "offset_bits": 39424,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideViewCenterScale",
+          "offset_bits": 39456,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideGunIdleMotionScale",
+          "offset_bits": 39488,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideViewIdleMotionScale",
+          "offset_bits": 39520,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideEnterDurationMs",
+          "offset_bits": 39552,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "mountSideExitDurationMs",
+          "offset_bits": 39584,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "mountSideEdgeToEyeDistanceForward",
+          "offset_bits": 39616,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountSideEdgeToEyeDistanceAbove",
+          "offset_bits": 39648,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountViewmodelOffset",
+          "offset_bits": 39680,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountFOVScale",
+          "offset_bits": 39712,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "mountRumble",
+          "offset_bits": 39744,
+          "size_bits": 64,
+          "type": "RumbleInfo *"
+        },
+        {
+          "name": "mountWeaponOffsetPatternScaleInfo",
+          "offset_bits": 39808,
+          "size_bits": 128,
+          "type": "WeaponOffsetPatternScaleInfo"
+        },
+        {
+          "name": "adsFireMotionBlur",
+          "offset_bits": 39936,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsFireMotionBlurDurationMs",
+          "offset_bits": 39968,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "adsFireMotionBlurDecayExponent",
+          "offset_bits": 40000,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipFireMotionBlur",
+          "offset_bits": 40032,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "hipFireMotionBlurDurationMs",
+          "offset_bits": 40064,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "hipFireMotionBlurDecayExponent",
+          "offset_bits": 40096,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsCameraShakeRotationScale",
+          "offset_bits": 40128,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "adsCameraShakeTranslationScale",
+          "offset_bits": 40160,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "advancedIdleSettings",
+          "offset_bits": 40192,
+          "size_bits": 1216,
+          "type": "AdvancedIdleSettings"
+        },
+        {
+          "name": "crouchedWeaponOffsetPatternScaleInfo",
+          "offset_bits": 41408,
+          "size_bits": 128,
+          "type": "WeaponOffsetPatternScaleInfo"
+        },
+        {
+          "name": "proneWeaponOffsetPatternScaleInfo",
+          "offset_bits": 41536,
+          "size_bits": 128,
+          "type": "WeaponOffsetPatternScaleInfo"
+        },
+        {
+          "name": "ballisticInfo",
+          "offset_bits": 41664,
+          "size_bits": 320,
+          "type": "BallisticInfo"
+        },
+        {
+          "name": "notifyTypes",
+          "offset_bits": 41984,
+          "size_bits": 128,
+          "type": "WeaponEntityNotify *[2]"
+        },
+        {
+          "name": "dlcFloat",
+          "offset_bits": 42112,
+          "size_bits": 192,
+          "type": "float[6]"
+        },
+        {
+          "name": "dlcBool",
+          "offset_bits": 42304,
+          "size_bits": 24,
+          "type": "bool[3]"
+        },
+        {
+          "name": "enableWeaponInspect",
+          "offset_bits": 42328,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "stowedOcclusionTestEnabled",
+          "offset_bits": 42336,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "ignoreMinTracerSpawnDistance",
+          "offset_bits": 42344,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "tracerOverrideEnabled",
+          "offset_bits": 42352,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "boltActionReloadIncludesRechamber",
+          "offset_bits": 42360,
+          "size_bits": 8,
+          "type": "bool"
         }
       ]
     },
@@ -97616,33 +103212,20 @@
       },
       "m_VisGraph": {
         "count": {
-          "op": "div",
+          "op": "sub",
           "args": [
             {
-              "op": "sub",
-              "args": [
-                {
-                  "op": "mul",
-                  "args": [
-                    16,
-                    {
-                      "owner": "TacticalGraph",
-                      "path": [
-                        "m_NumPoints"
-                      ]
-                    }
-                  ]
-                },
-                1
+              "owner": "TacticalGraph",
+              "path": [
+                "m_NumPoints"
               ]
             },
-            16
+            1
           ]
         },
-        "evidence": "game_test_loader",
-        "source_file": "archive_impl_tactical_graph_db.h",
-        "source_line": 2334,
-        "expression": "(16 * varTacticalGraph->m_NumPoints - 1) / 16"
+        "evidence": "native_replay_loader",
+        "native_rva": 14633088,
+        "expression": "m_NumPoints - 1"
       }
     },
     "tacpoint_search_node_t": {
@@ -97672,7 +103255,7 @@
           "op": "add",
           "args": [
             {
-              "op": "div",
+              "op": "shr",
               "args": [
                 {
                   "op": "sub",
@@ -97691,16 +103274,16 @@
                     }
                   ]
                 },
-                8
+                3
               ]
             },
             1
           ]
         },
-        "evidence": "game_test_loader",
+        "evidence": "game_test_integer_bitset_extent",
         "source_file": "archive_impl_tactical_graph_db.h",
         "source_line": 2221,
-        "expression": "(varTacVisGraphRow->m_End - varTacVisGraphRow->m_Start) / 8 + 1"
+        "expression": "((m_End - m_Start) >> 3) + 1"
       }
     },
     "NavMeshData": {
