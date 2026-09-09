@@ -3474,6 +3474,9 @@
       },
       "type_overrides": {
         "GfxImage": "Replay::GfxImage",
+        "DDLMember": "Replay::DDLMember",
+        "PlayerAnimsetState": "Replay::PlayerAnimsetState",
+        "GfxVoxelTree": "Replay::GfxVoxelTree",
         "Camo": "Replay::Camo",
         "StreamingInfo": "Replay::StreamingInfo",
         "ComputeShaderProgram": "Replay::ComputeShaderProgram",
@@ -3483,6 +3486,7 @@
         "GfxWrappedRWBuffer": "Replay::GfxWrappedRWBuffer",
         "GfxShaderBufferView": "Replay::GfxShaderBufferView",
         "ClientSideEffects": "Replay::ClientSideEffects",
+        "GfxSurfaceBounds": "Replay::GfxSurfaceBounds",
         "GfxWorldSurfaces": "Replay::GfxWorldSurfaces",
         "WeaponSFXPackageSounds": "Replay::WeaponSFXPackageSounds",
         "WeaponDef": "Replay::WeaponDef",
@@ -74314,6 +74318,355 @@
         }
       ]
     },
+    "Replay::DDLMember": {
+      "name": "Replay::DDLMember",
+      "size": 64,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "name",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "index",
+          "offset_bits": 64,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "unknown_0xc",
+          "type": "unsigned int",
+          "offset_bits": 96,
+          "size_bits": 32
+        },
+        {
+          "name": "serializedByte",
+          "type": "unsigned __int8 *",
+          "offset_bits": 128,
+          "size_bits": 64
+        },
+        {
+          "name": "bitSize",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "limitSize",
+          "offset_bits": 224,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "offset_bits": 256,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "type",
+          "offset_bits": 288,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "externalIndex",
+          "offset_bits": 320,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "rangeLimit",
+          "offset_bits": 352,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "isArray",
+          "offset_bits": 384,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "arraySize",
+          "offset_bits": 416,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "enumIndex",
+          "offset_bits": 448,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "unknown_0x3c",
+          "type": "unsigned int",
+          "offset_bits": 480,
+          "size_bits": 32
+        }
+      ]
+    },
+    "Replay::PlayerAnimsetState": {
+      "name": "Replay::PlayerAnimsetState",
+      "size": 64,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "conditionMask",
+          "offset_bits": 0,
+          "size_bits": 384,
+          "type": "Replay::PlayerConditionMask"
+        },
+        {
+          "name": "excludePackMap",
+          "offset_bits": 384,
+          "size_bits": 8,
+          "type": "bool"
+        },
+        {
+          "name": "padding",
+          "offset_bits": 392,
+          "size_bits": 32,
+          "type": "unsigned __int8[4]"
+        },
+        {
+          "name": "numConditionTypes",
+          "offset_bits": 424,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "aliasesPerConditionType",
+          "offset_bits": 448,
+          "size_bits": 64,
+          "type": "PlayerAnimsetState_BakedAliasesPerConditionType *"
+        }
+      ]
+    },
+    "Replay::PlayerConditionMask": {
+      "name": "Replay::PlayerConditionMask",
+      "kind": "opaque",
+      "size": 48,
+      "reason": "Native player condition mask bytes; bit semantics not yet verified",
+      "storage": "serialized"
+    },
+    "Replay::GfxVoxelTree": {
+      "name": "Replay::GfxVoxelTree",
+      "size": 112,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "zoneBound",
+          "offset_bits": 0,
+          "size_bits": 192,
+          "type": "Bounds"
+        },
+        {
+          "name": "voxelTopDownViewNodeCount",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "voxelInternalNodeCount",
+          "offset_bits": 224,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "voxelLeafNodeCount",
+          "offset_bits": 256,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "lightListArraySize",
+          "offset_bits": 288,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "voxelTreeHeader",
+          "offset_bits": 320,
+          "size_bits": 64,
+          "type": "GfxVoxelTreeHeader *"
+        },
+        {
+          "name": "voxelTopDownViewNodeArray",
+          "offset_bits": 384,
+          "size_bits": 64,
+          "type": "GfxVoxelTopDownViewNode *"
+        },
+        {
+          "name": "voxelInternalNodeArray",
+          "offset_bits": 448,
+          "size_bits": 64,
+          "type": "GfxVoxelInternalNode *"
+        },
+        {
+          "name": "voxelLeafNodeArray",
+          "offset_bits": 512,
+          "size_bits": 64,
+          "type": "GfxVoxelLeafNode *"
+        },
+        {
+          "name": "lightListArray",
+          "offset_bits": 576,
+          "size_bits": 64,
+          "type": "unsigned __int16 *"
+        },
+        {
+          "name": "voxelInternalNodeDynamicLightListCPU",
+          "offset_bits": 640,
+          "size_bits": 64,
+          "type": "unsigned int *"
+        },
+        {
+          "name": "runtimeState",
+          "type": "Replay::VoxelRuntimeState",
+          "offset_bits": 704,
+          "size_bits": 192
+        }
+      ]
+    },
+    "Replay::VoxelRuntimeState": {
+      "name": "Replay::VoxelRuntimeState",
+      "kind": "opaque",
+      "size": 24,
+      "reason": "Native runtime tail; no serialized pointer fixups"
+    },
+    "ReplayFDA::LightScalars": {
+      "name": "ReplayFDA::LightScalars",
+      "kind": "opaque",
+      "size": 336,
+      "reason": "Legacy serialized lighting values; retained verbatim",
+      "storage": "serialized"
+    },
+    "ReplayFDA::ComPrimaryLight": {
+      "name": "ReplayFDA::ComPrimaryLight",
+      "kind": "struct",
+      "size": 344,
+      "members": [
+        {
+          "name": "serializedLighting",
+          "type": "ReplayFDA::LightScalars",
+          "offset_bits": 0,
+          "size_bits": 2688
+        },
+        {
+          "name": "defName",
+          "type": "const char *",
+          "offset_bits": 2688,
+          "size_bits": 64
+        }
+      ]
+    },
+    "ReplayFDA::ComPrimaryLight *": {
+      "name": "ReplayFDA::ComPrimaryLight *",
+      "kind": "pointer",
+      "size": 8,
+      "target": "ReplayFDA::ComPrimaryLight"
+    },
+    "ReplayFDA::ComWorld": {
+      "name": "ReplayFDA::ComWorld",
+      "size": 152,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "name",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "isInUse",
+          "offset_bits": 64,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "useForwardPlus",
+          "offset_bits": 96,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "bakeQuality",
+          "offset_bits": 128,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "proxyLODQuality",
+          "offset_bits": 160,
+          "size_bits": 32,
+          "type": "int"
+        },
+        {
+          "name": "trVisRadii",
+          "offset_bits": 192,
+          "size_bits": 160,
+          "type": "float[5]"
+        },
+        {
+          "name": "trVisFacingDistAdd",
+          "offset_bits": 352,
+          "size_bits": 32,
+          "type": "float"
+        },
+        {
+          "name": "primaryLightCount",
+          "offset_bits": 384,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "primaryLights",
+          "offset_bits": 448,
+          "size_bits": 64,
+          "type": "ReplayFDA::ComPrimaryLight *"
+        },
+        {
+          "name": "scriptablePrimaryLightCount",
+          "offset_bits": 512,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "firstScriptablePrimaryLight",
+          "offset_bits": 544,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "changeListInfo",
+          "offset_bits": 576,
+          "size_bits": 128,
+          "type": "ComChangeListInfo"
+        },
+        {
+          "name": "numUmbraGates",
+          "offset_bits": 704,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "umbraGateNames",
+          "offset_bits": 768,
+          "size_bits": 64,
+          "type": "const char **"
+        },
+        {
+          "name": "umbraGateInitialStates",
+          "offset_bits": 832,
+          "size_bits": 384,
+          "type": "bitarray<384>"
+        }
+      ]
+    },
     "Replay::Camo": {
       "name": "Replay::Camo",
       "size": 168,
@@ -74872,6 +75225,32 @@
           "type": "SpatialPartition_Tree *"
         }
       ]
+    },
+    "Replay::GfxSurfaceBounds": {
+      "name": "Replay::GfxSurfaceBounds",
+      "size": 56,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "bounds",
+          "offset_bits": 0,
+          "size_bits": 192,
+          "type": "Bounds"
+        },
+        {
+          "name": "serializedExtra",
+          "type": "Replay::SurfaceBoundsExtra",
+          "offset_bits": 192,
+          "size_bits": 256
+        }
+      ]
+    },
+    "Replay::SurfaceBoundsExtra": {
+      "name": "Replay::SurfaceBoundsExtra",
+      "kind": "opaque",
+      "size": 32,
+      "reason": "Replay E306FF loads 56-byte surface bounds; trailing scalar semantics are not yet verified",
+      "storage": "serialized"
     },
     "Replay::GfxWorldSurfaces": {
       "name": "Replay::GfxWorldSurfaces",
@@ -104753,6 +105132,32 @@
         "source_line": 29865,
         "native_owner_loader_rva": 14248880,
         "native_item_loader_rva": 14223584
+      }
+    },
+    "Replay::DDLMember": {
+      "serializedByte": {
+        "count": 1,
+        "evidence": "Replay DF2F70 fixes pointer +16; DD3B20 loads one byte"
+      }
+    },
+    "ReplayFDA::ComWorld": {
+      "primaryLights": {
+        "count": {
+          "owner": "ReplayFDA::ComWorld",
+          "path": [
+            "primaryLightCount"
+          ]
+        },
+        "evidence": "Legacy 344-byte light array"
+      },
+      "umbraGateNames": {
+        "count": {
+          "owner": "ReplayFDA::ComWorld",
+          "path": [
+            "numUmbraGates"
+          ]
+        },
+        "evidence": "Legacy gate-name pointer array"
       }
     }
   },

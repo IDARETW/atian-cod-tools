@@ -278,8 +278,13 @@ namespace tool::mw19::schema {
 #ifdef _WIN32
         // Windows rename cannot replace an existing destination. Use the native
         // replace operation so a failed write never destroys the previous result.
-        if (!MoveFileExW(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-            throw std::runtime_error("Atomic replace failed: " + path.string());
+        for (unsigned attempt = 0;; ++attempt) {
+            if (MoveFileExW(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) break;
+            const auto error = GetLastError();
+            if (attempt >= 40 || (error != ERROR_SHARING_VIOLATION && error != ERROR_ACCESS_DENIED && error != ERROR_LOCK_VIOLATION))
+                throw std::runtime_error("Atomic replace failed (Windows " + std::to_string(error) + "): " + path.string());
+            Sleep(25); // A progress reader or scanner can briefly hold the old file.
+        }
 #else
         std::filesystem::rename(temp, path);
 #endif
@@ -591,6 +596,7 @@ namespace tool::mw19::schema {
         } else if (rule) {
             const auto count = Count(rule->at("count"));
             const auto stride = Type(target).at("size").get<uint64_t>();
+            result["stride"] = stride;
             if (stride == 1 && Type(target).at("kind") == "scalar") {
                 if (count > limits.maxBytes - bytes)
                     throw std::runtime_error("Byte array exceeds traversal budget");
@@ -713,7 +719,10 @@ namespace tool::mw19::schema {
                         const Json* rule{};
                         if (kind != "union" && database.document.contains("pointer_rules")) {
                             const auto& rules = database.document.at("pointer_rules");
-                            if (rules.contains(name) && rules.at(name).contains(memberName))
+                            const auto nativeName = type.at("name").get<std::string>();
+                            if (rules.contains(nativeName) && rules.at(nativeName).contains(memberName))
+                                rule = &rules.at(nativeName).at(memberName);
+                            else if (rules.contains(name) && rules.at(name).contains(memberName))
                                 rule = &rules.at(name).at(memberName);
                         }
                         result[memberName] = Value(memberType, Add(address, offset / 8), depth + 1, rule);
@@ -725,7 +734,7 @@ namespace tool::mw19::schema {
                 return Json{ { "status", "zero_sized_type" } };
             if (kind == "opaque")
                 return Json{ { "bytes", HexBytes(Read(address, size)) },
-                             { "status", "opaque_runtime_record" },
+                             { "status", type.value("storage", "runtime") == "serialized" ? "opaque_serialized_record" : "opaque_runtime_record" },
                              { "reason", type.at("reason") } };
             if (name == "float" || name == "double") {
                 auto data = Read(address, size);

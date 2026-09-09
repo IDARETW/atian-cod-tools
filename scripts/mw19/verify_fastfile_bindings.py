@@ -23,6 +23,22 @@ def verify(exe):
     enabled = {p['id']: p for p in profile['pools'] if p.get('pointer_loader_rva')}
     assert len(records) == len(enabled) == 111
     assert {int(row[0]) for row in records} == set(enabled)
+    # Populated-asset regressions depend on these native layout instructions,
+    # beyond the isolated pointer-loader entry signatures.
+    layout_sites = {
+        0xdf30c3: '49c1e006',       # DDLMember array stride 64.
+        0xdd1cad: '41b840000000',   # PlayerAnimsetState size 64.
+        0xdd1cbf: '48837b3800',     # Player state aliases pointer +56.
+        0xdd1d07: '0fb67835',       # Player state condition count +53.
+        0xd92c2a: '4c6bc270',       # GfxVoxelTree array stride 112.
+        0xe30090: 'e83b87b000',     # Resident image upload callback 19387D0.
+        0xd9321b: 'e800f84100',     # GfxWorld view-frustum array Load_Stream.
+        0xe306c5: '48837f3000',     # GfxWorldSurfaces surfaceBounds pointer +48.
+        0xe306ff: '4c6bc138',       # GfxSurfaceBounds array stride 56.
+    }
+    for address, expected in layout_sites.items():
+        signature = bytes.fromhex(expected)
+        assert pe.read(address, len(signature)) == signature, ('populated layout', hex(address))
     for ordinal, loader, slot, link, signature in records:
         ordinal, loader, slot, link = int(ordinal), int(loader, 16), int(slot, 16), int(link, 16)
         expected = bytes(int(b, 16) for b in re.findall(r'0x[0-9a-f]+', signature))
@@ -37,7 +53,8 @@ def verify(exe):
         # independently tie the window to this exact Replay build.
         assert any(code[i] == 0xe8 and loader + i + 5 + struct.unpack_from('<i', code, i + 1)[0] == link
                    for i in range(len(code) - 4)), ('Link call', ordinal)
-    print(json.dumps(dict(bindings=111, success=True, sha256=hashlib.sha256(pe.data).hexdigest())))
+    print(json.dumps(dict(bindings=111, populated_layout_sites=len(layout_sites), success=True,
+                         sha256=hashlib.sha256(pe.data).hexdigest())))
 
 
 if __name__ == '__main__':

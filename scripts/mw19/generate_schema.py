@@ -170,6 +170,11 @@ def main():
             p['pointer_loader_rva'] = loaders[p['name']]['pointer_loader_rva']
     schema = dict(schema_version=1, profiles=profiles, types=types)
     schema['pointer_rules'] = read('pointer_rules.json')['rules']
+    schema['pointer_rules']['Replay::DDLMember'] = dict(serializedByte=dict(
+        count=1, evidence='Replay DF2F70 fixes pointer +16; DD3B20 loads one byte'))
+    schema['pointer_rules']['ReplayFDA::ComWorld'] = dict(
+        primaryLights=dict(count=dict(owner='ReplayFDA::ComWorld', path=['primaryLightCount']), evidence='Legacy 344-byte light array'),
+        umbraGateNames=dict(count=dict(owner='ReplayFDA::ComWorld', path=['numUmbraGates']), evidence='Legacy gate-name pointer array'))
     schema['union_rules'] = union_rules.generate(read('source_loaders.json'), types)
     write(DEST / 'schema.json', schema)
     rows = ['# MW2019 pool coverage', '',

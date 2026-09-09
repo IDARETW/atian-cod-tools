@@ -4,6 +4,13 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <thread>
+#include <fstream>
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 
 using namespace tool::mw19::schema;
 void Check(bool condition, const char* message) {
@@ -23,6 +30,23 @@ void MustFail(Function f, const char* message) {
 int main(int argc, char** argv) {
     try {
         Check(argc == 2, "schema path required");
+#ifdef _WIN32
+        // Progress readers briefly hold a handle without FILE_SHARE_DELETE.
+        // Replacing the manifest must survive that real Windows sharing race.
+        auto atomicPath = std::filesystem::temp_directory_path() /
+            ("mw19-manifest-sharing-" + std::to_string(GetCurrentProcessId()) + ".json");
+        WriteJsonAtomic(atomicPath, Json{{"generation", 1}});
+        HANDLE reader = CreateFileW(atomicPath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+        Check(reader != INVALID_HANDLE_VALUE, "Cannot open manifest sharing fixture");
+        {
+            std::jthread release([reader] { Sleep(150); CloseHandle(reader); });
+            WriteJsonAtomic(atomicPath, Json{{"generation", 2}, {"complete", true}});
+        }
+        std::ifstream manifestStream(atomicPath);
+        Json manifest; manifestStream >> manifest; manifestStream.close();
+        Check(manifest.at("generation") == 2 && manifest.at("complete") == true, "Manifest replacement under reader contention");
+        std::filesystem::remove(atomicPath);
+#endif
         Database db{ std::filesystem::path{ argv[1] } };
         Check(db.Profile("replay-1.20").at("pool_count") == 117, "Replay count");
         Check(db.Profile("game-test").at("pool_count") == 113, "Game-test count");
@@ -731,6 +755,38 @@ int main(int argc, char** argv) {
         // Bulk arrays preserve exact bits and element layout, stay within
         // byte limits, and do not spend one traversal node per scalar.
         memory.assign(32768, 0);
+        // Two native 112-byte voxel trees must not stride into the next root.
+        put(200, uint32_t{2}); put(248, base + 19000);
+        put(19000, float{1.25}); put(19056, float{2.5});
+        memory[19024] = 0xa5; memory[19056 + 24] = 0x5a;
+        auto boundsWorld = replayInspector.Inspect("GfxWorld", base);
+        const auto& nativeBounds = boundsWorld["fields"]["surfaces"]["surfaceBounds"];
+        Check(boundsWorld["read_errors"] == 0 && nativeBounds["stride"] == 56 &&
+              nativeBounds["values"][1]["bounds"]["midPoint"]["v"][0] == 2.5 &&
+              nativeBounds["values"][0]["serializedExtra"]["bytes"].get<std::string>().starts_with("a5"),
+              "Native surface bounds stride or retained tail");
+        std::fill(memory.begin(), memory.end(), 0);
+        put(15728, uint32_t{2}); put(15736, base + 19000);
+        put(19000, float{1.25}); put(19112, float{2.5});
+        put(19088, uint64_t{0xdeadbeef}); // Unfixed runtime state is retained, never followed.
+        auto voxelWorld = replayInspector.Inspect("GfxWorld", base);
+        Check(voxelWorld["read_errors"] == 0 &&
+              voxelWorld["fields"]["voxelTree"]["values"][1]["zoneBound"]["midPoint"]["v"][0] == 2.5,
+              "Native voxel tree stride or runtime fields");
+        std::fill(memory.begin(), memory.end(), 0);
+        put(53, uint8_t{2}); put(56, base + 1024);
+        put(1024 + 10, uint16_t{7}); put(1040 + 10, uint16_t{9});
+        auto playerState = replayInspector.Inspect("PlayerAnimsetState", base);
+        Check(playerState["read_errors"] == 0 && playerState["fields"]["aliasesPerConditionType"]["count"] == 2 &&
+              playerState["fields"]["aliasesPerConditionType"]["values"][1]["conditionType"] == 9,
+              "Native player animation state offsets");
+        std::fill(memory.begin(), memory.end(), 0);
+        put(0, base + 1024); std::memcpy(memory.data() + 1024, "null.hlsl", 10);
+        auto emptyShader = ExportPayload(read, "pixelshader", base, 8192, "replay-1.20");
+        Check(Json::parse(emptyShader.data)["status"] == "empty_shader", "Empty shader declaration rejected");
+        put(32, uint32_t{4});
+        MustFail([&] { ExportPayload(read, "pixelshader", base, 8192, "replay-1.20"); }, "Missing nonempty shader accepted");
+        std::fill(memory.begin(), memory.end(), 0);
         put(0, uint64_t{ base + 1024 });
         put(8, uint32_t{ 4096 });
         put(12, uint32_t{ 131072 });

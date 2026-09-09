@@ -125,10 +125,24 @@ namespace fastfile {
         // Replay capability tests never emit asset payloads or decompressed files.
         bool replayTest{};
         bool replayGeometry{};
+        bool replayNoAutoPatch{};
         size_t replayLimit{ 1 };
         std::vector<std::filesystem::path> replayPackages;
         std::filesystem::path replayOodle;
         uint32_t replayFileVersion{};
+        uint32_t replayInputVersion{};
+        std::vector<std::string> replayAppliedPatches;
+        // Revisions present in the 1.20 Replay install, including unchanged
+        // transient zones retained from earlier builds. Native stream bounds
+        // and complete-consumption checks still validate each serialized zone.
+        static constexpr bool IsReplayFileVersion(uint32_t version) {
+            switch (version) {
+            case 0xfcd: case 0xfcf: case 0xfd0: case 0xfd1: case 0xfd5:
+            case 0xfda: case 0xfe1: case 0xfe3: case 0xfee: case 0xff3:
+            case 0xff5: case 0xff7: return true;
+            default: return false;
+            }
+        }
 
         FastFileOption();
         ~FastFileOption();

@@ -51,7 +51,9 @@ namespace tool::mw19::replay {
         void Check(size_t size) {
             Sync();
             if (size > memory[block].size() - offsets[block])
-                throw std::runtime_error("Replay stream reservation exhausted (block " + std::to_string(block) + ")");
+                throw std::runtime_error("Replay stream reservation exhausted (block " + std::to_string(block) +
+                    ", offset " + std::to_string(offsets[block]) + ", requested " + std::to_string(size) +
+                    ", reserved " + std::to_string(memory[block].size()) + ")");
         }
         void Advance(size_t size) {
             Check(size);
@@ -153,7 +155,9 @@ namespace tool::mw19::replay {
                 offset += assets.front()[index];
             }
             if (offset >= memory[index].size() || (alias && memory[index].size() - offset < 8))
-                throw std::runtime_error("Replay packed pointer outside stream reservation");
+                throw std::runtime_error("Replay packed pointer outside stream reservation: block " +
+                    std::to_string(index) + ", offset " + std::to_string(offset) +
+                    ", reserved " + std::to_string(memory[index].size()));
             uint8_t* value = memory[index].data() + offset;
             if (alias)
                 std::memcpy(&value, value, 8);

@@ -124,6 +124,15 @@ namespace tool::gsc {
 
                 core::bytebuffer::ByteBuffer sourceReader{ decompressedData.get(), sizef };
                 core::bytebuffer::ByteBuffer bytecodeReader{ header.GetByteCode(), header.bytecodeLen };
+                auto ReadLocalDelta = [&]() -> int32_t {
+                    if (!bytecodeReader.CanRead(3)) throw std::runtime_error("Truncated local function offset");
+                    const byte* bytes = bytecodeReader.Ptr();
+                    uint32_t raw = uint32_t(bytes[0]) | (uint32_t(bytes[1]) << 8) | (uint32_t(bytes[2]) << 16);
+                    int32_t delta = (raw & 0x800000) ? int32_t(raw) - 0x1000000 : int32_t(raw);
+                    // IW8 encodes signed local offsets with one low tag bit.
+                    // Other GSCBIN VMs retain their existing offset convention.
+                    return ctx.m_vmInfo->vmMagic == VMI_IW_BIN_MW19 ? delta >> 1 : delta;
+                };
 
                 auto AddTokenID = [&ctx, &sourceReader, &tokens](uint32_t* base, uint32_t id) {
                     *base = (uint32_t)tokens.size();
@@ -636,7 +645,7 @@ namespace tool::gsc {
                                 if (!bytecodeReader.CanRead(3)) {
                                     throw std::runtime_error("Can't read 3 byte for getlocal");
                                 }
-                                int32_t localDelta{ (*bytecodeReader.Ptr<int32_t>() << 8) >> 8 };
+                                int32_t localDelta{ ReadLocalDelta() };
 
                                 PreImport& imp{ imports.emplace_back() };
                                 imp.flags = T8GSCImportFlags::FUNC_METHOD | T8GSCImportFlags::LOCAL_CALL;
@@ -651,7 +660,7 @@ namespace tool::gsc {
                                 if (!bytecodeReader.CanRead(3)) {
                                     throw std::runtime_error("Can't read 3 byte for localcall method");
                                 }
-                                int32_t localDelta{ (*bytecodeReader.Ptr<int32_t>() << 8) >> 8 };
+                                int32_t localDelta{ ReadLocalDelta() };
 
                                 PreImport& imp{ imports.emplace_back() };
                                 imp.flags = T8GSCImportFlags::METHOD | T8GSCImportFlags::LOCAL_CALL;
@@ -666,7 +675,7 @@ namespace tool::gsc {
                                 if (!bytecodeReader.CanRead(3)) {
                                     throw std::runtime_error("Can't read 3 byte for localcall");
                                 }
-                                int32_t localDelta{ (*bytecodeReader.Ptr<int32_t>() << 8) >> 8 };
+                                int32_t localDelta{ ReadLocalDelta() };
 
                                 PreImport& imp{ imports.emplace_back() };
                                 imp.flags = T8GSCImportFlags::FUNCTION | T8GSCImportFlags::LOCAL_CALL;
@@ -680,7 +689,7 @@ namespace tool::gsc {
                                 if (!bytecodeReader.CanRead(3)) {
                                     throw std::runtime_error("Can't read 3 byte for localcall");
                                 }
-                                int32_t localDelta{ (*bytecodeReader.Ptr<int32_t>() << 8) >> 8 };
+                                int32_t localDelta{ ReadLocalDelta() };
 
                                 PreImport& imp{ imports.emplace_back() };
                                 imp.flags = T8GSCImportFlags::FUNCTION_THREAD | T8GSCImportFlags::LOCAL_CALL;
@@ -695,7 +704,7 @@ namespace tool::gsc {
                                 if (!bytecodeReader.CanRead(3)) {
                                     throw std::runtime_error("Can't read 3 byte for localcall");
                                 }
-                                int32_t localDelta{ (*bytecodeReader.Ptr<int32_t>() << 8) >> 8 };
+                                int32_t localDelta{ ReadLocalDelta() };
 
                                 PreImport& imp{ imports.emplace_back() };
                                 imp.flags = T8GSCImportFlags::METHOD_THREAD | T8GSCImportFlags::LOCAL_CALL;

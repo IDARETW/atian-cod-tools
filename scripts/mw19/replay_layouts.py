@@ -21,8 +21,9 @@ def apply(types, profile):
     def member(name, type, offset, size):
         return dict(name=name, type=type, offset_bits=offset * 8, size_bits=size * 8)
 
-    def opaque(name, size, reason):
+    def opaque(name, size, reason, storage='runtime'):
         types[name] = dict(name=name, kind='opaque', size=size, reason=reason)
+        if storage != 'runtime': types[name]['storage'] = storage
         return name
 
     def mapped(pool, root, loader, note):
@@ -37,6 +38,49 @@ def apply(types, profile):
         if m['name'] == 'streamedPartCount': m['offset_bits'] = 50 * 8
         elif m['name'] == 'decalAtlasIndex': m.update(name='unknown_0x31', offset_bits=49 * 8)
     image['members'].sort(key=lambda m: m['offset_bits'])
+
+    # Replay DF3030/DF30C3 loads 64-byte DDL members, versus game-test's
+    # 48. DF2F70 fixes name +0 and a single-byte pointer at +16. The
+    # source scalar run begins at +24 after the added pointer and word.
+    ddl_member = clone('DDLMember', 64)
+    for m in ddl_member['members']:
+        if m['offset_bits'] >= 12 * 8: m['offset_bits'] += 12 * 8
+    ddl_member['members'] += [member('unknown_0xc', 'unsigned int', 12, 4),
+                             member('serializedByte', 'unsigned __int8 *', 16, 8),
+                             member('unknown_0x3c', 'unsigned int', 60, 4)]
+    ddl_member['members'].sort(key=lambda m: m['offset_bits'])
+
+    # DD1CA0 reads a 64-byte player state, condition count +53 and
+    # baked-alias pointer +56. The condition mask is 48 bytes in Replay.
+    player_state = clone('PlayerAnimsetState', 64)
+    for m in player_state['members']:
+        if m['name'] == 'conditionMask':
+            m.update(type=opaque('Replay::PlayerConditionMask', 48,
+                     'Native player condition mask bytes; bit semantics not yet verified', 'serialized'), size_bits=48 * 8)
+        else: m['offset_bits'] -= 32 * 8
+
+    # D92C20/D92E54 reads/strides 112-byte voxel trees. Fixups end at
+    # the runtime allocation +80; game-test's CPU mirror pointers differ.
+    voxel = clone('GfxVoxelTree', 112)
+    voxel['members'] = [m for m in voxel['members'] if m['offset_bits'] < 88 * 8]
+    voxel['members'].append(member('runtimeState', opaque('Replay::VoxelRuntimeState', 24,
+        'Native runtime tail; no serialized pointer fixups'), 88, 24))
+
+    # The retained frontend 0xfda zone predates the transient-table fields.
+    # Its light records retain the full legacy scalar payload and defName
+    # at +336; its serialized string aliases confirm a 344-byte stride.
+    types['ReplayFDA::ComPrimaryLight'] = dict(name='ReplayFDA::ComPrimaryLight', kind='struct', size=344,
+        members=[member('serializedLighting', opaque('ReplayFDA::LightScalars', 336,
+                    'Legacy serialized lighting values; retained verbatim', 'serialized'), 0, 336),
+                 member('defName', 'const char *', 336, 8)])
+    types['ReplayFDA::ComPrimaryLight *'] = dict(name='ReplayFDA::ComPrimaryLight *', kind='pointer',
+                                                size=8, target='ReplayFDA::ComPrimaryLight')
+    legacy_world = deepcopy(types['ComWorld']); legacy_world.update(name='ReplayFDA::ComWorld', size=152)
+    legacy_world['members'] = [m for m in legacy_world['members'] if m['name'] not in ('transientTableSize', 'transientTable')]
+    for m in legacy_world['members']:
+        if m['offset_bits'] >= 88 * 8: m['offset_bits'] -= 16 * 8
+        if m['name'] == 'primaryLights': m['type'] = 'ReplayFDA::ComPrimaryLight *'
+    types[legacy_world['name']] = legacy_world
 
     # Load_Camo at E411C0 ends after the texture array. The source's two
     # vehicle VFX references at A8 and B0 are absent in this Replay build.
@@ -88,6 +132,11 @@ def apply(types, profile):
     # E305D0 fixes surfaces/bounds/materials/data at 28/30/38/40 hex,
     # followed by the 64-byte GPU buffer. Replay has none of the source's
     # himip arrays or transient-zone surface indices.
+    # E306C5 selects surfaceBounds at +48; E306FF multiplies count by 56.
+    # Preserve additional serialized bytes without assigning game-test names.
+    bounds = clone('GfxSurfaceBounds', 56)
+    bounds['members'].append(member('serializedExtra', opaque('Replay::SurfaceBoundsExtra', 32,
+        'Replay E306FF loads 56-byte surface bounds; trailing scalar semantics are not yet verified', 'serialized'), 24, 32))
     surfaces = clone('GfxWorldSurfaces', 136)
     surfaces['members'] = [m for m in surfaces['members'] if m['offset_bits'] < 40 * 8] + [
         member('surfaces', 'GfxSurface *', 40, 8),
@@ -169,6 +218,7 @@ def apply(types, profile):
             assert found[field] == offset, (name, field, found[field], offset)
 
     check('StClutterSamplePoints', 80, dict(samplePointBuffer=16))
+    check('GfxSurfaceBounds', 56, dict(bounds=0, serializedExtra=24))
     check('GfxWorldSurfaces', 136, dict(surfaces=40, surfaceBounds=48, surfaceMaterials=56,
                                      surfData=64, surfDataBuffer=72))
     check('WeaponSFXPackageSounds', 776, dict(dlcSound1Player=768))
@@ -176,6 +226,9 @@ def apply(types, profile):
                                 weaponOffsetCurveHoldFireSlow=2852, weaponOffsetPatterns=3048,
                                 mountRumble=4968, ballisticInfo=5208, notifyTypes=5248))
     check('GfxImage', 232, dict(levelCount=48, streamedPartCount=50, streams=56, pixels=224))
+    check('DDLMember', 64, dict(name=0, serializedByte=16, bitSize=24, type=36, arraySize=52))
+    check('PlayerAnimsetState', 64, dict(numConditionTypes=53, aliasesPerConditionType=56))
+    check('GfxVoxelTree', 112, dict(voxelTreeHeader=40, voxelInternalNodeArray=56, runtimeState=88))
     check('StTerrain', 152, dict(clutterSamplePoints=56, lightmapCount=140, lightmaps=144))
     check('StDiskTerrainSurface', 496, {})
     check('GfxWorldDrawVerts', 200, dict(posBuffer=24, auxBuffer=88, indexCount=152, indices=160, indexBuffer=168))

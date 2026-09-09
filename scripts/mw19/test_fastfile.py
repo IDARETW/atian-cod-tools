@@ -14,6 +14,7 @@ import zlib
 from pathlib import Path
 from fastfile_fixture import pack
 from verify_linker import unpack
+import parser_fixtures
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -59,13 +60,59 @@ def main():
 
     export_out = args.out / 'exporters'
     run('all-exporters', reader + ['--test', '-o', export_out, isolated], False)
-    empty_payloads = {'computeshader', 'libshader', 'vertexshader', 'hullshader', 'domainshader',
-                      'pixelshader', 'image', 'soundbank', 'soundbanktransient'}
+    empty_payloads = {'image', 'soundbank', 'soundbanktransient'}
     for fixture in fixtures:
         m, rows = report(export_out, fixture['pool'])
         assert m['complete'] and m['failed'] == 0 and len(rows) == 1
         assert rows[0]['status'] == ('unavailable' if fixture['pool'] in empty_payloads else 'ok')
     report_only(export_out)
+
+    # Resident stream-1 bytes must survive a later image reusing the buffer.
+    for label in ('images', 'ddl', 'world_bounds', 'legacy_worlds'):
+        fixture = args.out / (label + '.ff')
+        fixture.write_bytes(getattr(parser_fixtures, label)())
+        destination = args.out / ('parser-' + label)
+        run('parser-' + label, reader + ['-o', destination, fixture])
+        m, rows = report(destination, label)
+        assert m['success'] and m['complete']
+        folder = destination / 'mw19replay' / label
+        if label == 'images':
+            expected_pixels = [bytes.fromhex('ff0000ff00ff00ff0000ffffffffffff'), bytes(range(1, 17))]
+            assert [(folder / r['file']).read_bytes()[148:] for r in rows] == expected_pixels
+        elif label == 'ddl':
+            fields = json.loads((folder / rows[0]['file']).read_text())['asset']['fields']
+            members = fields['ddlDef']['values'][0]['structList']['values'][0]['members']['values']
+            assert [m['name']['string'] for m in members] == ['first', 'second']
+            assert [m['bitSize'] for m in members] == [32, 64]
+            assert [m['arraySize'] for m in members] == [3, 4]
+            assert members[0]['serializedByte']['bytes'] == 'a5'
+        elif label == 'world_bounds':
+            fields = json.loads((folder / rows[0]['file']).read_text())['asset']['fields']
+            bounds = fields['surfaces']['surfaceBounds']
+            assert bounds['stride'] == 56 and bounds['count'] == 2
+            assert [v['bounds']['midPoint']['v'] for v in bounds['values']] == [[1, 2, 3], [11, 12, 13]]
+            assert [v['bounds']['halfSize']['v'] for v in bounds['values']] == [[4, 5, 6], [14, 15, 16]]
+            for i, value in enumerate(bounds['values']):
+                assert value['serializedExtra']['bytes'] == bytes(range(i * 32, (i + 1) * 32)).hex()
+        else:
+            documents = {r['type']: json.loads((folder / r['file']).read_text())['asset']['fields'] for r in rows}
+            assert [l['defName']['string'] for l in documents['com_map']['primaryLights']['values']] == ['point', 'spot']
+            assert documents['scriptable']['models']['count'] == 2
+            graphics = documents['gfx_map']
+            assert graphics['frustumLights']['totalIndicesCount'] == 3
+            assert graphics['frustumLights']['totalVerticesCount'] == 3
+            assert graphics['lightViewFrustums']['values'][0]['indices']['bytes'] == '000102'
+            serialized = json.loads((folder / next(r['file'] for r in rows if r['type'] == 'gfx_map')).read_text())['asset']['serialized_layout']
+            assert serialized['xfile_version'] == 0xfda
+            assert len(bytes.fromhex(serialized['root_bytes'])) == 17744
+            assert serialized['light_meshes']['vertex_stride'] == 32
+            assert len(bytes.fromhex(serialized['light_meshes']['headers'])) == 96
+            assert len(bytes.fromhex(serialized['view_frustums']['headers'])) == 48
+    # A final-revision file after an FDA file must use its original loader.
+    mixed = args.out / 'mixed-revisions'; mixed.mkdir()
+    (mixed / 'a.ff').write_bytes(parser_fixtures.legacy_worlds())
+    (mixed / 'b.ff').write_bytes((isolated / 'gfx_map.ff').read_bytes())
+    run('mixed-revision-loaders', reader + ['--test', '-o', args.out / 'mixed-output', mixed])
 
     inputs = args.out / 'populated'
     inputs.mkdir()
@@ -173,6 +220,67 @@ def main():
     wrong_version = bytearray(pack(body, blocks)); struct.pack_into('<I', wrong_version, 12, 0xff9)
     wrong_file = args.out / 'wrong-version.ff'; wrong_file.write_bytes(wrong_version)
     run('wrong-version', reader + ['--test', '-o', args.out / 'wrong-version', wrong_file], False)
+    # Revision metadata is retained; older unchanged Replay zones use the same
+    # bounded stream path. Real installed-zone sampling complements this fixture.
+    for version in (0xfcd, 0xfcf, 0xfd0, 0xfd1, 0xfd5, 0xfda, 0xfe1, 0xfe3, 0xfee, 0xff3, 0xff5):
+        legacy = bytearray(pack(body, blocks)); struct.pack_into('<I', legacy, 12, version)
+        legacy_file = args.out / f'legacy-{version:x}.ff'; legacy_file.write_bytes(legacy)
+        legacy_out = args.out / f'legacy-{version:x}'
+        run(f'legacy-{version:x}', reader + ['--test', '-o', legacy_out, legacy_file])
+        legacy_report, _ = report(legacy_out, legacy_file.stem)
+        assert legacy_report['success'] and legacy_report['xfile_version'] == version
+    # A metadata-only .fp updates the revision and retains the base payload.
+    old = bytearray(pack(body, blocks)); struct.pack_into('<I', old, 12, 0xff3)
+    patched_file = args.out / 'header-only.ff'; patched_file.write_bytes(old)
+    target = bytearray(old[:0x88]); struct.pack_into('<I', target, 12, 0xff7)
+    patch_header = b'IWffd100' + struct.pack('<I', 6) + bytes(0x38 - 12)
+    patch_file = patched_file.with_suffix('.fp')
+    patch_file.write_bytes(patch_header + old[:0x88] + target)
+    patched_out = args.out / 'header-only'
+    run('header-only-patch', reader + ['--test', '-p', '-o', patched_out, patched_file])
+    m, checked = report(patched_out, patched_file.stem)
+    assert m['success'] and m['xfile_version'] == 0xff7 and len(checked) == 1
+    assert m['input_xfile_version'] == 0xff3 and len(m['applied_patches']) == 1
+    auto_out = args.out / 'auto-patch'
+    run('auto-patch', reader + ['--test', '-o', auto_out, patched_file, legacy_file])
+    m, _ = report(auto_out, patched_file.stem)
+    assert m['success'] and m['xfile_version'] == 0xff7 and len(m['applied_patches']) == 1
+    unpatched, _ = report(auto_out, legacy_file.stem)
+    assert unpatched['xfile_version'] == 0xff5 and unpatched['applied_patches'] == []
+    base_out = args.out / 'base-only'
+    run('base-only', reader + ['--test', '--no-auto-patch', '-o', base_out, patched_file])
+    m, _ = report(base_out, patched_file.stem)
+    assert m['success'] and m['xfile_version'] == 0xff3 and m['applied_patches'] == []
+    explicit_out = args.out / 'explicit-patch'
+    run('explicit-patch', reader + ['--test', '--no-auto-patch', '-p', '-o', explicit_out, patched_file])
+    m, _ = report(explicit_out, patched_file.stem)
+    assert m['xfile_version'] == 0xff7 and len(m['applied_patches']) == 1
+    # .fc must follow .fp and match the intermediate header, not the base.
+    fc_file = patched_file.with_suffix('.fc')
+    fc_file.write_bytes(patch_header + target + target)
+    chain_out = args.out / 'auto-chain'
+    run('auto-chain', reader + ['--test', '-o', chain_out, patched_file])
+    m, _ = report(chain_out, patched_file.stem)
+    assert [Path(p).suffix for p in m['applied_patches']] == ['.fp', '.fc']
+    fc_file.write_bytes(patch_header + old[:0x88] + target)
+    run('mismatched-auto-chain', reader + ['--test', '-o', args.out / 'bad-chain', patched_file], False)
+    fc_file.unlink()  # Remove only this test's synthetic sidecar.
+    previous = bytearray(old[:0x88]); previous[16] ^= 1
+    patch_file.write_bytes(patch_header + previous + target)
+    run('mismatched-auto-patch', reader + ['--test', '-o', args.out / 'bad-auto-patch', patched_file], False)
+    patch_file.write_bytes(b'')
+    run('empty-auto-patch', reader + ['--test', '-o', args.out / 'empty-auto-patch', patched_file], False)
+    # Header edits that imply different payload bytes still require delta data.
+    target[32] ^= 1
+    patch_file.write_bytes(patch_header + old[:0x88] + target)
+    run('missing-patch-delta', reader + ['--test', '-p', '-o', args.out / 'missing-delta', patched_file], False)
+    # Already loaded roots remain exportable when a subsequent record is bad.
+    partial = bytearray(references.replace(b',dependency\0', b'kept_asset\0')); struct.pack_into('<I', partial, 48, 117)
+    partial_file = args.out / 'partial-load.ff'; partial_file.write_bytes(pack(partial, blocks))
+    partial_out = args.out / 'partial-load'
+    run('partial-load-export', reader + ['-o', partial_out, partial_file], False)
+    m, checked = report(partial_out, partial_file.stem)
+    assert not m['complete'] and m['partial_load'] and m['loaded_assets'] == 1 and len(checked) == 1
     run('wrong-executable', base + ['fastfile', '-r', 'mw19replay', '-g', args.acts.resolve(), '--test',
                                   '-o', args.out / 'wrong-executable', ff], False)
     run('missing-handler', base + ['fastfile', '--test', '-o', args.out / 'missing-handler', ff], False)
@@ -180,8 +288,10 @@ def main():
     huge_file = args.out / 'huge-reservation.ff'; huge_file.write_bytes(pack(body, huge_blocks))
     run('huge-reservation', reader + ['--test', '-o', args.out / 'huge-reservation', huge_file], False)
     (args.out / 'tests.json').write_text(json.dumps(dict(success=True, runs=runs), indent=2) + '\n')
-    print('111 loaders, 102 empty-root exporters, 9 explicit empty payloads, eight populated round trips, '
-          'filters, script strings, reference quotas and malformed input checks passed. Synthetic assets only.')
+    print('111 loaders, 108 empty-root exporters, 3 explicit empty payloads, eight populated round trips, '
+          'resident image retention, 64-byte DDL members, populated FDA lighting and scriptables, '
+          'legacy revisions, header-only patches, partial-load recovery, filters, script strings, '
+          'reference quotas and malformed input checks passed. Synthetic assets only.')
 
 
 if __name__ == '__main__':

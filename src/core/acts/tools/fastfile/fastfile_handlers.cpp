@@ -352,6 +352,8 @@ namespace fastfile {
                 assetTypes = args[++i];
             } else if (!_strcmpi("--patch", arg) || !strcmp("-p", arg)) {
                 m_fd = true;
+            } else if (!_strcmpi("--no-auto-patch", arg)) {
+                replayNoAutoPatch = true;
             } else if (!strcmp("-c", arg) || !_strcmpi("--fc", arg)) {
                 m_fc = true;
             } else if (!strcmp("-R", arg) || !_strcmpi("--handlers", arg)) {
@@ -528,6 +530,7 @@ namespace fastfile {
         LOG_INFO("-G --game-path [g]        : Game path");
         LOG_INFO("-p --patch                : Use patch files (fd/fp)");
         LOG_INFO("-c --fc                   : Read fc files (fc)");
+        LOG_INFO("--no-auto-patch           : Replay only: disable automatic adjacent .fp/.fc patches");
         LOG_INFO("-i --fd-ignore            : Ignore missing fd file");
         LOG_INFO("-a --assets [g]           : Set the asset types to dump by name (by default all)");
         LOG_INFO("-n --name [n]             : Set the assets to dump by name (by default all)");

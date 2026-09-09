@@ -229,6 +229,13 @@ namespace tool::mw19::schema {
             const auto loadDef = address + (profile == "game-test" ? 32 : 24);
             const auto program = r.Number<uint64_t>(loadDef);
             const auto size = r.Count(r.Number<uint32_t>(loadDef + 8));
+            if (!program && !size) {
+                Json out{ { "name", r.String(r.Number<uint64_t>(address)) },
+                          { "type", pool }, { "program_bytes", 0 },
+                          { "status", "empty_shader" },
+                          { "flags", r.Number<uint32_t>(loadDef + 12) } };
+                return Text(out.dump(2) + '\n', ".shader.json", "empty shader declaration");
+            }
             if (!program || !size)
                 throw PayloadUnavailable("shader_not_resident", "Shader program bytes are not resident");
             return { ".cso", r.Bytes(program, size), "compiled shader program" };

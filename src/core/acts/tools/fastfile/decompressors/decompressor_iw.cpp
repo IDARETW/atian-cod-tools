@@ -457,25 +457,32 @@ namespace {
             std::vector<byte> fileFCBuff{};
             bool hasFdFile{};
             bool hasFcFile{};
-            if (opt.m_fd) {
+            const auto inputHeader = reader.Ptr<DB_FFHeader>();
+            const bool autoReplayPatch = !opt.replayNoAutoPatch && opt.handler &&
+                !std::strcmp(opt.handler->name, "mw19replay") && inputHeader->headerVersion == IWFV_MW19;
+            opt.replayInputVersion = inputHeader->xfileVersion;
+            opt.replayAppliedPatches.clear();
+            if (opt.m_fd || autoReplayPatch) {
                 fpfile = ctx.file;
                 fpfile.replace_extension(".fp");
                 if (opt.ReadFile(fpfile.string(), fileFPBuff)) {
                     hasFdFile = true;
                 } else {
-                    if (opt.m_fdIgnoreMissing) {
+                    if ((opt.m_fd && opt.m_fdIgnoreMissing) ||
+                        (autoReplayPatch && !opt.cascStorage && std::filesystem::exists(fpfile))) {
                         throw std::runtime_error(std::format("Can't read {}", fpfile.string()));
                     }
                     fileFPBuff.clear();
                 }
             }
-            if (opt.m_fc) {
+            if (opt.m_fc || autoReplayPatch) {
                 fcfile = ctx.file;
                 fcfile.replace_extension(".fc");
                 if (opt.ReadFile(fcfile.string(), fileFCBuff)) {
                     hasFcFile = true;
                 } else {
-                    if (opt.m_fdIgnoreMissing) {
+                    if ((opt.m_fc && opt.m_fdIgnoreMissing) ||
+                        (autoReplayPatch && !opt.cascStorage && std::filesystem::exists(fcfile))) {
                         throw std::runtime_error(std::format("Can't read {}", fcfile.string()));
                     }
                     fileFCBuff.clear();
@@ -514,6 +521,7 @@ namespace {
                 opt.replayFileVersion = ffHeader.mw19.xfileVersion;
                 secureType = ST_MW19;
                 ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks
+                                  : opt.handler && !std::strcmp(opt.handler->name, "mw19replay") ? 11
                                   : ffHeader.mw19.xfileVersion == 0xff7       ? 11
                                                                               : 8;
                 if (ctx.blocksCount > 11)
@@ -585,13 +593,16 @@ namespace {
             }
             XBlockCompressDataHeader compressDataHeader{};
             bool secure{};
+            bool storedIwc{};
             switch (secureType) {
             case ST_MW19: {
                 constexpr size_t secureChunkSize = 0x800000;
                 constexpr size_t rsaBlockSize = 0x4000;
                 bool found{};
                 while (reader.CanRead(sizeof(uint32_t))) {
-                    if (*reader.Ptr<uint32_t>() == 0x43574902) {
+                    const uint32_t iwc = *reader.Ptr<uint32_t>();
+                    if (iwc == 0x43574901 || iwc == 0x43574902) {
+                        storedIwc = iwc == 0x43574901;
                         found = true;
                         break;
                     }
@@ -601,6 +612,17 @@ namespace {
                     throw std::runtime_error("can't find iwc");
                 }
                 size_t rsaEnd{ reader.Loc() };
+                if (storedIwc) {
+                    reader.Goto(rsaEnd + 4);
+                    if (endSize == std::string::npos || reader.Remaining() != endSize) {
+                        throw std::runtime_error(std::format(
+                            "invalid stored IWC payload size 0x{:x}, expected 0x{:x}",
+                            reader.Remaining(),
+                            endSize
+                        ));
+                    }
+                    break;
+                }
                 if (rsaEnd > rsaBlockSize * 2) {
                     // go at rsa start
                     reader.Goto(rsaEnd - rsaBlockSize * 2);
@@ -672,9 +694,10 @@ namespace {
                 throw std::runtime_error(std::format("no secure handler for 0x{:x}", header->headerVersion));
             }
 
-            if (compressDataHeader.compression >= fastfile::FastFileIWCompression::IWFFC_COUNT) {
+            if (!storedIwc &&
+                compressDataHeader.compression >= fastfile::FastFileIWCompression::IWFFC_COUNT) {
                 throw std::runtime_error("Can't find compression type");
-            } else {
+            } else if (!storedIwc) {
                 alg = fastfile::GetFastFileCompressionAlgorithm(compressDataHeader.compression);
             }
 
@@ -690,7 +713,13 @@ namespace {
             size_t count{};
             ffdata.clear();
 
-            while (reader.CanRead(sizeof(uint32_t) * 3)) {
+            if (storedIwc) {
+                const byte* begin{ reader.ReadPtr<byte>(endSize) };
+                ffdata.assign(begin, begin + endSize);
+                offset = endSize;
+            }
+
+            while (!storedIwc && reader.CanRead(sizeof(uint32_t) * 3)) {
                 size_t id{ count++ };
 
                 if (secure && secureType == ST_MW22) {
@@ -839,6 +868,7 @@ namespace {
                     case IWFV_MW19: {
                         opt.replayFileVersion = newHeader.mw19.xfileVersion;
                         ctx.blocksCount = opt.handler && opt.handler->forceNumXBlocks ? opt.handler->forceNumXBlocks
+                                          : opt.handler && !std::strcmp(opt.handler->name, "mw19replay") ? 11
                                           : opt.replayFileVersion == 0xff7            ? 11
                                                                                       : 8;
                         // endSize = ...;
@@ -890,6 +920,19 @@ namespace {
                     }
 
                     if (!fpreader.CanRead(1)) {
+                        if (header->headerVersion == IWFV_MW19) {
+                            // Replay ships header-only patches that update the
+                            // revision while retaining the entire base payload.
+                            auto expected = prevHeader.mw19;
+                            expected.xfileVersion = newHeader.mw19.xfileVersion;
+                            if (newHeader.mw19.size == ffdata.size() &&
+                                !std::memcmp(&expected, &newHeader.mw19, sizeof(expected))) {
+                                LOG_OPT_INFO("Replay header-only patch: retaining {} serialized bytes", ffdata.size());
+                                return;
+                            }
+                            if (newHeader.mw19.size)
+                                throw std::runtime_error("Replay patch changes payload metadata but has no delta data");
+                        }
                         ffdata = {};
                         return;
                     }
@@ -1110,14 +1153,16 @@ namespace {
 
             if (hasFdFile) {
                 ApplyDeltaFile(fileFPBuff, fpfile, "fp");
+                opt.replayAppliedPatches.push_back(fpfile.string());
             }
             if (hasFcFile) {
                 ApplyDeltaFile(fileFCBuff, fcfile, "fc");
+                opt.replayAppliedPatches.push_back(fcfile.string());
             }
             if (opt.handler && !std::strcmp(opt.handler->name, "mw19replay") &&
-                (header->headerVersion != IWFV_MW19 || opt.replayFileVersion != 0xff7))
+                (header->headerVersion != IWFV_MW19 || !fastfile::FastFileOption::IsReplayFileVersion(opt.replayFileVersion)))
                 throw std::runtime_error(
-                    "mw19replay requires final fastfile XFile version 0xff7 (apply matching patches with -p)"
+                    "mw19replay does not support this XFile revision (apply matching patches with -p/--fc when available)"
                 );
             if (opt.m_header) {
                 WriteHeaderFile("Decompressed size: 0x{:x}", ffdata.size());
