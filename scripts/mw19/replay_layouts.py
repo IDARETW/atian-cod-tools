@@ -144,6 +144,15 @@ def apply(types, profile):
         member('surfaceMaterials', 'GfxDrawSurf *', 56, 8),
         member('surfData', 'GfxWorldSurfData *', 64, 8),
         member('surfDataBuffer', 'GfxWrappedBuffer', 72, 64)]
+
+    # R_StaticModelInstance_GetPlacement reads the three leading dwords as
+    # signed fixed-point coordinates (1/4096 game unit), followed by the two
+    # packed quaternion words and the unchanged float scale.  Treating those
+    # coordinates as vec3_t produced tiny denormal floats in structured world
+    # exports and made scene reconstruction impossible.
+    smodel_instance = clone('GfxSModelInstanceData', 24)
+    translation = next(m for m in smodel_instance['members'] if m['name'] == 'translation')
+    translation.update(type='int[3]', size_bits=12 * 8)
     # D9C260 copies 776 bytes and fixes aliases through +768. The last
     # two DLC pairs in the game-test record do not exist in Replay.
     sounds = clone('WeaponSFXPackageSounds', 776)
@@ -221,6 +230,7 @@ def apply(types, profile):
     check('GfxSurfaceBounds', 56, dict(bounds=0, serializedExtra=24))
     check('GfxWorldSurfaces', 136, dict(surfaces=40, surfaceBounds=48, surfaceMaterials=56,
                                      surfData=64, surfDataBuffer=72))
+    check('GfxSModelInstanceData', 24, dict(translation=0, orientation=12, scale=20))
     check('WeaponSFXPackageSounds', 776, dict(dlcSound1Player=768))
     check('WeaponDef', 5296, dict(parallelBounce=1904, projIgnitionEffect=1976,
                                 weaponOffsetCurveHoldFireSlow=2852, weaponOffsetPatterns=3048,
