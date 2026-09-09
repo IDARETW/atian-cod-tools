@@ -10,15 +10,6 @@ My set of tools. The code is more important than the features, so feel free to r
 
 This tool is using and providing different dependencies, see [LICENSE.md](LICENSE.md) for a full list.
 
-## Downloads
-
-You can download the latest release here:
-
-- [Latest Release](https://github.com/ate47/atian-cod-tools/releases/latest)
-- [Latest Dev Build](https://github.com/ate47/atian-cod-tools/releases/tag/latest_build) (Might be unstable)
-
-The tool `checkupdate` allows to check for the latest update.
-
 ## Fast Files
 
 Fast Files (ff) are compressed archives containing the different assets of the Call of Duty games.
