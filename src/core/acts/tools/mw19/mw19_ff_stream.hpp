@@ -7,8 +7,17 @@
 #include <cstdint>
 #include <algorithm>
 #include <string>
+#include <functional>
 
 namespace tool::mw19::replay {
+    struct StreamTraceEvent {
+        const char* operation;
+        size_t blockBefore, offsetBefore, inputBefore;
+        size_t blockAfter, offsetAfter, inputAfter;
+        uint64_t value;
+        size_t size;
+    };
+
     // Replay has eight native streams. The file header's eleven reservation
     // values must not be confused with the native stream count.
     class Streams {
@@ -22,6 +31,14 @@ namespace tool::mw19::replay {
         std::span<const uint8_t> input;
         uint8_t*& cursor;
         size_t block{}, consumed{}, shared{};
+        std::function<void(const StreamTraceEvent&)> trace;
+
+        void Emit(const char* operation, size_t oldBlock, size_t oldOffset, size_t oldInput,
+                  uint64_t value = 0, size_t size = 0) {
+            if (trace)
+                trace({operation, oldBlock, oldOffset, oldInput,
+                       block, offsets[block], consumed, value, size});
+        }
 
         void Sync() {
             auto begin = reinterpret_cast<uintptr_t>(memory[block].data());
@@ -41,6 +58,7 @@ namespace tool::mw19::replay {
         size_t Remaining() const { return input.size() - consumed; }
         size_t Block() const { return block; }
         size_t Depth() const { return stack.size(); }
+        void SetTrace(std::function<void(const StreamTraceEvent&)> sink) { trace = std::move(sink); }
         std::span<const uint8_t> Take(size_t size) {
             if (size > Remaining())
                 throw std::runtime_error("Truncated Replay file header");
@@ -64,20 +82,26 @@ namespace tool::mw19::replay {
             if (mask > 0xfffff || (mask & (mask + 1)))
                 throw std::runtime_error("Invalid Replay stream alignment");
             Sync();
-            Advance((0 - reinterpret_cast<uintptr_t>(cursor)) & mask);
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
+            auto padding = (0 - reinterpret_cast<uintptr_t>(cursor)) & mask;
+            Advance(padding);
+            Emit("align", oldBlock, oldOffset, oldInput, mask, padding);
         }
         void Push(size_t next) {
             if (next >= memory.size() || stack.size() >= 64)
                 throw std::runtime_error("Invalid Replay stream push");
             Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             stack.push_back({ block, offsets[next] });
             block = next;
             Publish();
+            Emit("push", oldBlock, oldOffset, oldInput, next);
         }
         void Pop() {
             if (stack.empty())
                 throw std::runtime_error("Replay stream stack underflow");
             Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             auto previous = stack.back();
             if (block == 1)
                 offsets[block] = previous.start;
@@ -86,6 +110,7 @@ namespace tool::mw19::replay {
             stack.pop_back();
             block = previous.block;
             Publish();
+            Emit("pop", oldBlock, oldOffset, oldInput);
         }
         bool Contains(uint64_t address, size_t size) const {
             for (auto m : memory) {
@@ -99,6 +124,7 @@ namespace tool::mw19::replay {
             if (!atStart || !size)
                 return;
             Check(size);
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             if (destination != cursor)
                 throw std::runtime_error("Replay Load_Stream destination differs from cursor");
             if (block == 4)
@@ -110,6 +136,7 @@ namespace tool::mw19::replay {
                 consumed += size;
             }
             Advance(size);
+            Emit("load", oldBlock, oldOffset, oldInput, atStart, size);
         }
         void String(char** value) {
             if (block == 4)
@@ -120,18 +147,26 @@ namespace tool::mw19::replay {
             );
             if (!end)
                 throw std::runtime_error("Unterminated Replay string");
+            Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
+            Emit("string", oldBlock, oldOffset, oldInput, 0, size_t(end - available.data()) + 1);
             Load(true, *value, size_t(end - available.data()) + 1);
         }
         void BeginAsset() {
             if (assets.size() >= 64)
                 throw std::runtime_error("Replay asset nesting limit exceeded");
             Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             assets.push_back(offsets);
+            Emit("begin_asset", oldBlock, oldOffset, oldInput, assets.size());
         }
         void EndAsset() {
             if (assets.empty())
                 throw std::runtime_error("Replay asset stack underflow");
+            Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             assets.pop_back();
+            Emit("end_asset", oldBlock, oldOffset, oldInput, assets.size());
         }
         void SharedPush() {
             if (++shared > 256)
@@ -143,6 +178,8 @@ namespace tool::mw19::replay {
             --shared;
         }
         uint8_t* Resolve(uint64_t packed, bool alias) {
+            Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             size_t index = (packed >> 32) & 15;
             uint64_t offset = uint32_t(packed - 1);
             if (packed & ~UINT64_C(0x1fffffffff))
@@ -161,6 +198,7 @@ namespace tool::mw19::replay {
             uint8_t* value = memory[index].data() + offset;
             if (alias)
                 std::memcpy(&value, value, 8);
+            Emit(alias ? "alias" : "resolve", oldBlock, oldOffset, oldInput, packed, offset);
             return value;
         }
         void** Insert() {
@@ -176,6 +214,9 @@ namespace tool::mw19::replay {
         const void* Temporary(size_t size, size_t alignment) {
             if (!alignment)
                 throw std::runtime_error("Zero temporary alignment");
+            Sync();
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
+            Emit("temporary", oldBlock, oldOffset, oldInput, alignment, size);
             Push(1);
             Align(alignment - 1);
             auto result = cursor;
