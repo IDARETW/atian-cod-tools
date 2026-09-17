@@ -213,6 +213,17 @@ namespace fastfile::handlers::mw19_replay {
         void** Insert() { return state.streams->Insert(); }
         const void* Temporary(size_t length, size_t alignment) { return state.streams->Temporary(length, alignment); }
         uintptr_t RuntimeOnly() { return 0; }
+        size_t RetainedPayloadBudget() {
+            // Resident pixels are copied out of Replay's rewindable stream 1.
+            // Bound those copies to the serialized input that supplied them,
+            // plus a fixed allowance for normalized legacy records and other
+            // small retained helper arrays. A fixed 512 MiB total rejected
+            // otherwise valid image-heavy zones whose own serialized input is
+            // larger than that value.
+            constexpr size_t allowance = 512ull * 1024 * 1024;
+            const size_t input = state.streams ? state.streams->InputSize() : 0;
+            return input > SIZE_MAX - allowance ? SIZE_MAX : input + allowance;
+        }
         void RetainImagePixels(uint8_t** pixels, const uint8_t* image) {
             // Load_GfxImagePixels uses rewindable stream 1. Capture at the
             // upload boundary, before DB_PopStreamPos reuses those bytes.
@@ -221,7 +232,8 @@ namespace fastfile::handlers::mw19_replay {
                 throw std::runtime_error("Image upload header outside loader memory");
             std::memcpy(&size, image + 28, 4);
             if (!pixels || !*pixels || !size) return;
-            if (size > 512ull * 1024 * 1024 - state.retainedPixelBytes ||
+            const size_t budget = RetainedPayloadBudget();
+            if (state.retainedPixelBytes > budget || size > budget - state.retainedPixelBytes ||
                 !state.streams->Contains(reinterpret_cast<uintptr_t>(*pixels), size))
                 throw std::runtime_error("Resident image pixels exceed retained payload bounds");
             auto copy = state.ctx->zoneMemory.AllocAligned<uint8_t>(size, 16);
@@ -233,7 +245,8 @@ namespace fastfile::handlers::mw19_replay {
         void ScriptString(uint32_t*) {} // Preserve the fastfile's script-string indices.
 
         void* Retained(size_t bytes, size_t alignment) {
-            if (bytes > 512ull * 1024 * 1024 - state.retainedPixelBytes)
+            const size_t budget = RetainedPayloadBudget();
+            if (state.retainedPixelBytes > budget || bytes > budget - state.retainedPixelBytes)
                 throw std::runtime_error("Retained loader payload budget exceeded");
             auto result = state.ctx->zoneMemory.AllocAligned<uint8_t>(std::max(size_t(1), bytes), alignment);
             std::memset(result, 0, bytes);

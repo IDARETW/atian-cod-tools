@@ -55,6 +55,7 @@ namespace tool::mw19::replay {
             Publish();
         }
         size_t Consumed() const { return consumed; }
+        size_t InputSize() const { return input.size(); }
         size_t Remaining() const { return input.size() - consumed; }
         size_t Block() const { return block; }
         size_t Depth() const { return stack.size(); }
