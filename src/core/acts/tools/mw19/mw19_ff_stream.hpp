@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <string>
 #include <functional>
+#include <optional>
+#include <utility>
 
 namespace tool::mw19::replay {
     struct StreamTraceEvent {
@@ -63,8 +65,10 @@ namespace tool::mw19::replay {
         std::span<const uint8_t> Take(size_t size) {
             if (size > Remaining())
                 throw std::runtime_error("Truncated Replay file header");
+            auto oldBlock = block, oldOffset = offsets[block], oldInput = consumed;
             auto result = input.subspan(consumed, size);
             consumed += size;
+            Emit("take", oldBlock, oldOffset, oldInput, 0, size);
             return result;
         }
         void Check(size_t size) {
@@ -120,6 +124,14 @@ namespace tool::mw19::replay {
                     return true;
             }
             return false;
+        }
+        std::optional<std::pair<size_t, size_t>> Locate(uint64_t address) const {
+            for (size_t i = 0; i < memory.size(); ++i) {
+                auto start = reinterpret_cast<uintptr_t>(memory[i].data());
+                if (address >= start && address - start <= memory[i].size())
+                    return std::pair<size_t, size_t>{i, static_cast<size_t>(address - start)};
+            }
+            return std::nullopt;
         }
         void Load(bool atStart, void* destination, size_t size) {
             if (!atStart || !size)

@@ -207,7 +207,7 @@ namespace tool::mw19::linker {
                         auto [it, added] = dict.emplace(s, static_cast<uint16_t>(strings.size()));
                         if (added)
                             strings.push_back(s);
-                        Put(indices, (col * rows.size() + row) * 2, it->second);
+                        Put(indices, (row * cols + col) * 2, it->second);
                     }
                 }
                 const auto supplied = a.value("hashes", Json());

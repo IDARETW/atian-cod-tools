@@ -340,9 +340,6 @@ namespace {
         std::vector<byte>* outDump{};
 
         lua_State* (*lua_newstate)(lua_Alloc alloc, void* ud, int a3, int a4){};
-        void (*cod_lua_setxhash)(
-            lua_State* L, uint64_t(__fastcall* XHash)(const char* str, uint32_t len), void* a3, void* a4
-        ){};
         int (*lua_loadx)(lua_State* L, lua_Reader reader, void* ud, const char* chunkname, const char* mode){};
         int (*lj_cf_string_dump)(lua_State* L){};
         const char* (*lua_tolstring)(lua_State* L, int idx, size_t* len){};
@@ -351,12 +348,31 @@ namespace {
 
         ljec_Context(const char* game, std::vector<byte>& file) : reader(file), data(game) {}
 
+        void ResetReader(std::vector<byte>& file) { reader = core::bytebuffer::ByteBuffer{ file }; }
+
         void* Alloc(void* ptr, size_t osize, size_t nsize) {
-            if (ptr) {
+            // LuaJIT's allocator callback has realloc semantics: a non-zero
+            // resize must preserve the existing bytes up to min(osize, nsize).
+            // Keep the old allocation alive until the replacement is ready so
+            // allocation failure leaves the current Lua state intact.
+            if (!nsize) {
                 alloc.Free(ptr);
+                return nullptr;
             }
 
-            void* nv{ alloc.Alloc<byte>(nsize) };
+            void* nv{};
+            try {
+                nv = alloc.Alloc<byte>(nsize);
+            } catch (...) {
+                return nullptr;
+            }
+
+            if (ptr) {
+                const size_t copySize{ osize < nsize ? osize : nsize };
+                if (copySize)
+                    std::memcpy(nv, ptr, copySize);
+                alloc.Free(ptr);
+            }
 
             // LOG_TRACE("ljec_Alloc(0x{:x}) -> {}", nsize, nv);
             return nv;
@@ -386,9 +402,12 @@ namespace {
             data.Get("lua.lua_newstate", &lua_newstate);
             data.Get("lua.lua_loadx", &lua_loadx);
             data.Get("lua.lj_cf_string_dump", &lj_cf_string_dump);
-            data.Get("lua.lua_tolstring", &lua_tolstring);
             data.Get("lua.writer_buf", &writer_buf);
-            data.Get("lua.cod_lua_setxhash", &cod_lua_setxhash);
+            try {
+                data.Get("lua.lua_tolstring", &lua_tolstring);
+            } catch (const std::exception& e) {
+                LOG_TRACE("Lua error-string accessor unavailable; compile errors will use numeric status: {}", e.what());
+            }
         }
 
         void PatchAntiCheat(hook::scan_container::ScanContainer& scan) {
@@ -409,7 +428,8 @@ namespace {
                 std::vector<hook::library::ScanResult> ress{ scan.Scan(info.sig, "AC patch") };
                 // LOG_TRACE("{}", scan.GetLibrary().Scan(info.sig).size());
                 if (ress.empty()) {
-                    throw std::runtime_error(std::format("Can't find patch {}", info.sig));
+                    LOG_TRACE("Skipping absent optional Lua anti-cheat patch signature");
+                    continue;
                 }
 
                 for (hook::library::ScanResult& res : ress) {
@@ -437,17 +457,6 @@ namespace {
     void* ljec_Reader(lua_State* L, void* ud, size_t* sz) { return currentCtx->Reader(L, sz); }
 
     int ljec_Writer(lua_State* L, const void* p, size_t sz, void* ud) { return currentCtx->Write(L, p, sz); }
-
-    uint64_t lua_XHash(const char* str, uint32_t len) {
-        char buff[0x400];
-        if (len >= sizeof(buff)) {
-            throw std::runtime_error("lua_XHash: string too large");
-        }
-
-        std::memcpy(buff, str, len);
-        buff[len] = 0;
-        return hash::Hash64(buff);
-    }
 
     int ljec(int argc, const char* argv[]) {
         cli::options::CliOptions opts{};
@@ -499,14 +508,12 @@ namespace {
             return tool::BASIC_ERROR;
         }
 
-        ctx.cod_lua_setxhash(L, lua_XHash, nullptr, nullptr);
-
         LOG_TRACE("lua_State loaded {}", (void*)L);
 
         int r;
 
         if ((r = ctx.lua_loadx(L, ljec_Reader, &ctx, opts[1], "t")) != 0) {
-            const char* msg{ ctx.lua_tolstring(L, -1, nullptr) };
+            const char* msg{ ctx.lua_tolstring ? ctx.lua_tolstring(L, -1, nullptr) : nullptr };
             if (msg) {
                 LOG_ERROR("{}", msg);
             }
@@ -519,6 +526,17 @@ namespace {
         std::vector<byte> obuff{};
         ctx.outDump = &obuff;
         ctx.lj_cf_string_dump(L);
+        obuff.push_back(0);
+
+        // Validate the emitted chunk with the same target VM before writing it.
+        // The Replay-specific bytecode can be accepted by LuaJIT while a generic
+        // third-party decompiler still lacks support for its prototype details.
+        obuff.pop_back(); // the trailing terminator belongs to the asset wrapper
+        ctx.ResetReader(obuff);
+        if ((r = ctx.lua_loadx(L, ljec_Reader, &ctx, opts[1], "b")) != 0) {
+            LOG_ERROR("Replay LuaJIT rejected its emitted bytecode ({})", ljErrorMsg(r));
+            return tool::BASIC_ERROR;
+        }
         obuff.push_back(0);
 
         if (opt.compressed) {

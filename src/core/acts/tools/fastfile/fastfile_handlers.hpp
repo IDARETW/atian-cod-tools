@@ -126,6 +126,7 @@ namespace fastfile {
         bool replayTest{};
         bool replayGeometry{};
         bool replayNoAutoPatch{};
+        bool replayStreamTrace{};
         size_t replayLimit{ 1 };
         std::vector<std::filesystem::path> replayPackages;
         std::filesystem::path replayOodle;

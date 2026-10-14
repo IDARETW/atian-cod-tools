@@ -413,6 +413,8 @@ namespace fastfile {
                 headerDump = args[++i];
             } else if (!_strcmpi("--noAssetDump", arg)) {
                 noAssetDump = true;
+            } else if (!_strcmpi("--trace-replay-streams", arg)) {
+                replayStreamTrace = true;
             } else if (!_strcmpi("--dumpXStrings", arg)) {
                 dumpXStrings = true;
             } else if (!_strcmpi("--dumpXHash", arg)) {
@@ -538,6 +540,7 @@ namespace fastfile {
         LOG_INFO("-k --rsa-key [k]          : Set the rsa public key (by default game's key)");
         LOG_INFO("-l --reduced-logs         : Reduce the logs");
         LOG_INFO("--noAssetDump             : No asset dump");
+        LOG_INFO("--trace-replay-streams    : Write an opt-in Replay stream/allocation trace");
         LOG_INFO("--test                    : Replay report-only exporter checks, one sample per type");
         LOG_INFO("--limit-per-pool [1..32]   : Replay --test sample count per type");
         LOG_INFO("--xpak [file]             : Replay streamed payload archive (repeatable)");
@@ -1020,7 +1023,7 @@ namespace fastfile {
         }
 
         void Init() {
-            if ((opt.replayTest || opt.replayGeometry || opt.replayLimit != 1 || !opt.replayPackages.empty() ||
+            if ((opt.replayTest || opt.replayGeometry || opt.replayStreamTrace || opt.replayLimit != 1 || !opt.replayPackages.empty() ||
                  !opt.replayOodle.empty()) &&
                 (!opt.handler || std::strcmp(opt.handler->name, "mw19replay")))
                 throw std::runtime_error("Replay test and package options require the mw19replay fastfile handler");

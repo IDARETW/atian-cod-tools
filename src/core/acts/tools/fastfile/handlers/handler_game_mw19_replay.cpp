@@ -50,7 +50,11 @@ namespace fastfile::handlers::mw19_replay {
             std::filesystem::path out;
             Json report;
             std::ofstream journal;
+            std::ofstream streamTrace;
+            size_t streamTraceEvents{};
             size_t current{};
+            uint32_t currentType{};
+            bool currentAssetActive{};
             uint32_t lastAssetType{};
             void* lastAssetRoot{};
             uint64_t legacyFrustumMeshes{};
@@ -82,6 +86,33 @@ namespace fastfile::handlers::mw19_replay {
                 WriteJsonAtomic(out / "manifest.json", report);
             }
         } state;
+        Json StreamLocation(uint64_t address) {
+            if (!state.streams) return nullptr;
+            auto location = state.streams->Locate(address);
+            if (!location) return nullptr;
+            return Json{{"stream", location->first}, {"offset", location->second}};
+        }
+        Json StreamDelta(uint64_t address, uint64_t base) {
+            if (!state.streams) return nullptr;
+            auto location = state.streams->Locate(address);
+            auto origin = state.streams->Locate(base);
+            if (!location || !origin || location->first != origin->first || location->second < origin->second)
+                return nullptr;
+            return location->second - origin->second;
+        }
+        void TraceEvent(Json event) {
+            if (!state.opt || !state.opt->replayStreamTrace || !state.streamTrace.is_open()) return;
+            event["sequence"] = state.streamTraceEvents++;
+            event["xasset_index"] = state.currentAssetActive ? Json(state.current) : Json(nullptr);
+            event["type_id"] = state.currentAssetActive ? Json(state.currentType) : Json(nullptr);
+            event["root_stream_location"] = StreamLocation(reinterpret_cast<uintptr_t>(state.lastAssetRoot));
+            if (state.streams) {
+                event["stream_block"] = state.streams->Block();
+                event["stream_stack_depth"] = state.streams->Depth();
+                event["serialized_input_cursor"] = state.streams->Consumed();
+            }
+            state.streamTrace << event.dump() << '\n';
+        }
         std::string HexBytes(const void* source, size_t size) {
             static constexpr char digits[] = "0123456789abcdef";
             const auto bytes = static_cast<const uint8_t*>(source);
@@ -93,6 +124,14 @@ namespace fastfile::handlers::mw19_replay {
         }
         void* Retained(size_t bytes, size_t alignment = 16);
         void LoadStream(int start, void* destination, size_t size) {
+            auto callRva = reinterpret_cast<uintptr_t>(_ReturnAddress()) -
+                           reinterpret_cast<uintptr_t>((*state.module)[size_t(0)]);
+            TraceEvent(Json{{"kind", "load_stream_call"}, {"loader_start_arg", start},
+                             {"at_start", start == 0},
+                             {"size", size}, {"caller_rva", callRva},
+                             {"destination_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(destination))},
+                             {"destination_root_delta", StreamDelta(reinterpret_cast<uintptr_t>(destination),
+                                                                     reinterpret_cast<uintptr_t>(state.lastAssetRoot))}});
             if (start == 0 && destination == state.lastAssetRoot) {
                 state.report["last_asset_load"] = Json{{"type", state.lastAssetType}, {"bytes", size},
                                                        {"offset", state.streams->Consumed()}};
@@ -191,27 +230,65 @@ namespace fastfile::handlers::mw19_replay {
                 throw;
             }
         }
-        void PushStream(uint32_t block) { state.streams->Push(block); }
-        void PopStream() { state.streams->Pop(); }
-        void AlignStream(size_t mask) { state.streams->Align(mask); }
+        void PushStream(uint32_t block) {
+            TraceEvent(Json{{"kind", "push_stream_call"}, {"requested_block", block}});
+            state.streams->Push(block);
+        }
+        void PopStream() {
+            TraceEvent(Json{{"kind", "pop_stream_call"}});
+            state.streams->Pop();
+        }
+        void AlignStream(size_t mask) {
+            TraceEvent(Json{{"kind", "align_stream_call"}, {"mask", mask}});
+            state.streams->Align(mask);
+        }
         void BeginAsset(int type, void* root) {
             state.lastAssetType = type; state.lastAssetRoot = root;
+            TraceEvent(Json{{"kind", "begin_asset_call"}, {"asset_type", type},
+                             {"root_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(root))}});
             state.streams->BeginAsset();
         }
-        void EndAsset() { state.streams->EndAsset(); }
-        void SharedPush() { state.streams->SharedPush(); }
-        void SharedPop() { state.streams->SharedPop(); }
-        void String(char** value) { state.streams->String(value); }
+        void EndAsset() { TraceEvent(Json{{"kind", "end_asset_call"}}); state.streams->EndAsset(); }
+        void SharedPush() { TraceEvent(Json{{"kind", "shared_push"}}); state.streams->SharedPush(); }
+        void SharedPop() { TraceEvent(Json{{"kind", "shared_pop"}}); state.streams->SharedPop(); }
+        void String(char** value) {
+            TraceEvent(Json{{"kind", "string_call"},
+                             {"field_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(value))},
+                             {"raw_pointer", reinterpret_cast<uintptr_t>(*value)}});
+            state.streams->String(value);
+        }
         void Resolve(uint64_t* value) {
-            try { *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, false)); }
+            auto raw = *value;
+            auto field = StreamLocation(reinterpret_cast<uintptr_t>(value));
+            try {
+                *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, false));
+                TraceEvent(Json{{"kind", "packed_resolve"}, {"raw_token", raw},
+                                 {"field_stream_location", field},
+                                 {"resolved_target_stream_location", StreamLocation(*value)}});
+            }
             catch (...) { state.report["failed_packed_pointer"] = *value; throw; }
         }
         void Alias(uint64_t* value) {
-            try { *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, true)); }
+            auto raw = *value;
+            auto field = StreamLocation(reinterpret_cast<uintptr_t>(value));
+            try {
+                *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, true));
+                TraceEvent(Json{{"kind", "packed_alias"}, {"raw_token", raw},
+                                 {"field_stream_location", field},
+                                 {"resolved_target_stream_location", StreamLocation(*value)}});
+            }
             catch (...) { state.report["failed_alias"] = *value; throw; }
         }
-        void** Insert() { return state.streams->Insert(); }
-        const void* Temporary(size_t length, size_t alignment) { return state.streams->Temporary(length, alignment); }
+        void** Insert() {
+            auto result = state.streams->Insert();
+            TraceEvent(Json{{"kind", "insert_pointer_slot"},
+                             {"inserted_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(result))}});
+            return result;
+        }
+        const void* Temporary(size_t length, size_t alignment) {
+            TraceEvent(Json{{"kind", "temporary_payload_call"}, {"size", length}, {"alignment", alignment}});
+            return state.streams->Temporary(length, alignment);
+        }
         uintptr_t RuntimeOnly() { return 0; }
         size_t RetainedPayloadBudget() {
             // Resident pixels are copied out of Replay's rewindable stream 1.
@@ -316,6 +393,10 @@ namespace fastfile::handlers::mw19_replay {
             size_t size = pool.at("size");
             if (!header || !*header || !state.streams->Contains(reinterpret_cast<uintptr_t>(*header), size))
                 throw std::runtime_error("Replay asset header outside loader memory");
+            TraceEvent(Json{{"kind", "asset_root_link"}, {"asset_type", binding.type},
+                             {"root_bytes", size},
+                             {"root_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(*header))},
+                             {"root_archive_input_cursor", state.streams->Consumed()}});
             if (size > 128 * 1024 * 1024 - state.ownedBytes || state.records.size() >= 1000000)
                 throw std::runtime_error("Replay asset header budget exceeded");
             void* copy = state.ctx->zoneMemory.AllocAligned<byte>(size, 16);
@@ -712,6 +793,7 @@ namespace fastfile::handlers::mw19_replay {
                 state.owned.clear();
                 state.packages.clear();
                 state.journal.close();
+                state.streamTrace.close();
                 state.database.reset();
                 state.module.Free();
             }
@@ -730,8 +812,17 @@ namespace fastfile::handlers::mw19_replay {
                 state.retainedPixelBytes = 0;
                 state.sampled.fill(0);
                 state.current = 0;
+                state.currentType = 0;
+                state.currentAssetActive = false;
                 state.out = opt.m_output / "mw19replay" / ctx.ffname;
                 std::filesystem::create_directories(state.out);
+                state.streamTrace.close();
+                state.streamTrace.clear();
+                state.streamTraceEvents = 0;
+                if (opt.replayStreamTrace) {
+                    state.streamTrace.open(state.out / "stream-trace.jsonl", std::ios::binary | std::ios::trunc);
+                    if (!state.streamTrace) throw std::runtime_error("Cannot create Replay stream trace");
+                }
                 state.report =
                     Json{ { "profile", "replay-1.20" }, { "fastfile", ctx.file },        { "complete", false },
                           { "success", false },         { "test_only", opt.replayTest }, { "tested", size_t(0) },
@@ -746,6 +837,7 @@ namespace fastfile::handlers::mw19_replay {
                     state.report["xfile_version"] = opt.replayFileVersion;
                     state.report["input_xfile_version"] = opt.replayInputVersion;
                     state.report["applied_patches"] = opt.replayAppliedPatches;
+                    if (opt.replayStreamTrace) state.report["stream_trace"] = "stream-trace.jsonl";
                     if (ctx.blocksCount != 11 || !FastFileOption::IsReplayFileVersion(opt.replayFileVersion))
                         throw std::runtime_error("Expected a supported Replay revision with eleven header reservations");
                     std::array<std::span<uint8_t>, 8> blocks;
@@ -764,6 +856,19 @@ namespace fastfile::handlers::mw19_replay {
                         std::span<const uint8_t>(reader.Ptr<byte>(), reader.Remaining()),
                         *state.cursor
                     );
+                    if (opt.replayStreamTrace) {
+                        state.streams->SetTrace([](const replay::StreamTraceEvent& event) {
+                            TraceEvent(Json{{"kind", "stream_operation"}, {"operation", event.operation},
+                                            {"block_before", event.blockBefore},
+                                            {"offset_before", event.offsetBefore},
+                                            {"input_before", event.inputBefore},
+                                            {"block_after", event.blockAfter},
+                                            {"offset_after", event.offsetAfter},
+                                            {"input_after", event.inputAfter},
+                                            {"value", event.value}, {"size", event.size},
+                                            {"physical_input_bytes", event.inputAfter - event.inputBefore}});
+                        });
+                    }
                     state.Progress();
                     AssetList list;
                     auto header = state.streams->Take(sizeof(list));
@@ -801,9 +906,20 @@ namespace fastfile::handlers::mw19_replay {
                     state.streams->Load(true, list.assets, size_t(list.count) * sizeof(Asset));
                     for (; state.current < list.count; ++state.current) {
                         auto& asset = list.assets[state.current];
+                        state.currentType = asset.type;
+                        state.currentAssetActive = true;
                         state.report["loading_type_id"] = asset.type;
                         state.report["loading_serialized_offset"] = state.streams->Consumed();
+                        TraceEvent(Json{{"kind", "xasset_begin"}, {"xasset_index", state.current},
+                                         {"asset_type", asset.type}, {"pointer_token", reinterpret_cast<uintptr_t>(asset.header)},
+                                         {"table_entry_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(&asset))},
+                                         {"serialized_input_cursor", state.streams->Consumed()}});
                         NativeLoad(asset.type, &asset.header);
+                        TraceEvent(Json{{"kind", "xasset_end"}, {"xasset_index", state.current},
+                                         {"asset_type", asset.type},
+                                         {"resolved_header_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(asset.header))},
+                                         {"serialized_input_cursor", state.streams->Consumed()}});
+                        state.currentAssetActive = false;
                         state.report["previous_type_id"] = asset.type;
                         state.report["previous_serialized_offset"] = state.report["loading_serialized_offset"];
                         if (!(state.current % 256))
@@ -831,6 +947,12 @@ namespace fastfile::handlers::mw19_replay {
                         !state.report.at("failed").get<size_t>() && !state.report.at("unavailable").get<size_t>();
                     state.Progress();
                     state.journal.close();
+                    if (state.streamTrace.is_open()) {
+                        state.streamTrace.flush();
+                        state.streamTrace.close();
+                        state.report["stream_trace_events"] = state.streamTraceEvents;
+                    }
+                    state.Progress();
                     LOG_INFO(
                         "Replay: {} assets loaded, {} tested, {} failed, {} unavailable",
                         state.records.size(),
@@ -844,6 +966,11 @@ namespace fastfile::handlers::mw19_replay {
                         );
                 } catch (const std::exception& error) {
                     state.report["error"] = error.what();
+                    if (state.streamTrace.is_open()) {
+                        state.streamTrace.flush();
+                        state.streamTrace.close();
+                        state.report["stream_trace_events"] = state.streamTraceEvents;
+                    }
                     // Each Link record has completed its native load and owns
                     // a retained root. Preserve those readable assets if a later
                     // asset fails, keeping the zone explicitly incomplete.

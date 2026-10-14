@@ -299,7 +299,7 @@ namespace tool::mw19::schema {
             for (size_t row = 0; row < rows; row++) {
                 for (size_t col = 0; col < columns; col++) {
                     uint16_t index{};
-                    std::memcpy(&index, indices.data() + (col * rows + row) * 2, 2);
+                    std::memcpy(&index, indices.data() + (row * columns + col) * 2, 2);
                     if (index >= strings.size())
                         throw std::runtime_error("Stringtable cell references an invalid dictionary index");
                     if (col)
