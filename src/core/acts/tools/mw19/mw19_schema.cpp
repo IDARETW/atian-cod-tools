@@ -6,6 +6,7 @@
 #include <bit>
 #include <cmath>
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <limits>
@@ -690,6 +691,17 @@ namespace tool::mw19::schema {
             }
             if (kind == "struct" || kind == "union") {
                 Json result = Json::object();
+                // Opt-in (ACTS_NATIVE_BYTES=1): the struct's exact loaded bytes,
+                // for tools that re-serialize an asset with fresh pointers.
+                static const bool nativeBytes = [] {
+                    const char* value = std::getenv("ACTS_NATIVE_BYTES");
+                    return value && *value && *value != '0';
+                }();
+                if (nativeBytes && kind == "struct" && size) {
+                    std::vector<uint8_t> native(size);
+                    if (read(address, native.data(), size))
+                        result["$native"] = HexBytes(native);
+                }
                 contexts.emplace_back(name, address);
                 struct PopContext {
                     decltype(contexts)& stack;

@@ -91,3 +91,15 @@ Bounded stock checks also loaded `code_pre_gfx.ff`, `techsets_common_mp.ff`, and
 A subsequent run raised the cap to three samples per type and supplied the 14 nonempty Replay XPaks: **122 successful samples across 56 types** (5 in `code_pre_gfx`, 17 in `techsets_common_mp`, and 100 in Shipment), with zero failures or unavailable payloads. Only six report files were written. Independent Python/Oodle decoding also matched the sampled mesh's 85,168 bytes and CRC32 `de4b13ed`. Shipment's 8,390-entry script-string table was validated in memory.
 
 The optional fastfile GLB path also passed a populated synthetic triangle through the native loader, file export, independent position/CRC checks, report-only mode and invalid-index rejection. Three Shipment model-surface samples passed `--test --geometry`: 2,501/1,094/544 vertices and 2,838/850/340 triangles. Their GLBs were encoded in memory; only the two capability reports were written.
+
+## Research switches (opt-in)
+
+These environment variables are for research. They are not part of normal exports. Each one is off unless set. Unset them before producing exports for others or regression baselines.
+
+**`ACTS_REPLAY_STRUCTURED`** exports Replay assets as structured JSON instead of binary payloads. Only the value `1` enables it. Assets with a payload exporter, such as sound banks, export their structure instead. Structured fields with read errors are kept rather than rejected, and the issues remain listed in the manifest. Size limits rise to 2047 MiB and 60 million traversal nodes. The output uses the existing `manifest.json`, journal and field files. It creates no new file names.
+
+**`ACTS_REPLAY_PAYLOAD_MB`** sets the conventional payload budget for `mw19pools` exports. Accepted values are whole numbers from `128` to `4096`. Unset, empty, non-numeric, and out-of-range values use the 128 MiB default. The variable does not change the Replay exporter, which keeps its 128 MiB budget. It creates no new file names.
+
+**`ACTS_NATIVE_BYTES`** adds a `$native` key to each struct and union in structured inspection output. Its value is the exact loaded bytes of that struct as hex. Set it to `1`. Any value other than empty or `0` also enables it. Failed reads leave the key out. It creates no new file names, but the field JSON files grow.
+
+**`ACTS_REPLAY_PRELOAD`** loads each Replay asset through `Preload_XAssetHeader`, the path used for map zones, and records the postload stream plan. Set any value to enable it, including `0`, so leave it unset for normal use. The run writes `preload-plan.jsonl` in the Replay output directory. Each line holds `entry`, `xasset_index`, `type_id`, `caller_rva` and per-block `deltas`. A completed run also adds `preload_plan`, `preload_plan_entries` and `preload_plan_block0_entries` to `manifest.json`, and logs a `Replay preload:` summary line.

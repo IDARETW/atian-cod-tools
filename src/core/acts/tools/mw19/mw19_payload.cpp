@@ -1,3 +1,4 @@
+#include <cstdlib>
 #ifndef MW19_SCHEMA_STANDALONE
 #include <includes.hpp>
 #endif
@@ -105,7 +106,10 @@ namespace tool::mw19::schema {
     Payload ExportStructuredAsset(const Json& profile, const Json& pool, Json inspection, size_t maxBytes) {
         if (!inspection.is_object() || inspection.at("type") != pool.at("root_type") || !inspection.contains("fields"))
             throw std::runtime_error("Structured asset does not match pool root");
-        if (inspection.at("read_errors").get<size_t>())
+        // ACTS_REPLAY_STRUCTURED=1 is a research export: keep the readable fields
+        // (issues stay listed in the manifest) instead of rejecting the asset.
+        const char* structured = std::getenv("ACTS_REPLAY_STRUCTURED");
+        if (inspection.at("read_errors").get<size_t>() && !(structured && *structured == '1'))
             throw std::runtime_error("Structured asset contains unreadable fields");
         for (const char* counter : { "unresolved_pointers", "unresolved_unions", "external_payloads" })
             if (inspection.at(counter).get<size_t>())

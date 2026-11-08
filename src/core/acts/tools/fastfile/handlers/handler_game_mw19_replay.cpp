@@ -63,6 +63,14 @@ namespace fastfile::handlers::mw19_replay {
             size_t legacyViewBytes{};
             Json pendingLegacyWorld;
             std::map<void*, Json> serializedLayouts;
+            // ACTS_REPLAY_PRELOAD=1: load through Preload_XAssetHeader, the path Replay
+            // uses for map zones, and record the postload stream plan it builds.
+            bool preload{};
+            int planDepth{};
+            std::array<size_t, 8> planStart{};
+            std::ofstream plan;
+            size_t planEntries{}, planBlockZero{};
+            bool planError{};
             bool Read(uint64_t address, void* destination, size_t size) {
                 bool valid = streams && streams->Contains(address, size);
                 if (!valid) {
@@ -290,6 +298,38 @@ namespace fastfile::handlers::mw19_replay {
             return state.streams->Temporary(length, alignment);
         }
         uintptr_t RuntimeOnly() { return 0; }
+        // Native 0x11B2540 / 0x11B24B0 bracket every Preload_*Ptr. At depth zero the
+        // closing call appends [block][int32 delta] per moved block 0..7 and a zero
+        // terminator (0xF65F70); Postload replays one entry per pointer (0xF66050).
+        void PlanBegin() {
+            if (!state.planDepth++)
+                state.planStart = state.streams->Offsets();
+        }
+        void PlanEnd() {
+            // Called from native code: never throw here. An unbalanced bracket is reported after
+            // CallNative returns (see the preload branch of the asset loader).
+            if (state.planDepth <= 0) {
+                state.planError = true;
+                return;
+            }
+            if (--state.planDepth)
+                return;
+            auto now = state.streams->Offsets();
+            Json deltas = Json::object();
+            for (size_t block = 0; block < now.size(); ++block)
+                if (now[block] != state.planStart[block]) {
+                    deltas[std::to_string(block)] = int64_t(now[block]) - int64_t(state.planStart[block]);
+                    if (!block) ++state.planBlockZero;
+                }
+            ++state.planEntries;
+            if (state.plan.is_open())
+                state.plan << Json{{"entry", state.planEntries - 1}, {"xasset_index", state.current},
+                                   {"type_id", state.currentType},
+                                   {"caller_rva", reinterpret_cast<uintptr_t>(_ReturnAddress()) -
+                                                      reinterpret_cast<uintptr_t>((*state.module)[size_t(0)])},
+                                   {"deltas", deltas}}.dump()
+                           << '\n';
+        }
         size_t RetainedPayloadBudget() {
             // Resident pixels are copied out of Replay's rewindable stream 1.
             // Bound those copies to the serialized input that supplied them,
@@ -497,9 +537,24 @@ namespace fastfile::handlers::mw19_replay {
             });
             if (it == std::end(replay::bindings))
                 throw std::runtime_error("Replay asset has no enabled loader: " + std::to_string(type));
-            *reinterpret_cast<void***>((*state.module)[it->global]) = header;
             uintptr_t fault{};
-            int code = CallNative(reinterpret_cast<void (*)(int)>((*state.module)[it->loader]), 1, &fault);
+            int code{};
+            if (state.preload) {
+                // Preload_XAssetHeader (RVA 0xDCBFD0; symbol map 0001:00DCAFD0) reads the XAsset* at
+                // 0x5D414B0 and &header at 0x5D414D0, which its caller Preload_XAsset (RVA 0xDCBF80) sets.
+                state.planError = false;
+                *reinterpret_cast<void**>((*state.module)[0x5d414b0]) = reinterpret_cast<uint8_t*>(header) - 8;
+                *reinterpret_cast<void***>((*state.module)[0x5d414d0]) = header;
+                code = CallNative(reinterpret_cast<void (*)(int)>((*state.module)[0xdcbfd0]), 1, &fault);
+                if (!code && state.planError)
+                    throw std::runtime_error("Replay postload plan underflow (PlanEnd without PlanBegin)");
+                if (!code && state.planDepth)
+                    throw std::runtime_error("Replay postload plan left open after asset");
+            }
+            else {
+                *reinterpret_cast<void***>((*state.module)[it->global]) = header;
+                code = CallNative(reinterpret_cast<void (*)(int)>((*state.module)[it->loader]), 1, &fault);
+            }
             if (code)
                 throw std::runtime_error(
                     std::format("Replay native loader fault 0x{:x} at 0x{:x}, type {}", uint32_t(code), fault, type)
@@ -562,7 +617,13 @@ namespace fastfile::handlers::mw19_replay {
                         );
                     };
                     Payload payload;
-                    if (HasPayloadExporter(type)) {
+                    // ACTS_REPLAY_STRUCTURED=1: export the structured asset (e.g. a sound
+                    // bank's alias table) instead of its binary payload.
+                    static const bool structuredOnly = [] {
+                        const char* value = std::getenv("ACTS_REPLAY_STRUCTURED");
+                        return value && *value == '1';
+                    }();
+                    if (HasPayloadExporter(type) && !structuredOnly) {
                         payload = ExportPayload(
                             read,
                             type,
@@ -573,8 +634,8 @@ namespace fastfile::handlers::mw19_replay {
                         );
                     } else {
                         Limits limits;
-                        limits.maxBytes = 256 * 1024 * 1024;
-                        limits.maxNodes = 4000000;
+                        limits.maxBytes = structuredOnly ? size_t{ 2047 } * 1024 * 1024 : 256 * 1024 * 1024;
+                        limits.maxNodes = structuredOnly ? 60000000 : 4000000;
                         limits.maxArray = 32000000;
                         limits.maxDepth = 64;
                         limits.compactArrays = true;
@@ -753,6 +814,12 @@ namespace fastfile::handlers::mw19_replay {
                 for (auto address : replay::runtimeHooks)
                     mod.Redirect(size_t(address), RuntimeOnly);
                 mod.Redirect(size_t(0x19387d0), RetainImagePixels);
+                const char* preloadValue = std::getenv("ACTS_REPLAY_PRELOAD");
+                state.preload = preloadValue && preloadValue[0] == '1' && !preloadValue[1];
+                if (state.preload) {
+                    mod.Redirect(size_t(0x11b2540), PlanBegin);
+                    mod.Redirect(size_t(0x11b24b0), PlanEnd);
+                }
                 InstallLinks(std::make_index_sequence<std::size(replay::bindings)>{});
                 state.selected.clear();
                 state.names.LoadConfig(opt.assets);
@@ -828,6 +895,14 @@ namespace fastfile::handlers::mw19_replay {
                           { "success", false },         { "test_only", opt.replayTest }, { "tested", size_t(0) },
                           { "failed", size_t(0) },      { "unavailable", size_t(0) },    { "references", size_t(0) },
                           { "journal", "assets.jsonl" } };
+                state.planDepth = 0;
+                state.planEntries = state.planBlockZero = 0;
+                state.plan.close();
+                state.plan.clear();
+                if (state.preload) {
+                    state.plan.open(state.out / "preload-plan.jsonl", std::ios::binary | std::ios::trunc);
+                    state.report["preload_plan"] = "preload-plan.jsonl";
+                }
                 state.journal.close();
                 state.journal.clear();
                 state.journal.open(state.out / "assets.jsonl", std::ios::binary | std::ios::trunc);
@@ -927,6 +1002,11 @@ namespace fastfile::handlers::mw19_replay {
                     }
                     state.streams->Pop();
                     state.streams->Finish();
+                    if (state.preload) {
+                        state.report["preload_plan_entries"] = state.planEntries;
+                        state.report["preload_plan_block0_entries"] = state.planBlockZero;
+                        state.plan.close();
+                    }
                     std::sort(state.owned.begin(), state.owned.end());
                     ExportScriptStrings(list);
                     auto& coverage = state.report["loaded_by_type"] = Json::object();
@@ -953,6 +1033,9 @@ namespace fastfile::handlers::mw19_replay {
                         state.report["stream_trace_events"] = state.streamTraceEvents;
                     }
                     state.Progress();
+                    if (state.preload)
+                        LOG_INFO("Replay preload: {} postload plan entries, {} move block 0", state.planEntries,
+                                 state.planBlockZero);
                     LOG_INFO(
                         "Replay: {} assets loaded, {} tested, {} failed, {} unavailable",
                         state.records.size(),

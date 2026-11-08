@@ -61,6 +61,10 @@ namespace tool::mw19::replay {
         size_t Remaining() const { return input.size() - consumed; }
         size_t Block() const { return block; }
         size_t Depth() const { return stack.size(); }
+        std::array<size_t, 8> Offsets() {
+            Sync();
+            return offsets;
+        }
         void SetTrace(std::function<void(const StreamTraceEvent&)> sink) { trace = std::move(sink); }
         std::span<const uint8_t> Take(size_t size) {
             if (size > Remaining())

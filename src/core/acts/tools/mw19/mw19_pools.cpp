@@ -393,11 +393,19 @@ namespace {
                                     );
                                 };
                             }
+                            // ACTS_REPLAY_PAYLOAD_MB raises the per-asset payload budget (default 128 MiB) for
+                            // converted maps whose resident sound banks are larger.
+                            static const size_t payloadBudget = [] {
+                                const char* value = std::getenv("ACTS_REPLAY_PAYLOAD_MB");
+                                const unsigned long long megabytes = value && *value ? std::strtoull(value, nullptr, 10) : 0;
+                                return megabytes >= 128 && megabytes <= 4096 ? static_cast<size_t>(megabytes) << 20
+                                                                             : size_t{ 128 } << 20;
+                            }();
                             auto payload = ExportPayload(
                                 read,
                                 pool.at("name"),
                                 entry.header,
-                                128 * 1024 * 1024,
+                                payloadBudget,
                                 profileId,
                                 packages
                             );
