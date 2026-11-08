@@ -16,6 +16,41 @@ The September 8, 2026 repair was checked against the owner's Replay executable, 
 
 `verify_fastfile_bindings.py` checks the 111 loader bindings and nine populated-layout instruction sites before reporting success. The source-derived schema alone is not treated as proof of a Replay layout.
 
+## x64-zt loader-verified layouts (November 8, 2026)
+
+x64-zt (`IDARETW/x64-zt`, branch `iw8-conversion`, commit `caf5b0f`) keeps Replay 1.20 layout corrections in `tools/iw8_layouts.txt`. Each record cites the Replay loader that reads it. Thirty-four records (GPU buffer records, material techniques and pipeline states, world draw vertices and subdivision, terrain meshes, transient costs, Mayhem frames, player animation entries, attachment projectiles, music assets) are ported by `scripts/mw19/replay_layouts_x64zt_{gpu,material,geometry,misc}.py`. They are applied inside `replay_layouts.apply()` before embedded-record propagation, so containers are re-laid out and the existing native root assertions still hold. The rules are:
+
+- An x64-zt record named `Replay::X` replaces `X`, as in x64-zt.
+- Runtime-only records that ACTS keeps opaque (`VoxelRuntimeState`, `SurfaceBoundsExtra`, `XModelRuntimeWord`, `PlayerConditionMask`) stay opaque when x64-zt agrees on their size.
+- GPU resource pointers and `MaterialPipelineState.pso` carry `runtime` pointer rules.
+- `MaterialTechnique` gets Replay pointer counts from `Load_MaterialTechnique` (RVA `0xE0CED0`, `scripts/mw19/replay_rules_x64zt.py`):
+  - `pipelineStates`: `pipelineStateCount × pipelineStateInputLayoutCount` records of 16 bytes.
+  - `rootParameterMap`: 16 bytes.
+  - `stateBits`: `pipelineStateCount` records of 5 bytes.
+
+| Record | Correction (evidence) |
+| --- | --- |
+| `GfxShaderBufferView` | 16 bytes, not 24: `R_AssignNullShaderBufferView` (RVA `0x18BCA00`) writes `{0, 1}`. Containers such as `XSurfaceSubdivLevel` (568 bytes) shrink or grow accordingly. |
+| `GfxWrappedBaseBuffer` / `GfxWrappedBuffer` / `GfxWrappedRWBuffer` / `GfxIndexBuffer` | 48 / 64 / 96 / 32 bytes, from the sizes `Load_GfxWrapped*Buffer` and `Load_GfxIndexBuffer` load. |
+| `WeaponAttachment` | The Replay root drops the game-test `hyperBurstInfo`, not `weaponOffsetPatternScaleInfo`. `Load_WeaponAttachment` (RVA `0xE0E480`) passes `+0x238` to `Load_BallisticInfo` (`0xE1DA30`), `+0x240` to the sway/rumble-graph loader (`0xE1F6F0`), and `+0x248` to `Load_WeaponOffsetPatternScaleInfo` (`0xE20BC0`). The call sites are at `0x140E0F792` to `0x140E0F82A`. |
+| `MaterialTechnique` | 184 bytes. The serialized members are the name, `pipelineStates` (+0x28), `rootParameterMap` (+0x50), four stage shaders (+0x58 to +0x70), `stateBits` (+0x88), `defaultStateBits` (+0xA0, in place) and `args` (+0xB0). |
+
+`scripts/mw19/check_replay_layouts.py` rebuilds the schema in memory and checks three things:
+
+1. Every x64-zt record matches the final ACTS type: size and member offsets for records, offset and type for patches.
+2. Every struct is self-consistent.
+3. Every pointer rule binds as `mw19_schema.cpp` binds it: literal names at load, override-resolved count paths at traversal.
+
+Result: 34 of 34 records match, 1,038 structs are consistent, there are 0 rule problems, and there are 67 type overrides.
+
+**Stock-zone cross-check.** `zonetool -game iw8 verifyzone` (x64-zt `caf5b0f`, the same layouts) consumed every serialized byte of 76 stock Replay 1.20 zones. The three frontend zones of another Replay version were excluded. Its asset trace covers 102 of the 117 pools. `generate_schema.py` records the result per pool as `x64zt_crosscheck`, with zone and asset counts, from the local evidence file `research/mw19/x64zt_verifyzone_coverage.json`. Pools with only a game-test size match move from `source_size_match` to `replay_stream_crosscheck`. The 14 `native_pointer_layout` pools keep that status. **A/B on stock zones.** The same `acts.exe` build ran with the previous schema (HEAD) and with this one (`scripts/mw19/compare_replay_runs.py`). Results:
+
+- **`--test` on the four zones.** `mp_shipment`, `mp_hideout`, `mp_backlot2` and `common_mp` gave identical loaded, tested, failed and unavailable counts. `common_mp` keeps its two pre-existing `streamkey`/`soundbank` failures. Read errors and unresolved pointers or unions did not increase anywhere (0 regressions). Field counts change only where layouts changed; for example, `stterrain` goes from 15 to 26 nodes with typed terrain meshes.
+- **`mp_shipment`, every asset of the touched types.** `gfx_map`, `gfx_map_trzone`, `stterrain` and `aianimset` are all `ok` with 0 errors. `xmodelsurfs` has 202 `ok` and 1,127 unavailable, the same as before; their payloads are only in XPaks.
+- **`code_post_gfx`, every asset of the touched types.** 371 materials, 339 techsets, the attachment, Mayhem and camo assets are all `ok` with 0 errors in both runs. Techsets decode 87,944 field nodes, up from 41,862, now that the Replay `MaterialTechnique` exposes its pipeline states and state bits.
+
+Ten pools still have only `source_size_match`: nine never occur in the scanned zones (`physicsdebugdata`, `playeranim`, `scriptdebugdata`, `addon_map_ents`, `spaceshiptarget`, `scriptbundle`, `streamtreeoverride`, `nativescriptpatch`, `soundbanklist`), and `iesprofile` has no reader in the IW8 format table. Exact consumption proves the stream extents, not every scalar meaning.
+
 ## Stock world loading and surface bounds
 
 The reported failures concerned `mp_frontend3.ff`, `mp_rust.ff`, and `mp_hideout.ff`. Their matching adjacent patches had been omitted from the reader invocation. Applying those patches produces final revision `0xff7` and resolves the packed-pointer and stream-reservation failures. The `mw19replay` reader now automatically discovers `.fp` followed by `.fc`; each patch must still match its actual previous header. `--no-auto-patch` permits deliberate base-file inspection. Manifests record the input revision, effective revision, and applied patch paths separately.

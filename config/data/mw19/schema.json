@@ -1294,12 +1294,20 @@
           "name_offset": 0,
           "source_root_type": "PhysicsLibrary",
           "root_type": "PhysicsLibrary",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941384,
           "pool_pointer_rva": 37731712,
           "loader_rva": 14699184,
-          "pointer_loader_rva": 14699392
+          "pointer_loader_rva": 14699392,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 4,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 1,
@@ -1311,12 +1319,21 @@
           "name_offset": 0,
           "source_root_type": "PhysicsSFXEventAsset",
           "root_type": "PhysicsSFXEventAsset",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941408,
           "pool_pointer_rva": 37731720,
           "loader_rva": 14536464,
-          "pointer_loader_rva": 14538416
+          "pointer_loader_rva": 14538416,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 5,
+            "example_zones": [
+              "code_post_gfx",
+              "global_stream_mp"
+            ]
+          }
         },
         {
           "id": 2,
@@ -1328,12 +1345,20 @@
           "name_offset": 0,
           "source_root_type": "PhysicsVFXEventAsset",
           "root_type": "PhysicsVFXEventAsset",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941432,
           "pool_pointer_rva": 37731728,
           "loader_rva": 14540000,
-          "pointer_loader_rva": 14542048
+          "pointer_loader_rva": 14542048,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 3,
@@ -1345,12 +1370,23 @@
           "name_offset": 0,
           "source_root_type": "PhysicsAsset",
           "root_type": "PhysicsAsset",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115072,
           "free_head_rva": 193941456,
           "pool_pointer_rva": 37731736,
           "loader_rva": 14628992,
-          "pointer_loader_rva": 14629472
+          "pointer_loader_rva": 14629472,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 23,
+            "assets": 7846,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 4,
@@ -1362,12 +1398,23 @@
           "name_offset": 0,
           "source_root_type": "PhysicsFXPipeline",
           "root_type": "PhysicsFXPipeline",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941480,
           "pool_pointer_rva": 37731744,
           "loader_rva": 14630544,
-          "pointer_loader_rva": 14630656
+          "pointer_loader_rva": 14630656,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 14,
+            "assets": 59,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 5,
@@ -1379,12 +1426,23 @@
           "name_offset": 0,
           "source_root_type": "PhysicsFXShape",
           "root_type": "PhysicsFXShape",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941504,
           "pool_pointer_rva": 37731752,
           "loader_rva": 14670928,
-          "pointer_loader_rva": 14671168
+          "pointer_loader_rva": 14671168,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 14,
+            "assets": 569,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 6,
@@ -1413,12 +1471,23 @@
           "name_offset": 0,
           "source_root_type": "XAnimParts",
           "root_type": "XAnimParts",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941552,
           "pool_pointer_rva": 37731768,
           "loader_rva": 14551824,
-          "pointer_loader_rva": 14552736
+          "pointer_loader_rva": 14552736,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 17,
+            "assets": 19071,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 8,
@@ -1430,12 +1499,23 @@
           "name_offset": 0,
           "source_root_type": "XModelSurfs",
           "root_type": "XModelSurfs",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941576,
           "pool_pointer_rva": 37731776,
           "loader_rva": 14854096,
-          "pointer_loader_rva": 14854512
+          "pointer_loader_rva": 14854512,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 36,
+            "assets": 26815,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 9,
@@ -1453,7 +1533,18 @@
           "pool_pointer_rva": 37731784,
           "layout_note": "Native pointer offsets include the loader tail through RVA 0xE2A12F; extra runtime word at 0x298.",
           "loader_rva": 14850080,
-          "pointer_loader_rva": 14853536
+          "pointer_loader_rva": 14853536,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 34,
+            "assets": 18411,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 10,
@@ -1465,12 +1556,20 @@
           "name_offset": 0,
           "source_root_type": "MayhemData",
           "root_type": "MayhemData",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941624,
           "pool_pointer_rva": 37731792,
           "loader_rva": 14930608,
-          "pointer_loader_rva": 14931296
+          "pointer_loader_rva": 14931296,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 11,
@@ -1482,12 +1581,23 @@
           "name_offset": 0,
           "source_root_type": "Material",
           "root_type": "Material",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16114992,
           "free_head_rva": 193941648,
           "pool_pointer_rva": 37731800,
           "loader_rva": 14729664,
-          "pointer_loader_rva": 14731488
+          "pointer_loader_rva": 14731488,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 44,
+            "assets": 56286,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 12,
@@ -1505,7 +1615,15 @@
           "pool_pointer_rva": 37731808,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14721968,
-          "pointer_loader_rva": 14722240
+          "pointer_loader_rva": 14722240,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 541,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 13,
@@ -1523,7 +1641,15 @@
           "pool_pointer_rva": 37731816,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14725136,
-          "pointer_loader_rva": 14725376
+          "pointer_loader_rva": 14725376,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 14,
@@ -1541,7 +1667,18 @@
           "pool_pointer_rva": 37731824,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14734736,
-          "pointer_loader_rva": 14734976
+          "pointer_loader_rva": 14734976,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 6,
+            "assets": 1108,
+            "example_zones": [
+              "code_post_gfx",
+              "techsets_common",
+              "techsets_global_stream_mp",
+              "techsets_mp_donetsk"
+            ]
+          }
         },
         {
           "id": 15,
@@ -1559,7 +1696,18 @@
           "pool_pointer_rva": 37731832,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14732048,
-          "pointer_loader_rva": 14732288
+          "pointer_loader_rva": 14732288,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 5,
+            "assets": 41,
+            "example_zones": [
+              "code_post_gfx",
+              "techsets_global_stream_mp",
+              "techsets_mp_donetsk",
+              "techsets_mp_shipment"
+            ]
+          }
         },
         {
           "id": 16,
@@ -1577,7 +1725,18 @@
           "pool_pointer_rva": 37731840,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14731008,
-          "pointer_loader_rva": 14731248
+          "pointer_loader_rva": 14731248,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 5,
+            "assets": 108,
+            "example_zones": [
+              "code_post_gfx",
+              "techsets_global_stream_mp",
+              "techsets_mp_donetsk",
+              "techsets_mp_shipment"
+            ]
+          }
         },
         {
           "id": 17,
@@ -1595,7 +1754,18 @@
           "pool_pointer_rva": 37731848,
           "layout_note": "Native 40-byte shader layout; prog.cs is the stage-specific runtime handle.",
           "loader_rva": 14732528,
-          "pointer_loader_rva": 14732768
+          "pointer_loader_rva": 14732768,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 6,
+            "assets": 2663,
+            "example_zones": [
+              "code_post_gfx",
+              "techsets_common",
+              "techsets_global_stream_mp",
+              "techsets_mp_donetsk"
+            ]
+          }
         },
         {
           "id": 18,
@@ -1607,12 +1777,23 @@
           "name_offset": 0,
           "source_root_type": "MaterialTechniqueSet",
           "root_type": "MaterialTechniqueSet",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941816,
           "pool_pointer_rva": 37731856,
           "loader_rva": 14733984,
-          "pointer_loader_rva": 14734336
+          "pointer_loader_rva": 14734336,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 12,
+            "assets": 6241,
+            "example_zones": [
+              "code_post_gfx",
+              "dw_custom_operators_a55437fc15603b1f",
+              "techsets_common",
+              "techsets_dw_map_images"
+            ]
+          }
         },
         {
           "id": 19,
@@ -1624,12 +1805,23 @@
           "name_offset": 0,
           "source_root_type": "GfxImage",
           "root_type": "GfxImage",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941840,
           "pool_pointer_rva": 37731864,
           "loader_rva": 14875936,
-          "pointer_loader_rva": 14876864
+          "pointer_loader_rva": 14876864,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 35,
+            "assets": 92215,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 20,
@@ -1641,12 +1833,20 @@
           "name_offset": 0,
           "source_root_type": "SndGlobals",
           "root_type": "SndGlobals",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941864,
           "pool_pointer_rva": 37731872,
           "loader_rva": 14546272,
-          "pointer_loader_rva": 14547216
+          "pointer_loader_rva": 14547216,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 21,
@@ -1658,12 +1858,23 @@
           "name_offset": 0,
           "source_root_type": "SndBankResident",
           "root_type": "SndBankResident",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941888,
           "pool_pointer_rva": 37731880,
           "loader_rva": 14917552,
-          "pointer_loader_rva": 14917664
+          "pointer_loader_rva": 14917664,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 13,
+            "assets": 13,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 22,
@@ -1675,12 +1886,23 @@
           "name_offset": 0,
           "source_root_type": "SndBankTransient",
           "root_type": "SndBankTransient",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193941912,
           "pool_pointer_rva": 37731888,
           "loader_rva": 14917904,
-          "pointer_loader_rva": 14918016
+          "pointer_loader_rva": 14918016,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 210,
+            "example_zones": [
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp",
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 23,
@@ -1692,12 +1914,23 @@
           "name_offset": 0,
           "source_root_type": "clipMap_t",
           "root_type": "clipMap_t",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193941936,
           "pool_pointer_rva": 37731896,
           "loader_rva": 14744880,
-          "pointer_loader_rva": 14744640
+          "pointer_loader_rva": 14744640,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 24,
@@ -1709,12 +1942,23 @@
           "name_offset": 0,
           "source_root_type": "ComWorld",
           "root_type": "ComWorld",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193941960,
           "pool_pointer_rva": 37731904,
           "loader_rva": 14624688,
-          "pointer_loader_rva": 14625232
+          "pointer_loader_rva": 14625232,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 25,
@@ -1726,12 +1970,23 @@
           "name_offset": 0,
           "source_root_type": "GlassWorld",
           "root_type": "GlassWorld",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193941984,
           "pool_pointer_rva": 37731912,
           "loader_rva": 14627296,
-          "pointer_loader_rva": 14627472
+          "pointer_loader_rva": 14627472,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 26,
@@ -1743,12 +1998,23 @@
           "name_offset": 0,
           "source_root_type": "PathData",
           "root_type": "PathData",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193942008,
           "pool_pointer_rva": 37731920,
           "loader_rva": 14627808,
-          "pointer_loader_rva": 14628752
+          "pointer_loader_rva": 14628752,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 10,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 27,
@@ -1760,12 +2026,23 @@
           "name_offset": 0,
           "source_root_type": "NavMeshData",
           "root_type": "NavMeshData",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942032,
           "pool_pointer_rva": 37731928,
           "loader_rva": 14534800,
-          "pointer_loader_rva": 14536224
+          "pointer_loader_rva": 14536224,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 11,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 28,
@@ -1777,12 +2054,23 @@
           "name_offset": 0,
           "source_root_type": "TacticalGraphData",
           "root_type": "TacticalGraphData",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193942056,
           "pool_pointer_rva": 37731936,
           "loader_rva": 14633520,
-          "pointer_loader_rva": 14633792
+          "pointer_loader_rva": 14633792,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 10,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 29,
@@ -1800,7 +2088,18 @@
           "pool_pointer_rva": 37731944,
           "layout_note": "Native root offsets and size checked; embedded GPU record extents propagated from Replay loaders.",
           "loader_rva": 14726432,
-          "pointer_loader_rva": 14728592
+          "pointer_loader_rva": 14728592,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 30,
@@ -1812,12 +2111,23 @@
           "name_offset": 0,
           "source_root_type": "FxWorld",
           "root_type": "FxWorld",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115152,
           "free_head_rva": 193942104,
           "pool_pointer_rva": 37731952,
           "loader_rva": 14929664,
-          "pointer_loader_rva": 14929968
+          "pointer_loader_rva": 14929968,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 31,
@@ -1835,7 +2145,18 @@
           "pool_pointer_rva": 37731960,
           "layout_note": "Native root offsets and size checked; embedded GPU record extents propagated from Replay loaders.",
           "loader_rva": 14233216,
-          "pointer_loader_rva": 14249376
+          "pointer_loader_rva": 14249376,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 32,
@@ -1853,7 +2174,18 @@
           "pool_pointer_rva": 37731968,
           "layout_note": "Native root offsets and size checked; embedded GPU record extents propagated from Replay loaders.",
           "loader_rva": 14249616,
-          "pointer_loader_rva": 14250160
+          "pointer_loader_rva": 14250160,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 11,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 33,
@@ -1880,12 +2212,23 @@
           "name_offset": 0,
           "source_root_type": "GfxLightDef",
           "root_type": "GfxLightDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942200,
           "pool_pointer_rva": 37731984,
           "loader_rva": 14697056,
-          "pointer_loader_rva": 14697200
+          "pointer_loader_rva": 14697200,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 14,
+            "assets": 47,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 35,
@@ -1897,12 +2240,23 @@
           "name_offset": 0,
           "source_root_type": "GfxGradingClut",
           "root_type": "GfxGradingClut",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942224,
           "pool_pointer_rva": 37731992,
           "loader_rva": 14473296,
-          "pointer_loader_rva": 14473456
+          "pointer_loader_rva": 14473456,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 26,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_mp",
+              "mp_aniyah_tac"
+            ]
+          }
         },
         {
           "id": 36,
@@ -1929,12 +2283,23 @@
           "name_offset": 0,
           "source_root_type": "GfxFogSpline",
           "root_type": "GfxFogSpline",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942272,
           "pool_pointer_rva": 37732008,
           "loader_rva": 14947216,
-          "pointer_loader_rva": 14947376
+          "pointer_loader_rva": 14947376,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 26,
+            "example_zones": [
+              "common_br_mp",
+              "common_mp",
+              "mp_aniyah_tac",
+              "mp_backlot2"
+            ]
+          }
         },
         {
           "id": 38,
@@ -1946,12 +2311,20 @@
           "name_offset": 0,
           "source_root_type": "AnimationClass",
           "root_type": "AnimationClass",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942296,
           "pool_pointer_rva": 37732016,
           "loader_rva": 14887008,
-          "pointer_loader_rva": 14887920
+          "pointer_loader_rva": 14887920,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 39,
@@ -1980,12 +2353,23 @@
           "name_offset": 0,
           "source_root_type": "Gesture",
           "root_type": "Gesture",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942344,
           "pool_pointer_rva": 37732032,
           "loader_rva": 14915664,
-          "pointer_loader_rva": 14915984
+          "pointer_loader_rva": 14915984,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 4,
+            "assets": 199,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 41,
@@ -1997,12 +2381,23 @@
           "name_offset": 0,
           "source_root_type": "LocalizeEntry",
           "root_type": "LocalizeEntry",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942368,
           "pool_pointer_rva": 37732040,
           "loader_rva": 14698368,
-          "pointer_loader_rva": 14698512
+          "pointer_loader_rva": 14698512,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 4,
+            "assets": 8,
+            "example_zones": [
+              "eng_iw8_cw_hinachode",
+              "eng_iw8_cw_hinachode_v2",
+              "eng_iw8_cw_pocket_blaster",
+              "eng_iw8_cw_raygun"
+            ]
+          }
         },
         {
           "id": 42,
@@ -2020,7 +2415,17 @@
           "pool_pointer_rva": 37732048,
           "layout_note": "Native root offsets and size checked; embedded GPU record extents propagated from Replay loaders.",
           "loader_rva": 14738560,
-          "pointer_loader_rva": 14744080
+          "pointer_loader_rva": 14744080,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 3,
+            "assets": 2218,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "global_stream_mp"
+            ]
+          }
         },
         {
           "id": 43,
@@ -2032,12 +2437,23 @@
           "name_offset": 0,
           "source_root_type": "WeaponCompleteDef",
           "root_type": "WeaponCompleteDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942416,
           "pool_pointer_rva": 37732056,
           "loader_rva": 14261504,
-          "pointer_loader_rva": 14263120
+          "pointer_loader_rva": 14263120,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 12,
+            "assets": 383,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 44,
@@ -2049,12 +2465,23 @@
           "name_offset": 0,
           "source_root_type": "ParticleSystemDef",
           "root_type": "ParticleSystemDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942440,
           "pool_pointer_rva": 37732064,
           "loader_rva": 14259840,
-          "pointer_loader_rva": 14260176
+          "pointer_loader_rva": 14260176,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 15,
+            "assets": 8157,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 45,
@@ -2066,12 +2493,23 @@
           "name_offset": 0,
           "source_root_type": "FxImpactTable",
           "root_type": "FxImpactTable",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942464,
           "pool_pointer_rva": 37732072,
           "loader_rva": 14929040,
-          "pointer_loader_rva": 14929424
+          "pointer_loader_rva": 14929424,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 10,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 46,
@@ -2083,12 +2521,23 @@
           "name_offset": 0,
           "source_root_type": "SurfaceFxTable",
           "root_type": "SurfaceFxTable",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942488,
           "pool_pointer_rva": 37732080,
           "loader_rva": 14931872,
-          "pointer_loader_rva": 14932304
+          "pointer_loader_rva": 14932304,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 47,
@@ -2160,12 +2609,23 @@
           "name_offset": 0,
           "source_root_type": "RawFile",
           "root_type": "RawFile",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942608,
           "pool_pointer_rva": 37732120,
           "loader_rva": 14699632,
-          "pointer_loader_rva": 14699824
+          "pointer_loader_rva": 14699824,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 30,
+            "assets": 691,
+            "example_zones": [
+              "code_post_gfx",
+              "code_pre_gfx",
+              "common_base_mp",
+              "common_br_mp"
+            ]
+          }
         },
         {
           "id": 52,
@@ -2177,12 +2637,23 @@
           "name_offset": 0,
           "source_root_type": "ScriptFile",
           "root_type": "ScriptFile",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942632,
           "pool_pointer_rva": 37732128,
           "loader_rva": 14672752,
-          "pointer_loader_rva": 14673024
+          "pointer_loader_rva": 14673024,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 12,
+            "assets": 971,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "global_mp",
+              "mp_aniyah_tac"
+            ]
+          }
         },
         {
           "id": 53,
@@ -2211,12 +2682,23 @@
           "name_offset": 0,
           "source_root_type": "StringTable",
           "root_type": "StringTable",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942680,
           "pool_pointer_rva": 37732144,
           "loader_rva": 14701856,
-          "pointer_loader_rva": 14702176
+          "pointer_loader_rva": 14702176,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 15,
+            "assets": 801,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 55,
@@ -2228,12 +2710,20 @@
           "name_offset": 0,
           "source_root_type": "LeaderboardDef",
           "root_type": "LeaderboardDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942704,
           "pool_pointer_rva": 37732152,
           "loader_rva": 14669200,
-          "pointer_loader_rva": 14669552
+          "pointer_loader_rva": 14669552,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 40,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 56,
@@ -2245,12 +2735,20 @@
           "name_offset": 0,
           "source_root_type": "VirtualLeaderboardDef",
           "root_type": "VirtualLeaderboardDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942728,
           "pool_pointer_rva": 37732160,
           "loader_rva": 14674880,
-          "pointer_loader_rva": 14675232
+          "pointer_loader_rva": 14675232,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 41,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 57,
@@ -2262,12 +2760,20 @@
           "name_offset": 0,
           "source_root_type": "DDLFile",
           "root_type": "DDLFile",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942752,
           "pool_pointer_rva": 37732168,
           "loader_rva": 14626112,
-          "pointer_loader_rva": 14626304
+          "pointer_loader_rva": 14626304,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 26,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 58,
@@ -2279,12 +2785,23 @@
           "name_offset": 0,
           "source_root_type": "TracerDef",
           "root_type": "TracerDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942776,
           "pool_pointer_rva": 37732176,
           "loader_rva": 14474192,
-          "pointer_loader_rva": 14474416
+          "pointer_loader_rva": 14474416,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 8,
+            "assets": 69,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 59,
@@ -2296,12 +2813,23 @@
           "name_offset": 0,
           "source_root_type": "VehicleDef",
           "root_type": "VehicleDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942800,
           "pool_pointer_rva": 37732184,
           "loader_rva": 14808976,
-          "pointer_loader_rva": 14811872
+          "pointer_loader_rva": 14811872,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 34,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "mp_aniyah_tac"
+            ]
+          }
         },
         {
           "id": 60,
@@ -2330,12 +2858,23 @@
           "name_offset": 0,
           "source_root_type": "NetConstStrings",
           "root_type": "NetConstStrings",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942848,
           "pool_pointer_rva": 37732200,
           "loader_rva": 14670416,
-          "pointer_loader_rva": 14670656
+          "pointer_loader_rva": 14670656,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 20,
+            "assets": 480,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 62,
@@ -2347,12 +2886,20 @@
           "name_offset": 0,
           "source_root_type": "LuaFile",
           "root_type": "LuaFile",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942872,
           "pool_pointer_rva": 37732208,
           "loader_rva": 14698752,
-          "pointer_loader_rva": 14698944
+          "pointer_loader_rva": 14698944,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 2746,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 63,
@@ -2364,12 +2911,23 @@
           "name_offset": 0,
           "source_root_type": "ScriptableDef",
           "root_type": "ScriptableDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942896,
           "pool_pointer_rva": 37732216,
           "loader_rva": 14389376,
-          "pointer_loader_rva": 14389872
+          "pointer_loader_rva": 14389872,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 17,
+            "assets": 806,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 64,
@@ -2381,12 +2939,20 @@
           "name_offset": 0,
           "source_root_type": "EquipmentSoundTable",
           "root_type": "EquipmentSoundTable",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942920,
           "pool_pointer_rva": 37732224,
           "loader_rva": 14529680,
-          "pointer_loader_rva": 14531360
+          "pointer_loader_rva": 14531360,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 65,
@@ -2398,12 +2964,23 @@
           "name_offset": 0,
           "source_root_type": "VectorField",
           "root_type": "VectorField",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942944,
           "pool_pointer_rva": 37732232,
           "loader_rva": 14674144,
-          "pointer_loader_rva": 14674464
+          "pointer_loader_rva": 14674464,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 12,
+            "assets": 12,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_core_mp",
+              "mp_aniyah_tac"
+            ]
+          }
         },
         {
           "id": 66,
@@ -2415,12 +2992,20 @@
           "name_offset": 0,
           "source_root_type": "FxParticleSimAnimation",
           "root_type": "FxParticleSimAnimation",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193942968,
           "pool_pointer_rva": 37732240,
           "loader_rva": 14914848,
-          "pointer_loader_rva": 14915424
+          "pointer_loader_rva": 14915424,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 67,
@@ -2438,7 +3023,18 @@
           "pool_pointer_rva": 37732248,
           "layout_note": "One native flag set, with transientInfo at 0x40.",
           "loader_rva": 14879104,
-          "pointer_loader_rva": 14879360
+          "pointer_loader_rva": 14879360,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 19,
+            "assets": 20,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 68,
@@ -2450,12 +3046,23 @@
           "name_offset": 0,
           "source_root_type": "LaserDef",
           "root_type": "LaserDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943016,
           "pool_pointer_rva": 37732256,
           "loader_rva": 14473696,
-          "pointer_loader_rva": 14473952
+          "pointer_loader_rva": 14473952,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 6,
+            "assets": 53,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 69,
@@ -2467,12 +3074,20 @@
           "name_offset": 0,
           "source_root_type": "TTFDef",
           "root_type": "TTFDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943040,
           "pool_pointer_rva": 37732264,
           "loader_rva": 14702416,
-          "pointer_loader_rva": 14702608
+          "pointer_loader_rva": 14702608,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 6,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 70,
@@ -2484,12 +3099,21 @@
           "name_offset": 0,
           "source_root_type": "SuitDef",
           "root_type": "SuitDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943064,
           "pool_pointer_rva": 37732272,
           "loader_rva": 14806096,
-          "pointer_loader_rva": 14808576
+          "pointer_loader_rva": 14808576,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 31,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp"
+            ]
+          }
         },
         {
           "id": 71,
@@ -2501,12 +3125,21 @@
           "name_offset": 0,
           "source_root_type": "SuitAnimPackage",
           "root_type": "SuitAnimPackage",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943088,
           "pool_pointer_rva": 37732280,
           "loader_rva": 14918672,
-          "pointer_loader_rva": 14918928
+          "pointer_loader_rva": 14918928,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 7,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp"
+            ]
+          }
         },
         {
           "id": 72,
@@ -2518,12 +3151,23 @@
           "name_offset": 0,
           "source_root_type": "CameraDef",
           "root_type": "CameraDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943112,
           "pool_pointer_rva": 37732288,
           "loader_rva": 14889248,
-          "pointer_loader_rva": 14889360
+          "pointer_loader_rva": 14889360,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 46,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 73,
@@ -2535,12 +3179,23 @@
           "name_offset": 0,
           "source_root_type": "HudOutlineDef",
           "root_type": "HudOutlineDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943136,
           "pool_pointer_rva": 37732296,
           "loader_rva": 14668848,
-          "pointer_loader_rva": 14668960
+          "pointer_loader_rva": 14668960,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 7,
+            "assets": 55,
+            "example_zones": [
+              "code_post_gfx",
+              "common_br_mp",
+              "common_mp",
+              "mp_backlot2"
+            ]
+          }
         },
         {
           "id": 74,
@@ -2569,12 +3224,23 @@
           "name_offset": 0,
           "source_root_type": "RumbleInfo",
           "root_type": "RumbleInfo",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943184,
           "pool_pointer_rva": 37732312,
           "loader_rva": 14671760,
-          "pointer_loader_rva": 14672000
+          "pointer_loader_rva": 14672000,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 13,
+            "assets": 91,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 76,
@@ -2586,12 +3252,23 @@
           "name_offset": 0,
           "source_root_type": "RumbleGraph",
           "root_type": "RumbleGraph",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943208,
           "pool_pointer_rva": 37732320,
           "loader_rva": 14671408,
-          "pointer_loader_rva": 14671520
+          "pointer_loader_rva": 14671520,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 136,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "global_stream_mp",
+              "iw8_cw_pocket_blaster"
+            ]
+          }
         },
         {
           "id": 77,
@@ -2603,12 +3280,23 @@
           "name_offset": 0,
           "source_root_type": "WeaponAnimPackage",
           "root_type": "WeaponAnimPackage",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943232,
           "pool_pointer_rva": 37732328,
           "loader_rva": 14260896,
-          "pointer_loader_rva": 14261264
+          "pointer_loader_rva": 14261264,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 1094,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 78,
@@ -2620,12 +3308,23 @@
           "name_offset": 0,
           "source_root_type": "WeaponSFXPackage",
           "root_type": "WeaponSFXPackage",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943256,
           "pool_pointer_rva": 37732336,
           "loader_rva": 14270336,
-          "pointer_loader_rva": 14270832
+          "pointer_loader_rva": 14270832,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 12,
+            "assets": 339,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 79,
@@ -2637,12 +3336,23 @@
           "name_offset": 0,
           "source_root_type": "WeaponVFXPackage",
           "root_type": "WeaponVFXPackage",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943280,
           "pool_pointer_rva": 37732344,
           "loader_rva": 14274016,
-          "pointer_loader_rva": 14275056
+          "pointer_loader_rva": 14275056,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 404,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 80,
@@ -2654,12 +3364,23 @@
           "name_offset": 0,
           "source_root_type": "FootstepVFX",
           "root_type": "FootstepVFX",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943304,
           "pool_pointer_rva": 37732352,
           "loader_rva": 14488992,
-          "pointer_loader_rva": 14489184
+          "pointer_loader_rva": 14489184,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 6,
+            "assets": 33,
+            "example_zones": [
+              "common_base_mp",
+              "global_stream_mp",
+              "mp_backlot2",
+              "mp_hideout"
+            ]
+          }
         },
         {
           "id": 81,
@@ -2671,12 +3392,20 @@
           "name_offset": 0,
           "source_root_type": "BehaviorTree",
           "root_type": "BehaviorTree",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943328,
           "pool_pointer_rva": 37732360,
           "loader_rva": 14524496,
-          "pointer_loader_rva": 14524976
+          "pointer_loader_rva": 14524976,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 2,
+            "example_zones": [
+              "mp_shipment"
+            ]
+          }
         },
         {
           "id": 82,
@@ -2688,12 +3417,23 @@
           "name_offset": 0,
           "source_root_type": "Animset",
           "root_type": "Animset",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943352,
           "pool_pointer_rva": 37732368,
           "loader_rva": 14485264,
-          "pointer_loader_rva": 14487408
+          "pointer_loader_rva": 14487408,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 8,
+            "assets": 9,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "mp_aniyah_tac",
+              "mp_backlot2"
+            ]
+          }
         },
         {
           "id": 83,
@@ -2705,12 +3445,22 @@
           "name_offset": 0,
           "source_root_type": "ASM",
           "root_type": "ASM",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943376,
           "pool_pointer_rva": 37732376,
           "loader_rva": 14521552,
-          "pointer_loader_rva": 14524256
+          "pointer_loader_rva": 14524256,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 3,
+            "assets": 7,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "mp_shipment"
+            ]
+          }
         },
         {
           "id": 84,
@@ -2722,12 +3472,23 @@
           "name_offset": 0,
           "source_root_type": "XAnimProceduralBones",
           "root_type": "XAnimProceduralBones",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943400,
           "pool_pointer_rva": 37732384,
           "loader_rva": 14495952,
-          "pointer_loader_rva": 14496288
+          "pointer_loader_rva": 14496288,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 15,
+            "assets": 81,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 85,
@@ -2739,12 +3500,23 @@
           "name_offset": 0,
           "source_root_type": "XAnimDynamicBones",
           "root_type": "XAnimDynamicBones",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943424,
           "pool_pointer_rva": 37732392,
           "loader_rva": 14494992,
-          "pointer_loader_rva": 14495712
+          "pointer_loader_rva": 14495712,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 17,
+            "assets": 560,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 86,
@@ -2756,12 +3528,22 @@
           "name_offset": 0,
           "source_root_type": "ReticleDef",
           "root_type": "ReticleDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943448,
           "pool_pointer_rva": 37732400,
           "loader_rva": 14700064,
-          "pointer_loader_rva": 14700240
+          "pointer_loader_rva": 14700240,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 3,
+            "assets": 324,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "global_stream_mp"
+            ]
+          }
         },
         {
           "id": 87,
@@ -2773,12 +3555,23 @@
           "name_offset": 0,
           "source_root_type": "XAnimCurve",
           "root_type": "XAnimCurve",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943472,
           "pool_pointer_rva": 37732408,
           "loader_rva": 14675472,
-          "pointer_loader_rva": 14675680
+          "pointer_loader_rva": 14675680,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 8,
+            "assets": 30,
+            "example_zones": [
+              "common_base_mp",
+              "global_stream_mp",
+              "mp_aniyah_tac",
+              "mp_backlot2"
+            ]
+          }
         },
         {
           "id": 88,
@@ -2790,12 +3583,20 @@
           "name_offset": 0,
           "source_root_type": "CoverSelector",
           "root_type": "CoverSelector",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943496,
           "pool_pointer_rva": 37732416,
           "loader_rva": 14667520,
-          "pointer_loader_rva": 14667680
+          "pointer_loader_rva": 14667680,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 2,
+            "example_zones": [
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 89,
@@ -2807,12 +3608,20 @@
           "name_offset": 0,
           "source_root_type": "EnemySelector",
           "root_type": "EnemySelector",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943520,
           "pool_pointer_rva": 37732424,
           "loader_rva": 14667920,
-          "pointer_loader_rva": 14668080
+          "pointer_loader_rva": 14668080,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 90,
@@ -2824,12 +3633,21 @@
           "name_offset": 0,
           "source_root_type": "ClientCharacter",
           "root_type": "ClientCharacter",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943544,
           "pool_pointer_rva": 37732432,
           "loader_rva": 14472832,
-          "pointer_loader_rva": 14473056
+          "pointer_loader_rva": 14473056,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 2,
+            "example_zones": [
+              "code_post_gfx",
+              "global_core_mp"
+            ]
+          }
         },
         {
           "id": 91,
@@ -2841,12 +3659,21 @@
           "name_offset": 0,
           "source_root_type": "ClothAsset",
           "root_type": "ClothAsset",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943568,
           "pool_pointer_rva": 37732440,
           "loader_rva": 14622800,
-          "pointer_loader_rva": 14624128
+          "pointer_loader_rva": 14624128,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 6,
+            "example_zones": [
+              "code_post_gfx",
+              "global_stream_mp"
+            ]
+          }
         },
         {
           "id": 92,
@@ -2858,12 +3685,23 @@
           "name_offset": 0,
           "source_root_type": "CinematicMotionDef",
           "root_type": "CinematicMotionDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943592,
           "pool_pointer_rva": 37732448,
           "loader_rva": 14622160,
-          "pointer_loader_rva": 14622352
+          "pointer_loader_rva": 14622352,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 8,
+            "assets": 16,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_mp",
+              "mp_aniyah_tac"
+            ]
+          }
         },
         {
           "id": 93,
@@ -2875,12 +3713,20 @@
           "name_offset": 0,
           "source_root_type": "AccessoryDef",
           "root_type": "AccessoryDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943616,
           "pool_pointer_rva": 37732456,
           "loader_rva": 14946272,
-          "pointer_loader_rva": 14946512
+          "pointer_loader_rva": 14946512,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 52,
+            "example_zones": [
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 94,
@@ -2892,12 +3738,21 @@
           "name_offset": 0,
           "source_root_type": "LocDmgTable",
           "root_type": "LocDmgTable",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943640,
           "pool_pointer_rva": 37732464,
           "loader_rva": 14698016,
-          "pointer_loader_rva": 14698128
+          "pointer_loader_rva": 14698128,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 5,
+            "example_zones": [
+              "code_post_gfx",
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 95,
@@ -2909,12 +3764,21 @@
           "name_offset": 0,
           "source_root_type": "BulletPenetration",
           "root_type": "BulletPenetration",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943664,
           "pool_pointer_rva": 37732472,
           "loader_rva": 14696608,
-          "pointer_loader_rva": 14696720
+          "pointer_loader_rva": 14696720,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 2,
+            "example_zones": [
+              "code_post_gfx",
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 96,
@@ -2943,12 +3807,22 @@
           "name_offset": 0,
           "source_root_type": "BlendSpace2DDef",
           "root_type": "BlendSpace2DDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943712,
           "pool_pointer_rva": 37732488,
           "loader_rva": 14666464,
-          "pointer_loader_rva": 14666960
+          "pointer_loader_rva": 14666960,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 3,
+            "assets": 30,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 98,
@@ -2960,12 +3834,21 @@
           "name_offset": 0,
           "source_root_type": "XCam",
           "root_type": "XCam",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943736,
           "pool_pointer_rva": 37732496,
           "loader_rva": 14634032,
-          "pointer_loader_rva": 14635040
+          "pointer_loader_rva": 14635040,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 225,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp"
+            ]
+          }
         },
         {
           "id": 99,
@@ -2983,7 +3866,16 @@
           "pool_pointer_rva": 37732504,
           "layout_note": "Native name, script string and texture array; source scalar fields through blendMapChannels.",
           "loader_rva": 14946752,
-          "pointer_loader_rva": 14946976
+          "pointer_loader_rva": 14946976,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 137,
+            "example_zones": [
+              "code_post_gfx",
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 100,
@@ -2995,12 +3887,23 @@
           "name_offset": 0,
           "source_root_type": "XCompositeModelDef",
           "root_type": "XCompositeModelDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943784,
           "pool_pointer_rva": 37732512,
           "loader_rva": 14932544,
-          "pointer_loader_rva": 14932912
+          "pointer_loader_rva": 14932912,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 18,
+            "example_zones": [
+              "common_br_mp",
+              "common_core_mp",
+              "mp_aniyah_tac",
+              "mp_backlot2"
+            ]
+          }
         },
         {
           "id": 101,
@@ -3012,12 +3915,23 @@
           "name_offset": 0,
           "source_root_type": "XModelDetailCollision",
           "root_type": "XModelDetailCollision",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943808,
           "pool_pointer_rva": 37732520,
           "loader_rva": 14853024,
-          "pointer_loader_rva": 14853296
+          "pointer_loader_rva": 14853296,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 19,
+            "assets": 8297,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_core_mp"
+            ]
+          }
         },
         {
           "id": 102,
@@ -3029,12 +3943,23 @@
           "name_offset": 0,
           "source_root_type": "StreamKey",
           "root_type": "StreamKey",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943832,
           "pool_pointer_rva": 37732528,
           "loader_rva": 14892976,
-          "pointer_loader_rva": 14893392
+          "pointer_loader_rva": 14893392,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 13,
+            "assets": 268,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_br_mp",
+              "common_mp"
+            ]
+          }
         },
         {
           "id": 103,
@@ -3063,12 +3988,23 @@
           "name_offset": 0,
           "source_root_type": "KeyValuePairs",
           "root_type": "KeyValuePairs",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943880,
           "pool_pointer_rva": 37732544,
           "loader_rva": 14697440,
-          "pointer_loader_rva": 14697776
+          "pointer_loader_rva": 14697776,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 30,
+            "assets": 30,
+            "example_zones": [
+              "code_post_gfx",
+              "code_pre_gfx",
+              "common_base_mp",
+              "common_br_mp"
+            ]
+          }
         },
         {
           "id": 105,
@@ -3086,7 +4022,18 @@
           "pool_pointer_rva": 37732552,
           "layout_note": "Native root offsets and size checked; embedded GPU record extents propagated from Replay loaders.",
           "loader_rva": 14804144,
-          "pointer_loader_rva": 14805616
+          "pointer_loader_rva": 14805616,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 9,
+            "assets": 9,
+            "example_zones": [
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut",
+              "mp_emporium"
+            ]
+          }
         },
         {
           "id": 106,
@@ -3115,12 +4062,21 @@
           "name_offset": 0,
           "source_root_type": "CollisionTile",
           "root_type": "CollisionTile",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943952,
           "pool_pointer_rva": 37732568,
           "loader_rva": 14721408,
-          "pointer_loader_rva": 14721728
+          "pointer_loader_rva": 14721728,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 1025,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_br_quarry_cg_ls_tr"
+            ]
+          }
         },
         {
           "id": 108,
@@ -3132,12 +4088,21 @@
           "name_offset": 0,
           "source_root_type": "ExecutionDef",
           "root_type": "ExecutionDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193943976,
           "pool_pointer_rva": 37732576,
           "loader_rva": 14928144,
-          "pointer_loader_rva": 14928400
+          "pointer_loader_rva": 14928400,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 2,
+            "assets": 98,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp"
+            ]
+          }
         },
         {
           "id": 109,
@@ -3149,12 +4114,20 @@
           "name_offset": 0,
           "source_root_type": "CarryObjectDef",
           "root_type": "CarryObjectDef",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944000,
           "pool_pointer_rva": 37732584,
           "loader_rva": 14472320,
-          "pointer_loader_rva": 14472592
+          "pointer_loader_rva": 14472592,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_post_gfx"
+            ]
+          }
         },
         {
           "id": 110,
@@ -3183,12 +4156,23 @@
           "name_offset": 0,
           "source_root_type": "GfxDecalVolumeMaterial",
           "root_type": "GfxDecalVolumeMaterial",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944048,
           "pool_pointer_rva": 37732600,
           "loader_rva": 14723872,
-          "pointer_loader_rva": 14724032
+          "pointer_loader_rva": 14724032,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 17,
+            "assets": 1257,
+            "example_zones": [
+              "code_post_gfx",
+              "common_base_mp",
+              "common_mp",
+              "global_mp"
+            ]
+          }
         },
         {
           "id": 112,
@@ -3200,12 +4184,23 @@
           "name_offset": 0,
           "source_root_type": "GfxDecalVolumeMask",
           "root_type": "GfxDecalVolumeMask",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944072,
           "pool_pointer_rva": 37732608,
           "loader_rva": 14723472,
-          "pointer_loader_rva": 14723632
+          "pointer_loader_rva": 14723632,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 10,
+            "assets": 355,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 113,
@@ -3217,12 +4212,23 @@
           "name_offset": 0,
           "source_root_type": "DynEntityList",
           "root_type": "DynEntityList",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944096,
           "pool_pointer_rva": 37732616,
           "loader_rva": 14722768,
-          "pointer_loader_rva": 14723056
+          "pointer_loader_rva": 14723056,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 11,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 114,
@@ -3234,12 +4240,23 @@
           "name_offset": 0,
           "source_root_type": "FxWorldTransientZone",
           "root_type": "FxWorldTransientZone",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944120,
           "pool_pointer_rva": 37732624,
           "loader_rva": 14930208,
-          "pointer_loader_rva": 14930368
+          "pointer_loader_rva": 14930368,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 11,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         },
         {
           "id": 115,
@@ -3251,12 +4268,20 @@
           "name_offset": 0,
           "source_root_type": "DLogSchema",
           "root_type": "DLogSchema",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944144,
           "pool_pointer_rva": 37732632,
           "loader_rva": 14527904,
-          "pointer_loader_rva": 14528416
+          "pointer_loader_rva": 14528416,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 1,
+            "assets": 1,
+            "example_zones": [
+              "code_pre_gfx"
+            ]
+          }
         },
         {
           "id": 116,
@@ -3268,12 +4293,23 @@
           "name_offset": 0,
           "source_root_type": "MapEdgeList",
           "root_type": "MapEdgeList",
-          "status": "source_size_match",
+          "status": "replay_stream_crosscheck",
           "allocator_rva": 16115520,
           "free_head_rva": 193944168,
           "pool_pointer_rva": 37732640,
           "loader_rva": 14725616,
-          "pointer_loader_rva": 14726192
+          "pointer_loader_rva": 14726192,
+          "x64zt_crosscheck": {
+            "tool": "x64-zt caf5b0f",
+            "zones": 11,
+            "assets": 140,
+            "example_zones": [
+              "code_post_gfx",
+              "mp_aniyah_tac",
+              "mp_backlot2",
+              "mp_bm_tut"
+            ]
+          }
         }
       ],
       "image_layout": {
@@ -3494,14 +4530,23 @@
         "GfxWorldDraw": "Replay::GfxWorldDraw",
         "WeaponAttachment": "Replay::WeaponAttachment",
         "StDiskTerrainSurface": "Replay::StDiskTerrainSurface",
-        "GfxSubdivCache": "Replay::GfxSubdivCache",
+        "GfxBufferResource": "Replay::GfxBufferResource",
+        "GfxShaderBufferRWView": "Replay::GfxShaderBufferRWView",
+        "GfxIndexBuffer": "Replay::GfxIndexBuffer",
+        "GfxVertexBuffer": "Replay::GfxVertexBuffer",
+        "GfxConstantBuffer": "Replay::GfxConstantBuffer",
         "GfxWrappedBaseBuffer": "Replay::GfxWrappedBaseBuffer",
-        "XSurfaceSubdivLevel": "Replay::XSurfaceSubdivLevel",
-        "ReactiveMotionModelInfo": "Replay::ReactiveMotionModelInfo",
+        "MaterialTechnique": "Replay::MaterialTechnique",
+        "MaterialPipelineState": "Replay::MaterialPipelineState",
+        "MaterialConstantBufferDef": "Replay::MaterialConstantBufferDef",
+        "StVertexData0": "Replay::StVertexData0",
+        "StMeshLayerMaskData": "Replay::StMeshLayerMaskData",
+        "StMesh": "Replay::StMesh",
         "MayhemAnimFramesUncompressed": "Replay::MayhemAnimFramesUncompressed",
         "MayhemAnimFramesSplineCompressed": "Replay::MayhemAnimFramesSplineCompressed",
         "StClutterSamplePoints": "Replay::StClutterSamplePoints",
         "StClutterSampleBitmask": "Replay::StClutterSampleBitmask",
+        "StTerrainNode": "Replay::StTerrainNode",
         "GfxCompressedSunShadowDataTemp": "Replay::GfxCompressedSunShadowDataTemp",
         "GfxDecalVolumeTransientData": "Replay::GfxDecalVolumeTransientData",
         "GfxLightGridVolumeAtlasDataTemp": "Replay::GfxLightGridVolumeAtlasDataTemp",
@@ -3509,7 +4554,6 @@
         "GfxDynamicLightsetProbeData": "Replay::GfxDynamicLightsetProbeData",
         "GfxGpuLightGrid": "Replay::GfxGpuLightGrid",
         "GfxGpuLightGridVoxelTree": "Replay::GfxGpuLightGridVoxelTree",
-        "GfxWorldDrawVerts": "Replay::GfxWorldDrawVerts",
         "GfxWorld": "Replay::GfxWorld",
         "GfxFrustumLights": "Replay::GfxFrustumLights",
         "GfxMayhemSelfVis": "Replay::GfxMayhemSelfVis",
@@ -3518,8 +4562,19 @@
         "GfxWorldReflectionProbeData": "Replay::GfxWorldReflectionProbeData",
         "GfxWorldStaticModels": "Replay::GfxWorldStaticModels",
         "MapEnts": "Replay::MapEnts",
-        "XSurfaceSubdivInfo": "Replay::XSurfaceSubdivInfo",
         "StTerrain": "Replay::StTerrain",
+        "GfxWorldDrawVerts": "Replay::GfxWorldDrawVerts",
+        "GfxSubdivCache": "Replay::GfxSubdivCache",
+        "XSurfaceSubdivInfo": "Replay::XSurfaceSubdivInfo",
+        "XSurfaceSubdivLevel": "Replay::XSurfaceSubdivLevel",
+        "ReactiveMotionModelInfo": "Replay::ReactiveMotionModelInfo",
+        "TransientCosts": "Replay::TransientCosts",
+        "TransientInfo": "Replay::TransientInfo",
+        "AttProjectile": "Replay::AttProjectile",
+        "PlayerAnimsetAlias": "Replay::PlayerAnimsetAlias",
+        "PlayerAnimEntry": "Replay::PlayerAnimEntry",
+        "SndMusicAsset": "Replay::SndMusicAsset",
+        "SndMusicState": "Replay::SndMusicState",
         "GfxWorldTransientZone": "Replay::GfxWorldTransientZone"
       }
     }
@@ -75114,21 +76169,66 @@
     },
     "Replay::GfxWrappedBuffer": {
       "name": "Replay::GfxWrappedBuffer",
-      "kind": "opaque",
+      "kind": "struct",
       "size": 64,
-      "reason": "Native GPU runtime record; loader copies bytes without serialized pointer fixups"
+      "members": [
+        {
+          "name": "base",
+          "offset_bits": 0,
+          "size_bits": 384,
+          "type": "Replay::GfxWrappedBaseBuffer"
+        },
+        {
+          "name": "data",
+          "offset_bits": 384,
+          "size_bits": 64,
+          "type": "void *"
+        },
+        {
+          "name": "flags",
+          "offset_bits": 448,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        }
+      ]
     },
     "Replay::GfxWrappedRWBuffer": {
       "name": "Replay::GfxWrappedRWBuffer",
-      "kind": "opaque",
+      "kind": "struct",
       "size": 96,
-      "reason": "Native GPU runtime record; loader copies bytes without serialized pointer fixups"
+      "members": [
+        {
+          "name": "buffer",
+          "offset_bits": 0,
+          "size_bits": 512,
+          "type": "Replay::GfxWrappedBuffer"
+        },
+        {
+          "name": "rwView",
+          "offset_bits": 512,
+          "size_bits": 256,
+          "type": "Replay::GfxShaderBufferRWView"
+        }
+      ]
     },
     "Replay::GfxShaderBufferView": {
       "name": "Replay::GfxShaderBufferView",
-      "kind": "opaque",
-      "size": 24,
-      "reason": "Native GPU runtime record; loader copies bytes without serialized pointer fixups"
+      "kind": "struct",
+      "size": 16,
+      "members": [
+        {
+          "name": "resource",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "ID3D12Resource *"
+        },
+        {
+          "name": "view",
+          "offset_bits": 64,
+          "size_bits": 32,
+          "type": "unsigned int"
+        }
+      ]
     },
     "Replay::ClientSideEffects": {
       "name": "Replay::ClientSideEffects",
@@ -81666,16 +82766,16 @@
           "type": "BallisticInfo *"
         },
         {
-          "name": "hyperBurstInfo",
+          "name": "swaySettings",
           "offset_bits": 4608,
           "size_bits": 64,
-          "type": "HyperBurstInfo *"
+          "type": "SwaySettings *"
         },
         {
-          "name": "swaySettings",
+          "name": "weaponOffsetPatternScaleInfo",
           "offset_bits": 4672,
           "size_bits": 64,
-          "type": "SwaySettings *"
+          "type": "WeaponOffsetPatternScaleInfo *"
         },
         {
           "name": "locationDamage",
@@ -82408,14 +83508,535 @@
     },
     "Replay::GfxIndexBuffer": {
       "name": "Replay::GfxIndexBuffer",
-      "kind": "opaque",
+      "kind": "struct",
       "size": 32,
-      "reason": "Native index buffer runtime record, Load_Stream at RVA 0xDD1770"
+      "members": [
+        {
+          "name": "resource",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "ID3D12Resource *"
+        },
+        {
+          "name": "gpuAddress",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "allocation",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "size",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "unsigned int"
+        }
+      ]
+    },
+    "Replay::GfxBufferResource": {
+      "name": "Replay::GfxBufferResource",
+      "kind": "struct",
+      "size": 32,
+      "members": [
+        {
+          "name": "resource",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "ID3D12Resource *"
+        },
+        {
+          "name": "gpuAddress",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "allocation",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "size",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "unsigned int"
+        }
+      ]
+    },
+    "Replay::GfxShaderBufferRWView": {
+      "name": "Replay::GfxShaderBufferRWView",
+      "kind": "struct",
+      "size": 32,
+      "members": [
+        {
+          "name": "resource",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "ID3D12Resource *"
+        },
+        {
+          "name": "gpuAddress",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "allocation",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "view",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "unsigned int"
+        }
+      ]
+    },
+    "Replay::GfxWrappedBaseBuffer": {
+      "name": "Replay::GfxWrappedBaseBuffer",
+      "kind": "struct",
+      "size": 48,
+      "members": [
+        {
+          "name": "buffer",
+          "offset_bits": 0,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "view",
+          "offset_bits": 256,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
+        }
+      ]
+    },
+    "Replay::GfxVertexBuffer": {
+      "name": "Replay::GfxVertexBuffer",
+      "kind": "struct",
+      "size": 32,
+      "members": [
+        {
+          "name": "resource",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "ID3D12Resource *"
+        },
+        {
+          "name": "gpuAddress",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "allocation",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "size",
+          "offset_bits": 192,
+          "size_bits": 32,
+          "type": "unsigned int"
+        }
+      ]
+    },
+    "Replay::GfxConstantBuffer": {
+      "name": "Replay::GfxConstantBuffer",
+      "kind": "struct",
+      "size": 56,
+      "members": [
+        {
+          "name": "desc",
+          "offset_bits": 0,
+          "size_bits": 128,
+          "type": "GfxConstantBufferDesc"
+        },
+        {
+          "name": "buffer",
+          "offset_bits": 128,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "view",
+          "offset_bits": 384,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        }
+      ]
+    },
+    "Replay::MaterialPipelineState": {
+      "name": "Replay::MaterialPipelineState",
+      "size": 16,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "hash",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "unsigned __int64"
+        },
+        {
+          "name": "pso",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "ID3D12PipelineState *"
+        }
+      ]
+    },
+    "Replay::MaterialTechniqueStateBits": {
+      "name": "Replay::MaterialTechniqueStateBits",
+      "size": 5,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "bits",
+          "offset_bits": 0,
+          "size_bits": 40,
+          "type": "unsigned __int8[5]"
+        }
+      ]
+    },
+    "Replay::MaterialTechnique": {
+      "name": "Replay::MaterialTechnique",
+      "size": 184,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "name",
+          "offset_bits": 0,
+          "size_bits": 64,
+          "type": "const char *"
+        },
+        {
+          "name": "type",
+          "offset_bits": 64,
+          "size_bits": 32,
+          "type": "MaterialTechniqueType"
+        },
+        {
+          "name": "flags",
+          "offset_bits": 96,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "pipelineStateInputLayoutCount",
+          "offset_bits": 112,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "pipelineStateMap",
+          "offset_bits": 120,
+          "size_bits": 200,
+          "type": "unsigned __int8[25]"
+        },
+        {
+          "name": "pipelineStates",
+          "offset_bits": 320,
+          "size_bits": 64,
+          "type": "Replay::MaterialPipelineState *"
+        },
+        {
+          "name": "customBufferFlags",
+          "offset_bits": 384,
+          "size_bits": 256,
+          "type": "unsigned __int64[4]"
+        },
+        {
+          "name": "rootParameterMap",
+          "offset_bits": 640,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "vertexShader",
+          "offset_bits": 704,
+          "size_bits": 64,
+          "type": "ComputeShader *"
+        },
+        {
+          "name": "hullShader",
+          "offset_bits": 768,
+          "size_bits": 64,
+          "type": "ComputeShader *"
+        },
+        {
+          "name": "domainShader",
+          "offset_bits": 832,
+          "size_bits": 64,
+          "type": "ComputeShader *"
+        },
+        {
+          "name": "pixelShader",
+          "offset_bits": 896,
+          "size_bits": 64,
+          "type": "ComputeShader *"
+        },
+        {
+          "name": "perPrimArgCount",
+          "offset_bits": 960,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "perObjArgCount",
+          "offset_bits": 968,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "stableArgCount",
+          "offset_bits": 976,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "neverArgCount",
+          "offset_bits": 984,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "perPrimArgSize",
+          "offset_bits": 992,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "perObjArgSize",
+          "offset_bits": 1008,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "stableArgSize",
+          "offset_bits": 1024,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "colorRtCount",
+          "offset_bits": 1040,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "pipelineStateCount",
+          "offset_bits": 1048,
+          "size_bits": 8,
+          "type": "unsigned __int8"
+        },
+        {
+          "name": "stateBits",
+          "offset_bits": 1088,
+          "size_bits": 64,
+          "type": "Replay::MaterialTechniqueStateBits *"
+        },
+        {
+          "name": "renderTargetFormats",
+          "offset_bits": 1152,
+          "size_bits": 40,
+          "type": "MaterialRenderTargetFormat"
+        },
+        {
+          "name": "customSamplerFlags",
+          "offset_bits": 1216,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "precompiledIndex",
+          "offset_bits": 1248,
+          "size_bits": 8,
+          "type": "MaterialConstantLayout"
+        },
+        {
+          "name": "stageConfig",
+          "offset_bits": 1256,
+          "size_bits": 8,
+          "type": "MaterialStageConfig"
+        },
+        {
+          "name": "defaultStateBits",
+          "offset_bits": 1280,
+          "size_bits": 128,
+          "type": "GfxStateBits"
+        },
+        {
+          "name": "args",
+          "offset_bits": 1408,
+          "size_bits": 64,
+          "type": "MaterialShaderArgument *"
+        }
+      ]
+    },
+    "Replay::MaterialConstantBufferDef": {
+      "name": "Replay::MaterialConstantBufferDef",
+      "size": 272,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "vsDataSize",
+          "offset_bits": 0,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "hsDataSize",
+          "offset_bits": 32,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "dsDataSize",
+          "offset_bits": 64,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "psDataSize",
+          "offset_bits": 96,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "vsData",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "hsData",
+          "offset_bits": 192,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "dsData",
+          "offset_bits": 256,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "psData",
+          "offset_bits": 320,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "vsConstantBuffer",
+          "offset_bits": 384,
+          "size_bits": 448,
+          "type": "Replay::GfxConstantBuffer"
+        },
+        {
+          "name": "hsConstantBuffer",
+          "offset_bits": 832,
+          "size_bits": 448,
+          "type": "Replay::GfxConstantBuffer"
+        },
+        {
+          "name": "dsConstantBuffer",
+          "offset_bits": 1280,
+          "size_bits": 448,
+          "type": "Replay::GfxConstantBuffer"
+        },
+        {
+          "name": "psConstantBuffer",
+          "offset_bits": 1728,
+          "size_bits": 448,
+          "type": "Replay::GfxConstantBuffer"
+        }
+      ]
+    },
+    "Replay::MaterialPipelineState *": {
+      "name": "Replay::MaterialPipelineState *",
+      "kind": "pointer",
+      "size": 8,
+      "target": "Replay::MaterialPipelineState"
+    },
+    "Replay::MaterialTechniqueStateBits *": {
+      "name": "Replay::MaterialTechniqueStateBits *",
+      "kind": "pointer",
+      "size": 8,
+      "target": "Replay::MaterialTechniqueStateBits"
+    },
+    "Replay::GfxWorldDrawVerts": {
+      "name": "Replay::GfxWorldDrawVerts",
+      "kind": "struct",
+      "size": 200,
+      "members": [
+        {
+          "name": "posDataSize",
+          "offset_bits": 0,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "auxDataSize",
+          "offset_bits": 32,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "posData",
+          "offset_bits": 64,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "auxData",
+          "offset_bits": 128,
+          "size_bits": 64,
+          "type": "unsigned __int8 *"
+        },
+        {
+          "name": "posBuffer",
+          "offset_bits": 192,
+          "size_bits": 512,
+          "type": "Replay::GfxWrappedBuffer"
+        },
+        {
+          "name": "auxBuffer",
+          "offset_bits": 704,
+          "size_bits": 512,
+          "type": "Replay::GfxWrappedBuffer"
+        },
+        {
+          "name": "indexCount",
+          "offset_bits": 1216,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "indices",
+          "offset_bits": 1280,
+          "size_bits": 64,
+          "type": "unsigned __int16 *"
+        },
+        {
+          "name": "indexBuffer",
+          "offset_bits": 1344,
+          "size_bits": 256,
+          "type": "Replay::GfxIndexBuffer"
+        }
+      ]
     },
     "Replay::GfxSubdivCache": {
       "name": "Replay::GfxSubdivCache",
-      "size": 112,
       "kind": "struct",
+      "size": 104,
       "members": [
         {
           "name": "size",
@@ -82424,42 +84045,54 @@
           "type": "unsigned int"
         },
         {
-          "name": "vertexData",
-          "offset_bits": 64,
-          "size_bits": 64,
-          "type": "unsigned __int8 *"
-        },
-        {
           "name": "vertexBuffer",
-          "offset_bits": 128,
+          "offset_bits": 64,
           "size_bits": 768,
-          "type": "GfxWrappedRWBuffer"
+          "type": "Replay::GfxWrappedRWBuffer"
         }
       ]
     },
-    "Replay::GfxWrappedBaseBuffer": {
-      "name": "Replay::GfxWrappedBaseBuffer",
-      "size": 32,
+    "Replay::XSurfaceSubdivInfo": {
+      "name": "Replay::XSurfaceSubdivInfo",
       "kind": "struct",
+      "size": 128,
       "members": [
         {
-          "name": "buffer",
+          "name": "levels",
           "offset_bits": 0,
           "size_bits": 64,
-          "type": "ID3D12Resource *"
+          "type": "XSurfaceSubdivLevel *"
         },
         {
-          "name": "view",
+          "name": "flags",
           "offset_bits": 64,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "totalVertCount",
+          "offset_bits": 96,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "totalRegularPatchCount",
+          "offset_bits": 128,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "cache",
+          "offset_bits": 192,
+          "size_bits": 832,
+          "type": "Replay::GfxSubdivCache"
         }
       ]
     },
     "Replay::XSurfaceSubdivLevel": {
       "name": "Replay::XSurfaceSubdivLevel",
-      "size": 360,
       "kind": "struct",
+      "size": 568,
       "members": [
         {
           "name": "rigidVertLists",
@@ -82626,69 +84259,111 @@
         {
           "name": "regularPatchIndexBuffer",
           "offset_bits": 1216,
-          "size_bits": 64,
-          "type": "ID3D12Resource *"
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
         },
         {
           "name": "faceIndexBuffer",
-          "offset_bits": 1280,
-          "size_bits": 64,
-          "type": "ID3D12Resource *"
+          "offset_bits": 1472,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
         },
         {
           "name": "regularPatchIndexBufferView",
-          "offset_bits": 1344,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 1728,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "regularPatchFlagsView",
-          "offset_bits": 1536,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 1856,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "facePointsView",
-          "offset_bits": 1728,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 1984,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "edgePointsView",
-          "offset_bits": 1920,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 2112,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "vertexPointsView",
-          "offset_bits": 2112,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 2240,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "normalsView",
-          "offset_bits": 2304,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 2368,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "transitionPointsView",
           "offset_bits": 2496,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
         },
         {
           "name": "regularPatchConesView",
-          "offset_bits": 2688,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
+          "offset_bits": 2624,
+          "size_bits": 128,
+          "type": "Replay::GfxShaderBufferView"
+        },
+        {
+          "name": "regularPatchFlagsBuffer",
+          "offset_bits": 2752,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "regularPatchConesBuffer",
+          "offset_bits": 3008,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "facePointsBuffer",
+          "offset_bits": 3264,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "edgePointsBuffer",
+          "offset_bits": 3520,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "vertexPointsBuffer",
+          "offset_bits": 3776,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "normalsBuffer",
+          "offset_bits": 4032,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
+        },
+        {
+          "name": "transitionPointsBuffer",
+          "offset_bits": 4288,
+          "size_bits": 256,
+          "type": "Replay::GfxBufferResource"
         }
       ]
     },
     "Replay::ReactiveMotionModelInfo": {
       "name": "Replay::ReactiveMotionModelInfo",
-      "size": 72,
       "kind": "struct",
+      "size": 96,
       "members": [
         {
           "name": "windParams",
@@ -82711,81 +84386,204 @@
         {
           "name": "modelPartsBuffer",
           "offset_bits": 256,
-          "size_bits": 256,
-          "type": "GfxWrappedBaseBuffer"
+          "size_bits": 384,
+          "type": "Replay::GfxWrappedBaseBuffer"
         },
         {
           "name": "numParts",
-          "offset_bits": 512,
+          "offset_bits": 640,
           "size_bits": 8,
           "type": "unsigned __int8"
         },
         {
           "name": "flags",
-          "offset_bits": 520,
+          "offset_bits": 648,
           "size_bits": 8,
           "type": "ReactiveMotionModelFlags"
         },
         {
           "name": "pad",
-          "offset_bits": 528,
+          "offset_bits": 656,
           "size_bits": 16,
           "type": "unsigned __int8[2]"
+        },
+        {
+          "name": "runtime_0x54",
+          "offset_bits": 672,
+          "size_bits": 96,
+          "type": "unsigned __int8[12]"
         }
       ]
     },
-    "Replay::MayhemAnimFramesUncompressed": {
-      "name": "Replay::MayhemAnimFramesUncompressed",
-      "size": 96,
+    "Replay::StMeshLayerMaskData": {
+      "name": "Replay::StMeshLayerMaskData",
       "kind": "struct",
+      "size": 72,
       "members": [
         {
-          "name": "diskQuat",
+          "name": "data",
           "offset_bits": 0,
           "size_bits": 64,
           "type": "unsigned __int8 *"
         },
         {
-          "name": "diskPos",
+          "name": "buffer",
           "offset_bits": 64,
+          "size_bits": 512,
+          "type": "Replay::GfxWrappedBuffer"
+        }
+      ]
+    },
+    "Replay::StVertexData0": {
+      "name": "Replay::StVertexData0",
+      "kind": "struct",
+      "size": 40,
+      "members": [
+        {
+          "name": "data",
+          "offset_bits": 0,
           "size_bits": 64,
           "type": "unsigned __int8 *"
         },
         {
-          "name": "transBounds",
-          "offset_bits": 128,
+          "name": "vb",
+          "offset_bits": 64,
+          "size_bits": 256,
+          "type": "Replay::GfxVertexBuffer"
+        }
+      ]
+    },
+    "Replay::StMesh": {
+      "name": "Replay::StMesh",
+      "kind": "struct",
+      "size": 296,
+      "members": [
+        {
+          "name": "vd0",
+          "offset_bits": 0,
+          "size_bits": 320,
+          "type": "Replay::StVertexData0"
+        },
+        {
+          "name": "layerMask",
+          "offset_bits": 320,
+          "size_bits": 576,
+          "type": "Replay::StMeshLayerMaskData"
+        },
+        {
+          "name": "indexBuffer",
+          "offset_bits": 896,
+          "size_bits": 256,
+          "type": "Replay::GfxIndexBuffer"
+        },
+        {
+          "name": "indices",
+          "offset_bits": 1152,
           "size_bits": 64,
-          "type": "MayhemTransBounds *"
+          "type": "unsigned __int16 *"
+        },
+        {
+          "name": "streamKey",
+          "offset_bits": 1216,
+          "size_bits": 64,
+          "type": "StreamKey *"
+        },
+        {
+          "name": "vertexBufferToRelease",
+          "offset_bits": 1280,
+          "size_bits": 256,
+          "type": "Replay::GfxVertexBuffer"
+        },
+        {
+          "name": "indexBufferToRelease",
+          "offset_bits": 1536,
+          "size_bits": 256,
+          "type": "Replay::GfxIndexBuffer"
+        },
+        {
+          "name": "layerMaskBufferToRelease",
+          "offset_bits": 1792,
+          "size_bits": 512,
+          "type": "Replay::GfxWrappedBuffer"
+        },
+        {
+          "name": "vertexCount",
+          "offset_bits": 2304,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "triCount",
+          "offset_bits": 2320,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "cutoutTriCount",
+          "offset_bits": 2336,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "flags",
+          "offset_bits": 2352,
+          "size_bits": 8,
+          "type": "StMeshFlags"
+        }
+      ]
+    },
+    "Replay::MayhemAnimFramesUncompressed": {
+      "name": "Replay::MayhemAnimFramesUncompressed",
+      "kind": "struct",
+      "size": 128,
+      "members": [
+        {
+          "name": "diskQuat",
+          "type": "unsigned __int8 *",
+          "offset_bits": 0,
+          "size_bits": 64
+        },
+        {
+          "name": "diskPos",
+          "type": "unsigned __int8 *",
+          "offset_bits": 64,
+          "size_bits": 64
+        },
+        {
+          "name": "transBounds",
+          "type": "MayhemTransBounds *",
+          "offset_bits": 128,
+          "size_bits": 64
         },
         {
           "name": "quat",
+          "type": "Replay::GfxWrappedBaseBuffer",
           "offset_bits": 192,
-          "size_bits": 256,
-          "type": "GfxWrappedBaseBuffer"
+          "size_bits": 384
         },
         {
           "name": "pos",
-          "offset_bits": 448,
-          "size_bits": 256,
-          "type": "GfxWrappedBaseBuffer"
+          "type": "Replay::GfxWrappedBaseBuffer",
+          "offset_bits": 576,
+          "size_bits": 384
         },
         {
           "name": "quatStride",
-          "offset_bits": 704,
-          "size_bits": 32,
-          "type": "unsigned int"
+          "type": "unsigned int",
+          "offset_bits": 960,
+          "size_bits": 32
         },
         {
           "name": "posStride",
-          "offset_bits": 736,
-          "size_bits": 32,
-          "type": "unsigned int"
+          "type": "unsigned int",
+          "offset_bits": 992,
+          "size_bits": 32
         }
       ]
     },
     "Replay::MayhemAnimFramesSplineCompressed": {
       "name": "Replay::MayhemAnimFramesSplineCompressed",
-      "size": 136,
+      "size": 168,
       "kind": "struct",
       "members": [
         {
@@ -82833,36 +84631,36 @@
         {
           "name": "quat",
           "offset_bits": 448,
-          "size_bits": 256,
+          "size_bits": 384,
           "type": "GfxWrappedBaseBuffer"
         },
         {
           "name": "pos",
-          "offset_bits": 704,
-          "size_bits": 256,
+          "offset_bits": 832,
+          "size_bits": 384,
           "type": "GfxWrappedBaseBuffer"
         },
         {
           "name": "quatStride",
-          "offset_bits": 960,
+          "offset_bits": 1216,
           "size_bits": 32,
           "type": "unsigned int"
         },
         {
           "name": "posStride",
-          "offset_bits": 992,
+          "offset_bits": 1248,
           "size_bits": 32,
           "type": "unsigned int"
         },
         {
           "name": "totalCompressedQuatFrames",
-          "offset_bits": 1024,
+          "offset_bits": 1280,
           "size_bits": 32,
           "type": "unsigned int"
         },
         {
           "name": "totalCompressedPosFrames",
-          "offset_bits": 1056,
+          "offset_bits": 1312,
           "size_bits": 32,
           "type": "unsigned int"
         }
@@ -82927,6 +84725,55 @@
           "offset_bits": 704,
           "size_bits": 512,
           "type": "GfxWrappedBuffer"
+        }
+      ]
+    },
+    "Replay::StTerrainNode": {
+      "name": "Replay::StTerrainNode",
+      "size": 344,
+      "kind": "struct",
+      "members": [
+        {
+          "name": "mesh",
+          "offset_bits": 0,
+          "size_bits": 2368,
+          "type": "StMesh"
+        },
+        {
+          "name": "wldBounds",
+          "offset_bits": 2368,
+          "size_bits": 192,
+          "type": "Bounds"
+        },
+        {
+          "name": "compressBase",
+          "offset_bits": 2560,
+          "size_bits": 64,
+          "type": "vec2_t"
+        },
+        {
+          "name": "compressScale",
+          "offset_bits": 2624,
+          "size_bits": 64,
+          "type": "vec2_t"
+        },
+        {
+          "name": "layerMask",
+          "offset_bits": 2688,
+          "size_bits": 32,
+          "type": "unsigned int"
+        },
+        {
+          "name": "xIndex",
+          "offset_bits": 2720,
+          "size_bits": 16,
+          "type": "unsigned __int16"
+        },
+        {
+          "name": "yIndex",
+          "offset_bits": 2736,
+          "size_bits": 16,
+          "type": "unsigned __int16"
         }
       ]
     },
@@ -83426,73 +85273,6 @@
           "offset_bits": 1280,
           "size_bits": 512,
           "type": "GfxWrappedBuffer"
-        }
-      ]
-    },
-    "Replay::GfxWorldDrawVerts": {
-      "name": "Replay::GfxWorldDrawVerts",
-      "size": 200,
-      "kind": "struct",
-      "members": [
-        {
-          "name": "posDataSize",
-          "offset_bits": 0,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "auxDataSize",
-          "offset_bits": 32,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "posData",
-          "offset_bits": 64,
-          "size_bits": 64,
-          "type": "unsigned __int8 *"
-        },
-        {
-          "name": "auxData",
-          "offset_bits": 128,
-          "size_bits": 64,
-          "type": "unsigned __int8 *"
-        },
-        {
-          "name": "posBuffer",
-          "offset_bits": 192,
-          "size_bits": 512,
-          "type": "GfxWrappedBuffer"
-        },
-        {
-          "name": "auxBuffer",
-          "offset_bits": 704,
-          "size_bits": 512,
-          "type": "GfxWrappedBuffer"
-        },
-        {
-          "name": "indexCount",
-          "offset_bits": 1216,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "indices",
-          "offset_bits": 1280,
-          "size_bits": 64,
-          "type": "unsigned __int16 *"
-        },
-        {
-          "name": "indexBuffer",
-          "offset_bits": 1344,
-          "size_bits": 64,
-          "type": "ID3D12Resource *"
-        },
-        {
-          "name": "indexBufferView",
-          "offset_bits": 1408,
-          "size_bits": 192,
-          "type": "GfxShaderBufferView"
         }
       ]
     },
@@ -85052,43 +86832,6 @@
         }
       ]
     },
-    "Replay::XSurfaceSubdivInfo": {
-      "name": "Replay::XSurfaceSubdivInfo",
-      "size": 136,
-      "kind": "struct",
-      "members": [
-        {
-          "name": "levels",
-          "offset_bits": 0,
-          "size_bits": 64,
-          "type": "XSurfaceSubdivLevel *"
-        },
-        {
-          "name": "flags",
-          "offset_bits": 64,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "totalVertCount",
-          "offset_bits": 96,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "totalRegularPatchCount",
-          "offset_bits": 128,
-          "size_bits": 32,
-          "type": "unsigned int"
-        },
-        {
-          "name": "cache",
-          "offset_bits": 192,
-          "size_bits": 896,
-          "type": "GfxSubdivCache"
-        }
-      ]
-    },
     "Replay::StTerrain": {
       "name": "Replay::StTerrain",
       "size": 152,
@@ -85161,6 +86904,988 @@
           "type": "StLightmap *"
         }
       ]
+    },
+    "Replay::TransientCosts": {
+      "name": "Replay::TransientCosts",
+      "kind": "struct",
+      "size": 48,
+      "members": [
+        {
+          "name": "streamContents",
+          "type": "StreamingContentSet",
+          "offset_bits": 0,
+          "size_bits": 128
+        },
+        {
+          "name": "streamingCosts",
+          "type": "StreamingItemCost *",
+          "offset_bits": 128,
+          "size_bits": 64
+        },
+        {
+          "name": "residentPageSizes",
+          "type": "unsigned __int16 *",
+          "offset_bits": 192,
+          "size_bits": 64
+        },
+        {
+          "name": "tempPageSizes",
+          "type": "unsigned __int16 *",
+          "offset_bits": 256,
+          "size_bits": 64
+        },
+        {
+          "name": "streamingItemCount",
+          "type": "unsigned int",
+          "offset_bits": 320,
+          "size_bits": 32
+        },
+        {
+          "name": "transientCostCount",
+          "type": "unsigned int",
+          "offset_bits": 352,
+          "size_bits": 32
+        }
+      ]
+    },
+    "Replay::TransientInfo": {
+      "name": "Replay::TransientInfo",
+      "kind": "struct",
+      "size": 184,
+      "members": [
+        {
+          "name": "transientSets",
+          "type": "TransientSets",
+          "offset_bits": 0,
+          "size_bits": 192
+        },
+        {
+          "name": "transientCosts",
+          "type": "Replay::TransientCosts",
+          "offset_bits": 192,
+          "size_bits": 384
+        },
+        {
+          "name": "forcedStubAssets",
+          "type": "ForcedStubAssetReference *",
+          "offset_bits": 576,
+          "size_bits": 64
+        },
+        {
+          "name": "transientFiles",
+          "type": "TransientFileReference *",
+          "offset_bits": 640,
+          "size_bits": 64
+        },
+        {
+          "name": "transientAssets",
+          "type": "TransientAssetReference *",
+          "offset_bits": 704,
+          "size_bits": 64
+        },
+        {
+          "name": "transientWorldGridTileMaps",
+          "type": "TransientWorldGridTileMap *",
+          "offset_bits": 768,
+          "size_bits": 64
+        },
+        {
+          "name": "transientWorldGridSpatial",
+          "type": "SpatialPartition_Tree *",
+          "offset_bits": 832,
+          "size_bits": 64
+        },
+        {
+          "name": "transientWorldGridBounds",
+          "type": "Bounds *",
+          "offset_bits": 896,
+          "size_bits": 64
+        },
+        {
+          "name": "transientWorldGridHighLodLookup",
+          "type": "unsigned __int16 *",
+          "offset_bits": 960,
+          "size_bits": 64
+        },
+        {
+          "name": "transientWorldGridBoundsCount",
+          "type": "unsigned int",
+          "offset_bits": 1024,
+          "size_bits": 32
+        },
+        {
+          "name": "transientWorldGridHighLodCount",
+          "type": "unsigned int",
+          "offset_bits": 1056,
+          "size_bits": 32
+        },
+        {
+          "name": "transientWorldGridHighLodLookupCount",
+          "type": "unsigned int",
+          "offset_bits": 1088,
+          "size_bits": 32
+        },
+        {
+          "name": "transientInfoFlags",
+          "type": "TransientInfoFlags",
+          "offset_bits": 1120,
+          "size_bits": 8
+        },
+        {
+          "name": "transientSkipLoading",
+          "type": "bitarray_dynamic",
+          "offset_bits": 1152,
+          "size_bits": 128
+        },
+        {
+          "name": "forcedStubAssetCount",
+          "type": "unsigned int",
+          "offset_bits": 1280,
+          "size_bits": 32
+        },
+        {
+          "name": "transientFileCount",
+          "type": "unsigned int",
+          "offset_bits": 1312,
+          "size_bits": 32
+        },
+        {
+          "name": "transientAssetCount",
+          "type": "unsigned int",
+          "offset_bits": 1344,
+          "size_bits": 32
+        },
+        {
+          "name": "transientWorldGridTileMapCount",
+          "type": "unsigned int",
+          "offset_bits": 1376,
+          "size_bits": 32
+        },
+        {
+          "name": "transientCollisionTileCount",
+          "type": "unsigned int",
+          "offset_bits": 1408,
+          "size_bits": 32
+        },
+        {
+          "name": "transientMPCommonCount",
+          "type": "unsigned int",
+          "offset_bits": 1440,
+          "size_bits": 32
+        }
+      ]
+    },
+    "Replay::PlayerAnimEntry": {
+      "name": "Replay::PlayerAnimEntry",
+      "kind": "struct",
+      "size": 88,
+      "members": [
+        {
+          "name": "entryName",
+          "type": "scr_string_t",
+          "offset_bits": 0,
+          "size_bits": 32
+        },
+        {
+          "name": "animName",
+          "type": "scr_string_t",
+          "offset_bits": 32,
+          "size_bits": 32
+        },
+        {
+          "name": "shadowAnimName",
+          "type": "scr_string_t",
+          "offset_bits": 64,
+          "size_bits": 32
+        },
+        {
+          "name": "flags",
+          "type": "unsigned __int64",
+          "offset_bits": 128,
+          "size_bits": 64
+        },
+        {
+          "name": "animIndex",
+          "type": "unsigned __int64",
+          "offset_bits": 192,
+          "size_bits": 64
+        },
+        {
+          "name": "shadowAnimIndex",
+          "type": "unsigned __int64",
+          "offset_bits": 256,
+          "size_bits": 64
+        },
+        {
+          "name": "movetype",
+          "type": "unsigned int[4]",
+          "offset_bits": 320,
+          "size_bits": 128
+        },
+        {
+          "name": "moveSpeed",
+          "type": "float",
+          "offset_bits": 448,
+          "size_bits": 32
+        },
+        {
+          "name": "moveSpeedAdjust",
+          "type": "float",
+          "offset_bits": 480,
+          "size_bits": 32
+        },
+        {
+          "name": "initialLerp",
+          "type": "__int16",
+          "offset_bits": 512,
+          "size_bits": 16
+        },
+        {
+          "name": "additiveAdjustBlendout",
+          "type": "__int16",
+          "offset_bits": 528,
+          "size_bits": 16
+        },
+        {
+          "name": "duration",
+          "type": "unsigned __int16",
+          "offset_bits": 544,
+          "size_bits": 16
+        },
+        {
+          "name": "fastDuration",
+          "type": "unsigned __int16",
+          "offset_bits": 560,
+          "size_bits": 16
+        },
+        {
+          "name": "additiveAdjustAnim",
+          "type": "unsigned __int16",
+          "offset_bits": 576,
+          "size_bits": 16
+        },
+        {
+          "name": "slowAnimIndex",
+          "type": "unsigned __int16",
+          "offset_bits": 592,
+          "size_bits": 16
+        },
+        {
+          "name": "bodyPart",
+          "type": "unsigned __int8",
+          "offset_bits": 608,
+          "size_bits": 8
+        },
+        {
+          "name": "serverNoteType",
+          "type": "unsigned __int8",
+          "offset_bits": 616,
+          "size_bits": 8
+        },
+        {
+          "name": "clientNoteType",
+          "type": "unsigned __int8",
+          "offset_bits": 624,
+          "size_bits": 8
+        },
+        {
+          "name": "aimSet",
+          "type": "unsigned __int8",
+          "offset_bits": 632,
+          "size_bits": 8
+        },
+        {
+          "name": "mantleSet",
+          "type": "unsigned __int8",
+          "offset_bits": 640,
+          "size_bits": 8
+        },
+        {
+          "name": "leanSet",
+          "type": "unsigned __int8",
+          "offset_bits": 648,
+          "size_bits": 8
+        },
+        {
+          "name": "turns",
+          "type": "unsigned __int8",
+          "offset_bits": 656,
+          "size_bits": 8
+        },
+        {
+          "name": "twitches",
+          "type": "unsigned __int8",
+          "offset_bits": 664,
+          "size_bits": 8
+        },
+        {
+          "name": "syncGroup",
+          "type": "unsigned __int8",
+          "offset_bits": 672,
+          "size_bits": 8
+        }
+      ]
+    },
+    "Replay::PlayerAnimsetAlias": {
+      "name": "Replay::PlayerAnimsetAlias",
+      "kind": "struct",
+      "size": 136,
+      "members": [
+        {
+          "name": "duration",
+          "type": "float",
+          "offset_bits": 0,
+          "size_bits": 32
+        },
+        {
+          "name": "rate",
+          "type": "float",
+          "offset_bits": 32,
+          "size_bits": 32
+        },
+        {
+          "name": "flags",
+          "type": "unsigned __int64",
+          "offset_bits": 64,
+          "size_bits": 64
+        },
+        {
+          "name": "moveTypes",
+          "type": "unsigned int[4]",
+          "offset_bits": 128,
+          "size_bits": 128
+        },
+        {
+          "name": "aimState",
+          "type": "scr_string_t",
+          "offset_bits": 256,
+          "size_bits": 32
+        },
+        {
+          "name": "aimAlias",
+          "type": "scr_string_t",
+          "offset_bits": 288,
+          "size_bits": 32
+        },
+        {
+          "name": "moveTurnState",
+          "type": "scr_string_t",
+          "offset_bits": 320,
+          "size_bits": 32
+        },
+        {
+          "name": "moveTurnAlias",
+          "type": "scr_string_t",
+          "offset_bits": 352,
+          "size_bits": 32
+        },
+        {
+          "name": "aimBlendTime",
+          "type": "float",
+          "offset_bits": 384,
+          "size_bits": 32
+        },
+        {
+          "name": "moveTurnBlendTime",
+          "type": "float",
+          "offset_bits": 416,
+          "size_bits": 32
+        },
+        {
+          "name": "lerpStrengthMin",
+          "type": "float",
+          "offset_bits": 448,
+          "size_bits": 32
+        },
+        {
+          "name": "lerpStrengthMax",
+          "type": "float",
+          "offset_bits": 480,
+          "size_bits": 32
+        },
+        {
+          "name": "customAnimHandlerType",
+          "type": "PlayerCustomAnimHandlerType",
+          "offset_bits": 512,
+          "size_bits": 8
+        },
+        {
+          "name": "aliasAddons",
+          "type": "PlayerAnimsetAddonEntry *",
+          "offset_bits": 576,
+          "size_bits": 64
+        },
+        {
+          "name": "numAliasAddons",
+          "type": "unsigned int",
+          "offset_bits": 640,
+          "size_bits": 32
+        },
+        {
+          "name": "patchInfo",
+          "type": "PlayerAnimsetAliasPatch",
+          "offset_bits": 704,
+          "size_bits": 256
+        },
+        {
+          "name": "fingerPoseSlot",
+          "type": "PlayerFingerPoseSlot",
+          "offset_bits": 960,
+          "size_bits": 8
+        },
+        {
+          "name": "padding",
+          "type": "unsigned __int8[12]",
+          "offset_bits": 968,
+          "size_bits": 96
+        }
+      ]
+    },
+    "unsigned int[11]": {
+      "name": "unsigned int[11]",
+      "size": 44,
+      "kind": "array",
+      "count": 11,
+      "element": "unsigned int"
+    },
+    "Replay::AttProjectile": {
+      "name": "Replay::AttProjectile",
+      "kind": "struct",
+      "size": 240,
+      "members": [
+        {
+          "name": "explosionRadius",
+          "type": "int",
+          "offset_bits": 0,
+          "size_bits": 32
+        },
+        {
+          "name": "explosionForceRadius",
+          "type": "int",
+          "offset_bits": 32,
+          "size_bits": 32
+        },
+        {
+          "name": "explosionInnerDamage",
+          "type": "int",
+          "offset_bits": 64,
+          "size_bits": 32
+        },
+        {
+          "name": "explosionOuterDamage",
+          "type": "int",
+          "offset_bits": 96,
+          "size_bits": 32
+        },
+        {
+          "name": "damageConeAngle",
+          "type": "float",
+          "offset_bits": 128,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileSpeed",
+          "type": "int",
+          "offset_bits": 160,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileSpeedUp",
+          "type": "int",
+          "offset_bits": 192,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileActivateDist",
+          "type": "int",
+          "offset_bits": 224,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileLifetime",
+          "type": "float",
+          "offset_bits": 256,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileLifetimeStdDeviation",
+          "type": "float",
+          "offset_bits": 288,
+          "size_bits": 32
+        },
+        {
+          "name": "projectileModel",
+          "type": "XModel *",
+          "offset_bits": 320,
+          "size_bits": 64
+        },
+        {
+          "name": "projExplosionType",
+          "type": "weapProjExposion_t",
+          "offset_bits": 384,
+          "size_bits": 32
+        },
+        {
+          "name": "projExplosionEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 448,
+          "size_bits": 64
+        },
+        {
+          "name": "projExplosionEffectForceNormalUp",
+          "type": "bool",
+          "offset_bits": 512,
+          "size_bits": 8
+        },
+        {
+          "name": "projExplosionSound",
+          "type": "SndAliasLookup",
+          "offset_bits": 576,
+          "size_bits": 64
+        },
+        {
+          "name": "projExplosionReflClass",
+          "type": "unsigned int",
+          "offset_bits": 640,
+          "size_bits": 32
+        },
+        {
+          "name": "projDudEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 704,
+          "size_bits": 64
+        },
+        {
+          "name": "projTimeoutEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 768,
+          "size_bits": 64
+        },
+        {
+          "name": "projDudSound",
+          "type": "SndAliasLookup",
+          "offset_bits": 832,
+          "size_bits": 64
+        },
+        {
+          "name": "projTimeoutSound",
+          "type": "SndAliasLookup",
+          "offset_bits": 896,
+          "size_bits": 64
+        },
+        {
+          "name": "disableFxOnTimeout",
+          "type": "bool",
+          "offset_bits": 960,
+          "size_bits": 8
+        },
+        {
+          "name": "projImpactExplode",
+          "type": "bool",
+          "offset_bits": 968,
+          "size_bits": 8
+        },
+        {
+          "name": "disableProjectileCrumpleCheck",
+          "type": "bool",
+          "offset_bits": 976,
+          "size_bits": 8
+        },
+        {
+          "name": "destabilizationRateTime",
+          "type": "float",
+          "offset_bits": 992,
+          "size_bits": 32
+        },
+        {
+          "name": "destabilizationCurvatureMax",
+          "type": "float",
+          "offset_bits": 1024,
+          "size_bits": 32
+        },
+        {
+          "name": "destabilizeDistance",
+          "type": "int",
+          "offset_bits": 1056,
+          "size_bits": 32
+        },
+        {
+          "name": "vmProjBodyEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 1088,
+          "size_bits": 64
+        },
+        {
+          "name": "projBodyEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 1152,
+          "size_bits": 64
+        },
+        {
+          "name": "projTrailEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 1216,
+          "size_bits": 64
+        },
+        {
+          "name": "projBeaconEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 1280,
+          "size_bits": 64
+        },
+        {
+          "name": "projIgnitionDelay",
+          "type": "int",
+          "offset_bits": 1344,
+          "size_bits": 32
+        },
+        {
+          "name": "projIgnitionEffect",
+          "type": "FxCombinedDef",
+          "offset_bits": 1408,
+          "size_bits": 64
+        },
+        {
+          "name": "projIgnitionSound",
+          "type": "SndAliasLookup",
+          "offset_bits": 1472,
+          "size_bits": 64
+        },
+        {
+          "name": "stickiness",
+          "type": "WeapStickinessType",
+          "offset_bits": 1536,
+          "size_bits": 32
+        },
+        {
+          "name": "fuseTime",
+          "type": "int",
+          "offset_bits": 1568,
+          "size_bits": 32
+        },
+        {
+          "name": "aiFuseTime",
+          "type": "int",
+          "offset_bits": 1600,
+          "size_bits": 32
+        },
+        {
+          "name": "stickToPlayers",
+          "type": "bool",
+          "offset_bits": 1632,
+          "size_bits": 8
+        },
+        {
+          "name": "stickToVehicles",
+          "type": "bool",
+          "offset_bits": 1640,
+          "size_bits": 8
+        },
+        {
+          "name": "stickToTurrets",
+          "type": "bool",
+          "offset_bits": 1648,
+          "size_bits": 8
+        },
+        {
+          "name": "stickToNonStick",
+          "type": "bool",
+          "offset_bits": 1656,
+          "size_bits": 8
+        },
+        {
+          "name": "timedDetonation",
+          "type": "bool",
+          "offset_bits": 1664,
+          "size_bits": 8
+        },
+        {
+          "name": "isPredictedProjectile",
+          "type": "bool",
+          "offset_bits": 1672,
+          "size_bits": 8
+        },
+        {
+          "name": "useSteppedExplosionDamage",
+          "type": "bool",
+          "offset_bits": 1680,
+          "size_bits": 8
+        },
+        {
+          "name": "clientTrajectoryBlendOutTime",
+          "type": "int",
+          "offset_bits": 1696,
+          "size_bits": 32
+        },
+        {
+          "name": "serverTrajectoryBlendInTime",
+          "type": "int",
+          "offset_bits": 1728,
+          "size_bits": 32
+        },
+        {
+          "name": "reactiveMotionRadiusScale",
+          "type": "float",
+          "offset_bits": 1760,
+          "size_bits": 32
+        },
+        {
+          "name": "reactiveMotionFrequencyScale",
+          "type": "float",
+          "offset_bits": 1792,
+          "size_bits": 32
+        },
+        {
+          "name": "reactiveMotionAmplitudeScale",
+          "type": "float",
+          "offset_bits": 1824,
+          "size_bits": 32
+        },
+        {
+          "name": "reactiveMotionFalloff",
+          "type": "float",
+          "offset_bits": 1856,
+          "size_bits": 32
+        },
+        {
+          "name": "reactiveMotionLifetime",
+          "type": "float",
+          "offset_bits": 1888,
+          "size_bits": 32
+        }
+      ]
+    },
+    "Replay::SndMusicAsset": {
+      "name": "Replay::SndMusicAsset",
+      "kind": "struct",
+      "size": 120,
+      "members": [
+        {
+          "name": "alias",
+          "type": "char[64]",
+          "offset_bits": 0,
+          "size_bits": 512
+        },
+        {
+          "name": "aliasId",
+          "type": "unsigned int",
+          "offset_bits": 512,
+          "size_bits": 32
+        },
+        {
+          "name": "inactive",
+          "type": "bool",
+          "offset_bits": 544,
+          "size_bits": 8
+        },
+        {
+          "name": "completeLoop",
+          "type": "bool",
+          "offset_bits": 552,
+          "size_bits": 8
+        },
+        {
+          "name": "removeAfterPlay",
+          "type": "bool",
+          "offset_bits": 560,
+          "size_bits": 8
+        },
+        {
+          "name": "firstRandom",
+          "type": "bool",
+          "offset_bits": 568,
+          "size_bits": 8
+        },
+        {
+          "name": "startSync",
+          "type": "bool",
+          "offset_bits": 576,
+          "size_bits": 8
+        },
+        {
+          "name": "stopSync",
+          "type": "bool",
+          "offset_bits": 584,
+          "size_bits": 8
+        },
+        {
+          "name": "completeOnStop",
+          "type": "bool",
+          "offset_bits": 592,
+          "size_bits": 8
+        },
+        {
+          "name": "loopStartOffset",
+          "type": "unsigned int",
+          "offset_bits": 608,
+          "size_bits": 32
+        },
+        {
+          "name": "bpm",
+          "type": "int",
+          "offset_bits": 640,
+          "size_bits": 32
+        },
+        {
+          "name": "assetType",
+          "type": "int",
+          "offset_bits": 672,
+          "size_bits": 32
+        },
+        {
+          "name": "loopNumber",
+          "type": "int",
+          "offset_bits": 704,
+          "size_bits": 32
+        },
+        {
+          "name": "sampleCount",
+          "type": "unsigned int",
+          "offset_bits": 736,
+          "size_bits": 32
+        },
+        {
+          "name": "startDelayBeats",
+          "type": "int",
+          "offset_bits": 768,
+          "size_bits": 32
+        },
+        {
+          "name": "startFadeBeats",
+          "type": "int",
+          "offset_bits": 800,
+          "size_bits": 32
+        },
+        {
+          "name": "stopDelayBeats",
+          "type": "int",
+          "offset_bits": 832,
+          "size_bits": 32
+        },
+        {
+          "name": "stopFadeBeats",
+          "type": "int",
+          "offset_bits": 864,
+          "size_bits": 32
+        },
+        {
+          "name": "startOffsetFrames",
+          "type": "int",
+          "offset_bits": 896,
+          "size_bits": 32
+        },
+        {
+          "name": "meter",
+          "type": "int",
+          "offset_bits": 928,
+          "size_bits": 32
+        }
+      ]
+    },
+    "Replay::SndMusicAsset *": {
+      "name": "Replay::SndMusicAsset *",
+      "size": 8,
+      "kind": "pointer",
+      "target": "Replay::SndMusicAsset"
+    },
+    "Replay::SndMusicState": {
+      "name": "Replay::SndMusicState",
+      "kind": "struct",
+      "size": 336,
+      "members": [
+        {
+          "name": "name",
+          "type": "char[64]",
+          "offset_bits": 0,
+          "size_bits": 512
+        },
+        {
+          "name": "id",
+          "type": "unsigned int",
+          "offset_bits": 512,
+          "size_bits": 32
+        },
+        {
+          "name": "intro",
+          "type": "Replay::SndMusicAsset",
+          "offset_bits": 544,
+          "size_bits": 960
+        },
+        {
+          "name": "exit",
+          "type": "Replay::SndMusicAsset",
+          "offset_bits": 1504,
+          "size_bits": 960
+        },
+        {
+          "name": "loopCount",
+          "type": "unsigned int",
+          "offset_bits": 2464,
+          "size_bits": 32
+        },
+        {
+          "name": "loops",
+          "type": "Replay::SndMusicAsset *",
+          "offset_bits": 2496,
+          "size_bits": 64
+        },
+        {
+          "name": "order",
+          "type": "int",
+          "offset_bits": 2560,
+          "size_bits": 32
+        },
+        {
+          "name": "interruptPriority",
+          "type": "int",
+          "offset_bits": 2592,
+          "size_bits": 32
+        },
+        {
+          "name": "persistPriority",
+          "type": "int",
+          "offset_bits": 2624,
+          "size_bits": 32
+        },
+        {
+          "name": "isRandom",
+          "type": "bool",
+          "offset_bits": 2656,
+          "size_bits": 8
+        },
+        {
+          "name": "isSequential",
+          "type": "bool",
+          "offset_bits": 2664,
+          "size_bits": 8
+        },
+        {
+          "name": "skipPreviousExit",
+          "type": "bool",
+          "offset_bits": 2672,
+          "size_bits": 8
+        },
+        {
+          "name": "wallClockSync",
+          "type": "bool",
+          "offset_bits": 2680,
+          "size_bits": 8
+        }
+      ]
+    },
+    "unsigned __int8[5]": {
+      "name": "unsigned __int8[5]",
+      "size": 5,
+      "kind": "array",
+      "count": 5,
+      "element": "unsigned __int8"
+    },
+    "unsigned __int8[25]": {
+      "name": "unsigned __int8[25]",
+      "size": 25,
+      "kind": "array",
+      "count": 25,
+      "element": "unsigned __int8"
     },
     "Replay::GfxWorldTransientZone": {
       "name": "Replay::GfxWorldTransientZone",
@@ -105158,6 +107883,83 @@
         "source_line": 29865,
         "native_owner_loader_rva": 14248880,
         "native_item_loader_rva": 14223584
+      }
+    },
+    "Replay::GfxBufferResource": {
+      "resource": {
+        "runtime": "ID3D12Resource",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::GfxIndexBuffer": {
+      "resource": {
+        "runtime": "ID3D12Resource",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::GfxShaderBufferView": {
+      "resource": {
+        "runtime": "ID3D12Resource",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::GfxShaderBufferRWView": {
+      "resource": {
+        "runtime": "ID3D12Resource",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::GfxVertexBuffer": {
+      "resource": {
+        "runtime": "ID3D12Resource",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::GfxWrappedBuffer": {
+      "data": {
+        "runtime": "mapped GPU buffer",
+        "evidence": "x64-zt iw8_layouts.txt: GPU buffer records are copied as bytes by Load_GfxWrapped*Buffer / Load_GfxIndexBuffer (no pointer fixups); the renderer fills them at runtime"
+      }
+    },
+    "Replay::MaterialPipelineState": {
+      "pso": {
+        "runtime": "ID3D12PipelineState",
+        "evidence": "Created by the renderer after load; Load_MaterialTechnique RVA 0xE0CED0 (x64-zt iw8_layouts.txt, iw8_format.json op graph)"
+      }
+    },
+    "Replay::MaterialTechnique": {
+      "pipelineStates": {
+        "count": {
+          "op": "mul",
+          "args": [
+            {
+              "owner": "MaterialTechnique",
+              "path": [
+                "pipelineStateCount"
+              ]
+            },
+            {
+              "owner": "MaterialTechnique",
+              "path": [
+                "pipelineStateInputLayoutCount"
+              ]
+            }
+          ]
+        },
+        "evidence": "Load_MaterialTechnique RVA 0xE0CED0 (x64-zt iw8_layouts.txt, iw8_format.json op graph): +0x83 * +0x0E records of 16 bytes at +0x28"
+      },
+      "rootParameterMap": {
+        "count": 16,
+        "evidence": "Load_MaterialTechnique RVA 0xE0CED0 (x64-zt iw8_layouts.txt, iw8_format.json op graph): 16-byte map at +0x50"
+      },
+      "stateBits": {
+        "count": {
+          "owner": "MaterialTechnique",
+          "path": [
+            "pipelineStateCount"
+          ]
+        },
+        "evidence": "Load_MaterialTechnique RVA 0xE0CED0 (x64-zt iw8_layouts.txt, iw8_format.json op graph): +0x83 records of 5 bytes at +0x88"
       }
     },
     "Replay::DDLMember": {

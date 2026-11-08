@@ -175,15 +175,69 @@ def apply(types, profile):
     draw['members'] = [m for m in draw['members'] if not 0x3148 * 8 <= m['offset_bits'] < 0x3170 * 8]
     for m in draw['members']:
         if m['offset_bits'] >= 0x3170 * 8: m['offset_bits'] -= 40 * 8
+    # Load_WeaponAttachment (RVA 0xE0E480) loads +0x238 with Load_BallisticInfo (0xE1DA30), +0x240 with the
+    # sway/rumble-graph loader (0xE1F6F0) and +0x248 with Load_WeaponOffsetPatternScaleInfo (0xE20BC0)
+    # (disassembly at 0x140E0F792-0x140E0F82A; x64-zt tools/iw8_layouts.txt `patch Replay::WeaponAttachment`).
+    # Replay therefore dropped the game-test hyperBurstInfo pointer at +576, not weaponOffsetPatternScaleInfo.
     attachment = clone('WeaponAttachment', 968)
-    attachment['members'] = [m for m in attachment['members'] if m['name'] != 'weaponOffsetPatternScaleInfo']
+    attachment['members'] = [m for m in attachment['members'] if m['name'] != 'hyperBurstInfo']
     for m in attachment['members']:
-        if m['offset_bits'] >= 600 * 8: m['offset_bits'] -= 64
+        if m['offset_bits'] >= 584 * 8: m['offset_bits'] -= 64
     terrain_surface = clone('StDiskTerrainSurface', 400)
     index_buffer = opaque('Replay::GfxIndexBuffer', 32, 'Native index buffer runtime record, Load_Stream at RVA 0xDD1770')
     for m in terrain_surface['members']:
         if m['name'] == 'highLODIndexBuffer': m.update(type=index_buffer, size_bits=32 * 8)
         elif m['offset_bits'] >= 24 * 8: m['offset_bits'] += 24 * 8
+
+    # Loader-verified Replay records ported from x64-zt tools/iw8_layouts.txt. Each module cites the
+    # Replay loader for every record. They run before propagation so containers are re-laid out.
+    # Records ACTS keeps as opaque, non-serialized runtime storage stay opaque when x64-zt agrees
+    # on their size (no new pointer fixups for runtime-only bytes).
+    import replay_layouts_x64zt_gpu, replay_layouts_x64zt_material, replay_layouts_x64zt_geometry, replay_layouts_x64zt_misc
+    keep_opaque = {n: deepcopy(types[n]) for n in ('Replay::VoxelRuntimeState', 'Replay::SurfaceBoundsExtra',
+                                                   'Replay::XModelRuntimeWord', 'Replay::PlayerConditionMask') if n in types}
+    problems = []
+    for module in (replay_layouts_x64zt_gpu, replay_layouts_x64zt_material, replay_layouts_x64zt_geometry,
+                   replay_layouts_x64zt_misc):
+        problems += [f'{module.__name__}: {p}' for p in (module.apply(types, profile) or [])]
+        # An x64-zt record named Replay::X replaces X wherever the schema uses it (iw8_layouts.txt header),
+        # so the propagation below must see it as the override even without an explicit alias line.
+        for record in module.RECORDS:
+            name = record['name'] if isinstance(record, dict) else record[0]
+            base = name.split('::', 1)[1] if name.startswith('Replay::') else None
+            if base and base in types and name in types:
+                overrides[base] = name
+    # Ported records may spell arrays/pointers of known types the game-test graph never used
+    # (e.g. 'unsigned __int8[25]'); add them in the schema's own format.
+    import re as _re
+
+    def ensure(type_name):
+        if type_name in types:
+            return
+        array = _re.fullmatch(r'(.+?)\[(\d+)\]', type_name)
+        if array:
+            ensure(array[1].strip())
+            count = int(array[2])
+            types[type_name] = dict(name=type_name, size=types[array[1].strip()]['size'] * count, kind='array',
+                                    count=count, element=array[1].strip())
+            return
+        if type_name.endswith('*'):
+            target = type_name[:-1].strip()
+            ensure(target)
+            types[type_name] = dict(name=type_name, size=8, kind='pointer', target=target)
+            return
+        raise RuntimeError(f'x64-zt port references unknown type {type_name!r}')
+
+    for t in list(types.values()):
+        if t['name'].startswith('Replay::') and t.get('kind') in ('struct', 'union'):
+            for m in t['members']:
+                ensure(m['type'])
+    for name, value in keep_opaque.items():
+        if types[name]['size'] != value['size']:
+            raise RuntimeError(f'{name}: x64-zt size {types[name]["size"]} differs from the opaque runtime record {value["size"]}')
+        types[name] = value
+    if problems:
+        raise RuntimeError('x64-zt layout port problems:\n  ' + '\n  '.join(map(str, problems)))
 
     # Each substitution retains the original gaps and moves later members by
     # the size difference of preceding embedded records. Pointer widths stay
