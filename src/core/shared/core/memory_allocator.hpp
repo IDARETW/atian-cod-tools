@@ -59,6 +59,21 @@ namespace core::memory_allocator {
             return ptr;
         }
 
+        // Track memory that needs its own release function (e.g. a VirtualAlloc reservation).
+        void* AddCustom(void* ptr, void (*deleteFunc)(void* ptr), size_t size = 0) {
+            totalLen += size;
+            ptrs.emplace_back(deleteFunc, ptr);
+            return ptr;
+        }
+
+        // Take every allocation of another allocator (it is left empty).
+        void Adopt(MemoryAllocator& other) {
+            totalLen += other.totalLen;
+            ptrs.insert(ptrs.end(), other.ptrs.begin(), other.ptrs.end());
+            other.ptrs.clear();
+            other.totalLen = 0;
+        }
+
         template<typename T = void>
         T* Alloc(const std::string& str) {
             T* ptr = Alloc<T>(str.length() + 1);

@@ -10,11 +10,21 @@
 #include <deps/oodle.hpp>
 #include <core/hashes/hash_names.hpp>
 #include <zlib.h>
+#include <atomic>
+#include <chrono>
+#include <list>
+#include <optional>
+#include <thread>
 
 namespace fastfile::handlers::mw19_replay {
     namespace {
         using namespace tool::mw19;
         using namespace tool::mw19::schema;
+        using Clock = std::chrono::steady_clock;
+        double MsSince(Clock::time_point start) {
+            return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+        }
+        constexpr size_t kPoolCount = 117;
         struct Asset {
             uint32_t type, padding;
             void* header;
@@ -30,6 +40,31 @@ namespace fastfile::handlers::mw19_replay {
             uint32_t type;
             void* header;
         };
+        using Range = std::pair<uintptr_t, size_t>;
+        // Schema facts of one asset pool, read once: loading and export visit every asset of a zone.
+        struct PoolInfo {
+            std::string name;
+            size_t size{}, nameOffset{};
+            bool known{}, hasNameOffset{}, payloadExporter{}, selected{ true };
+        };
+        // Everything an export reads from one loaded fastfile. The memory behind it belongs to the load context
+        // (one-shot runs) or to its serve cache entry.
+        struct ZoneData {
+            std::array<Range, 8> blocks{};
+            std::vector<Range> owned;
+            std::vector<Record> records;
+            std::map<void*, Json> serializedLayouts;
+            AssetList list{};
+            uint32_t fileVersion{};
+            Json loadReport = Json::object();
+        };
+        // A zone kept loaded by --serve.
+        struct CachedZone {
+            std::string key, name, file;
+            ZoneData data;
+            core::memory_allocator::MemoryAllocator memory;
+            size_t bytes{};
+        };
         struct State {
             hook::module_mapper::Module module{ true };
             std::unique_ptr<Database> database;
@@ -37,12 +72,13 @@ namespace fastfile::handlers::mw19_replay {
             FastFileOption* opt{};
             FastFileContext* ctx{};
             uint8_t** cursor{};
-            std::vector<std::pair<uintptr_t, size_t>> owned;
-            std::vector<Record> records;
+            ZoneData scratch; // one-shot runs and loads in progress
+            ZoneData* zone{ &scratch };
             size_t ownedBytes{};
             size_t retainedPixelBytes{};
-            std::array<size_t, 117> sampled{};
-            std::set<std::string> selected;
+            std::array<size_t, kPoolCount> sampled{};
+            std::array<PoolInfo, kPoolCount> pools;
+            std::array<const replay::Binding*, kPoolCount> bindingByType{};
             core::hashes::names::NamesStore names{ [](const char* name) { return hash::HashIWAsset(name); } };
             std::vector<xpak::Archive> packages;
             deps::oodle::Oodle oodle;
@@ -50,19 +86,30 @@ namespace fastfile::handlers::mw19_replay {
             std::filesystem::path out;
             Json report;
             std::ofstream journal;
+            Clock::time_point journalFlushed{};
             std::ofstream streamTrace;
+            bool traceOn{};
             size_t streamTraceEvents{};
             size_t current{};
             uint32_t currentType{};
             bool currentAssetActive{};
             uint32_t lastAssetType{};
             void* lastAssetRoot{};
+            // Load position for manifest.json. Kept out of the JSON document while assets load: these change
+            // for every asset and the manifest is only written now and then.
+            struct LoadMark {
+                bool set;
+                uint32_t type;
+                size_t bytes, offset;
+            } lastLoad{}, loading{}, previous{};
+            size_t exportIndex{};
+            Clock::time_point lastProgress{};
+            double initMs{}, initSchemaMs{}, initModuleMs{}, initPackagesMs{}, loadMs{}, exportMs{};
             uint64_t legacyFrustumMeshes{};
             std::array<uint8_t, 16> frustumLoaderPrologue{};
             uintptr_t legacyViewStart{};
             size_t legacyViewBytes{};
             Json pendingLegacyWorld;
-            std::map<void*, Json> serializedLayouts;
             // ACTS_REPLAY_PRELOAD=1: load through Preload_XAssetHeader, the path Replay
             // uses for map zones, and record the postload stream plan it builds.
             bool preload{};
@@ -71,26 +118,103 @@ namespace fastfile::handlers::mw19_replay {
             std::ofstream plan;
             size_t planEntries{}, planBlockZero{};
             bool planError{};
-            bool Read(uint64_t address, void* destination, size_t size) {
-                bool valid = streams && streams->Contains(address, size);
+            // --serve: zones stay loaded between requests, most recently used first.
+            bool serving{};
+            size_t cacheBudget{};
+            std::list<CachedZone> cache;
+            std::string requestKey, requestTypes, requestNames;
+            bool writeScriptStrings{ true };
+            bool lastComplete{};
+            std::string lastError;
+
+            // Reads below touch this process's own committed allocations (the stream reservations and the retained
+            // roots), so a bounds check and memcpy replace the ReadProcessMemory call used for foreign memory.
+            bool Read(uint64_t address, void* destination, size_t size) const {
+                bool valid = false;
+                for (const auto& [start, length] : zone->blocks) {
+                    if (address >= start && address - start <= length && size <= length - (address - start)) {
+                        valid = true;
+                        break;
+                    }
+                }
                 if (!valid) {
                     // Sorted once loading finishes; export performs many
                     // field reads against these retained root allocations.
-                    auto it =
-                        std::upper_bound(owned.begin(), owned.end(), address, [](uint64_t value, const auto& range) {
-                            return value < range.first;
-                        });
-                    if (it != owned.begin()) {
+                    auto it = std::upper_bound(
+                        zone->owned.begin(), zone->owned.end(), address,
+                        [](uint64_t value, const Range& range) { return value < range.first; }
+                    );
+                    if (it != zone->owned.begin()) {
                         auto [start, length] = *--it;
                         valid = address - start <= length && size <= length - (address - start);
                     }
                 }
-                return valid && hook::memory::ReadMemorySafe(reinterpret_cast<void*>(address), destination, size);
+                if (!valid)
+                    return false;
+                std::memcpy(destination, reinterpret_cast<const void*>(address), size);
+                return true;
             }
-            void Progress() {
-                report["loaded_assets"] = records.size();
-                report["serialized_bytes_read"] = streams ? streams->Consumed() : 0;
-                report["top_level_index"] = current;
+            // Bytes readable from address inside one loader allocation (0 when it is outside all of them).
+            size_t ReadableFrom(uint64_t address) const {
+                for (const auto& [start, length] : zone->blocks)
+                    if (address >= start && address - start < length)
+                        return length - (address - start);
+                auto it = std::upper_bound(
+                    zone->owned.begin(), zone->owned.end(), address,
+                    [](uint64_t value, const Range& range) { return value < range.first; }
+                );
+                if (it != zone->owned.begin()) {
+                    auto [start, length] = *--it;
+                    if (address - start < length)
+                        return length - (address - start);
+                }
+                return 0;
+            }
+            // NUL-terminated string in loader memory, found with one scan. False when it is null, unterminated
+            // within the limit or leaves its allocation: ReadString then reports the exact failure byte by byte.
+            bool ReadCString(uint64_t address, std::string& value, size_t limit = 65536) const {
+                if (!address)
+                    return false;
+                const size_t available = std::min(ReadableFrom(address), limit);
+                if (!available)
+                    return false;
+                const auto begin = reinterpret_cast<const char*>(address);
+                const auto end = static_cast<const char*>(std::memchr(begin, 0, available));
+                if (!end)
+                    return false;
+                value.assign(begin, end);
+                return true;
+            }
+            void SyncProgressFields() {
+                if (streams) {
+                    report["loaded_assets"] = zone->records.size();
+                    report["serialized_bytes_read"] = streams->Consumed();
+                    report["top_level_index"] = current;
+                }
+                if (loading.set) {
+                    report["loading_type_id"] = loading.type;
+                    report["loading_serialized_offset"] = loading.offset;
+                }
+                if (lastLoad.set)
+                    report["last_asset_load"] =
+                        Json{ { "type", lastLoad.type }, { "bytes", lastLoad.bytes }, { "offset", lastLoad.offset } };
+                if (previous.set) {
+                    report["previous_type_id"] = previous.type;
+                    report["previous_serialized_offset"] = previous.offset;
+                }
+            }
+            // manifest.json is the progress record of a run. Writing it replaces a file, which costs far more
+            // than loading an asset, so the periodic calls (force = false) are limited to a few per second.
+            void Progress(bool force = true) {
+                if (out.empty())
+                    return; // serve "load": nothing is written
+                const auto now = Clock::now();
+                if (!force && now - lastProgress < std::chrono::milliseconds(400))
+                    return;
+                lastProgress = now;
+                SyncProgressFields();
+                if (exportIndex)
+                    report["export_record_index"] = exportIndex;
                 WriteJsonAtomic(out / "manifest.json", report);
             }
         } state;
@@ -108,6 +232,12 @@ namespace fastfile::handlers::mw19_replay {
                 return nullptr;
             return location->second - origin->second;
         }
+// Loader hooks run millions of times per zone: the event is only built when a trace is being written.
+#define REPLAY_TRACE(...)                                                                                              \
+    do {                                                                                                               \
+        if (state.traceOn)                                                                                             \
+            TraceEvent(__VA_ARGS__);                                                                                   \
+    } while (0)
         void TraceEvent(Json event) {
             if (!state.opt || !state.opt->replayStreamTrace || !state.streamTrace.is_open()) return;
             event["sequence"] = state.streamTraceEvents++;
@@ -134,16 +264,14 @@ namespace fastfile::handlers::mw19_replay {
         void LoadStream(int start, void* destination, size_t size) {
             auto callRva = reinterpret_cast<uintptr_t>(_ReturnAddress()) -
                            reinterpret_cast<uintptr_t>((*state.module)[size_t(0)]);
-            TraceEvent(Json{{"kind", "load_stream_call"}, {"loader_start_arg", start},
+            REPLAY_TRACE(Json{{"kind", "load_stream_call"}, {"loader_start_arg", start},
                              {"at_start", start == 0},
                              {"size", size}, {"caller_rva", callRva},
                              {"destination_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(destination))},
                              {"destination_root_delta", StreamDelta(reinterpret_cast<uintptr_t>(destination),
                                                                      reinterpret_cast<uintptr_t>(state.lastAssetRoot))}});
-            if (start == 0 && destination == state.lastAssetRoot) {
-                state.report["last_asset_load"] = Json{{"type", state.lastAssetType}, {"bytes", size},
-                                                       {"offset", state.streams->Consumed()}};
-            }
+            if (start == 0 && destination == state.lastAssetRoot)
+                state.lastLoad = { true, state.lastAssetType, size, state.streams->Consumed() };
             if (start == 0 && size == 17808 && state.opt->replayFileVersion == 0xfda &&
                 destination == *reinterpret_cast<void**>((*state.module)[0x5d40d00])) {
                 state.streams->Load(true, destination, 17744);
@@ -239,38 +367,38 @@ namespace fastfile::handlers::mw19_replay {
             }
         }
         void PushStream(uint32_t block) {
-            TraceEvent(Json{{"kind", "push_stream_call"}, {"requested_block", block}});
+            REPLAY_TRACE(Json{{"kind", "push_stream_call"}, {"requested_block", block}});
             state.streams->Push(block);
         }
         void PopStream() {
-            TraceEvent(Json{{"kind", "pop_stream_call"}});
+            REPLAY_TRACE(Json{{"kind", "pop_stream_call"}});
             state.streams->Pop();
         }
         void AlignStream(size_t mask) {
-            TraceEvent(Json{{"kind", "align_stream_call"}, {"mask", mask}});
+            REPLAY_TRACE(Json{{"kind", "align_stream_call"}, {"mask", mask}});
             state.streams->Align(mask);
         }
         void BeginAsset(int type, void* root) {
             state.lastAssetType = type; state.lastAssetRoot = root;
-            TraceEvent(Json{{"kind", "begin_asset_call"}, {"asset_type", type},
+            REPLAY_TRACE(Json{{"kind", "begin_asset_call"}, {"asset_type", type},
                              {"root_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(root))}});
             state.streams->BeginAsset();
         }
-        void EndAsset() { TraceEvent(Json{{"kind", "end_asset_call"}}); state.streams->EndAsset(); }
-        void SharedPush() { TraceEvent(Json{{"kind", "shared_push"}}); state.streams->SharedPush(); }
-        void SharedPop() { TraceEvent(Json{{"kind", "shared_pop"}}); state.streams->SharedPop(); }
+        void EndAsset() { REPLAY_TRACE(Json{{"kind", "end_asset_call"}}); state.streams->EndAsset(); }
+        void SharedPush() { REPLAY_TRACE(Json{{"kind", "shared_push"}}); state.streams->SharedPush(); }
+        void SharedPop() { REPLAY_TRACE(Json{{"kind", "shared_pop"}}); state.streams->SharedPop(); }
         void String(char** value) {
-            TraceEvent(Json{{"kind", "string_call"},
+            REPLAY_TRACE(Json{{"kind", "string_call"},
                              {"field_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(value))},
                              {"raw_pointer", reinterpret_cast<uintptr_t>(*value)}});
             state.streams->String(value);
         }
         void Resolve(uint64_t* value) {
             auto raw = *value;
-            auto field = StreamLocation(reinterpret_cast<uintptr_t>(value));
+            Json field = state.traceOn ? StreamLocation(reinterpret_cast<uintptr_t>(value)) : Json(nullptr);
             try {
                 *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, false));
-                TraceEvent(Json{{"kind", "packed_resolve"}, {"raw_token", raw},
+                REPLAY_TRACE(Json{{"kind", "packed_resolve"}, {"raw_token", raw},
                                  {"field_stream_location", field},
                                  {"resolved_target_stream_location", StreamLocation(*value)}});
             }
@@ -278,10 +406,10 @@ namespace fastfile::handlers::mw19_replay {
         }
         void Alias(uint64_t* value) {
             auto raw = *value;
-            auto field = StreamLocation(reinterpret_cast<uintptr_t>(value));
+            Json field = state.traceOn ? StreamLocation(reinterpret_cast<uintptr_t>(value)) : Json(nullptr);
             try {
                 *value = reinterpret_cast<uintptr_t>(state.streams->Resolve(*value, true));
-                TraceEvent(Json{{"kind", "packed_alias"}, {"raw_token", raw},
+                REPLAY_TRACE(Json{{"kind", "packed_alias"}, {"raw_token", raw},
                                  {"field_stream_location", field},
                                  {"resolved_target_stream_location", StreamLocation(*value)}});
             }
@@ -289,12 +417,12 @@ namespace fastfile::handlers::mw19_replay {
         }
         void** Insert() {
             auto result = state.streams->Insert();
-            TraceEvent(Json{{"kind", "insert_pointer_slot"},
+            REPLAY_TRACE(Json{{"kind", "insert_pointer_slot"},
                              {"inserted_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(result))}});
             return result;
         }
         const void* Temporary(size_t length, size_t alignment) {
-            TraceEvent(Json{{"kind", "temporary_payload_call"}, {"size", length}, {"alignment", alignment}});
+            REPLAY_TRACE(Json{{"kind", "temporary_payload_call"}, {"size", length}, {"alignment", alignment}});
             return state.streams->Temporary(length, alignment);
         }
         uintptr_t RuntimeOnly() { return 0; }
@@ -355,7 +483,7 @@ namespace fastfile::handlers::mw19_replay {
                 throw std::runtime_error("Resident image pixels exceed retained payload bounds");
             auto copy = state.ctx->zoneMemory.AllocAligned<uint8_t>(size, 16);
             std::memcpy(copy, *pixels, size);
-            state.owned.emplace_back(reinterpret_cast<uintptr_t>(copy), size);
+            state.zone->owned.emplace_back(reinterpret_cast<uintptr_t>(copy), size);
             state.retainedPixelBytes += size;
             *pixels = copy;
         }
@@ -367,7 +495,7 @@ namespace fastfile::handlers::mw19_replay {
                 throw std::runtime_error("Retained loader payload budget exceeded");
             auto result = state.ctx->zoneMemory.AllocAligned<uint8_t>(std::max(size_t(1), bytes), alignment);
             std::memset(result, 0, bytes);
-            state.owned.emplace_back(reinterpret_cast<uintptr_t>(result), bytes);
+            state.zone->owned.emplace_back(reinterpret_cast<uintptr_t>(result), bytes);
             state.retainedPixelBytes += bytes;
             return result;
         }
@@ -429,25 +557,24 @@ namespace fastfile::handlers::mw19_replay {
         template<size_t index>
         void Link(void** header) {
             constexpr auto binding = replay::bindings[index];
-            const auto& pool = state.database->Profile("replay-1.20").at("pools").at(binding.type);
-            size_t size = pool.at("size");
+            const size_t size = state.pools[binding.type].size;
             if (!header || !*header || !state.streams->Contains(reinterpret_cast<uintptr_t>(*header), size))
                 throw std::runtime_error("Replay asset header outside loader memory");
-            TraceEvent(Json{{"kind", "asset_root_link"}, {"asset_type", binding.type},
+            REPLAY_TRACE(Json{{"kind", "asset_root_link"}, {"asset_type", binding.type},
                              {"root_bytes", size},
                              {"root_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(*header))},
                              {"root_archive_input_cursor", state.streams->Consumed()}});
-            if (size > 128 * 1024 * 1024 - state.ownedBytes || state.records.size() >= 1000000)
+            if (size > 128 * 1024 * 1024 - state.ownedBytes || state.zone->records.size() >= 1000000)
                 throw std::runtime_error("Replay asset header budget exceeded");
             void* copy = state.ctx->zoneMemory.AllocAligned<byte>(size, 16);
             std::memcpy(copy, *header, size);
-            state.owned.emplace_back(reinterpret_cast<uintptr_t>(copy), size);
+            state.zone->owned.emplace_back(reinterpret_cast<uintptr_t>(copy), size);
             state.ownedBytes += size;
             *header = copy;
-            state.records.push_back({ binding.type, copy });
+            state.zone->records.push_back({ binding.type, copy });
             if constexpr (binding.type == 31) {
                 if (state.opt->replayFileVersion == 0xfda)
-                    state.serializedLayouts.emplace(copy, std::move(state.pendingLegacyWorld));
+                    state.zone->serializedLayouts.emplace(copy, std::move(state.pendingLegacyWorld));
             }
         }
         template<size_t... I>
@@ -517,12 +644,12 @@ namespace fastfile::handlers::mw19_replay {
                     for (size_t i = 0; i < count; ++i) LegacyString(names + i);
                 } else if (count) throw std::runtime_error("Legacy gate names have null storage");
                 state.streams->Pop(); state.streams->EndAsset();
-                if (state.ownedBytes > 128 * 1024 * 1024 - 168 || state.records.size() >= 1000000)
+                if (state.ownedBytes > 128 * 1024 * 1024 - 168 || state.zone->records.size() >= 1000000)
                     throw std::runtime_error("Legacy asset header budget exceeded");
                 auto copy = state.ctx->zoneMemory.AllocAligned<byte>(168, 16);
                 std::memset(copy, 0, 168); std::memcpy(copy, root, 152);
-                state.owned.emplace_back(reinterpret_cast<uintptr_t>(copy), 168);
-                state.ownedBytes += 168; state.records.push_back({24, copy}); *header = copy;
+                state.zone->owned.emplace_back(reinterpret_cast<uintptr_t>(copy), 168);
+                state.ownedBytes += 168; state.zone->records.push_back({24, copy}); *header = copy;
                 if (inserted) *inserted = copy;
                 if (value == UINT64_MAX) state.streams->SharedPop();
             }
@@ -532,10 +659,8 @@ namespace fastfile::handlers::mw19_replay {
             if (type == 24 && state.opt->replayFileVersion == 0xfda) {
                 LegacyComWorld(header); return;
             }
-            auto it = std::find_if(std::begin(replay::bindings), std::end(replay::bindings), [&](const auto& binding) {
-                return binding.type == type;
-            });
-            if (it == std::end(replay::bindings))
+            const replay::Binding* it = type < kPoolCount ? state.bindingByType[type] : nullptr;
+            if (!it)
                 throw std::runtime_error("Replay asset has no enabled loader: " + std::to_string(type));
             uintptr_t fault{};
             int code{};
@@ -562,30 +687,44 @@ namespace fastfile::handlers::mw19_replay {
         }
 
         void ExportRecord(const Record& record) {
-            const auto& profile = state.database->Profile("replay-1.20");
-            const auto& pool = profile.at("pools").at(record.type);
-            std::string type = pool.at("name");
-            if (!state.selected.empty() && !state.selected.contains(type))
+            const PoolInfo& info = state.pools.at(record.type);
+            if (!info.selected)
                 return;
             if (state.opt->replayTest && state.sampled[record.type] >= state.opt->replayLimit)
                 return;
             ++state.sampled[record.type];
+            // A name filter skips most records: read the name before anything is built for the journal.
+            std::string name;
+            uint64_t nameAddress{};
+            const bool named =
+                info.hasNameOffset &&
+                state.Read(reinterpret_cast<uintptr_t>(record.header) + info.nameOffset, &nameAddress, 8) &&
+                state.ReadCString(nameAddress, name);
+            if (named && !state.names.Contains(hash::HashIWAsset(name.c_str()), true)) {
+                --state.sampled[record.type];
+                return;
+            }
+            const auto& profile = state.database->Profile("replay-1.20");
+            const auto& pool = profile.at("pools").at(record.type);
+            const std::string& type = info.name;
             Json item{ { "type", type }, { "type_id", record.type }, { "status", "pending" } };
             MemoryReader read = [&](uint64_t a, void* b, size_t n) { return state.Read(a, b, n); };
             try {
-                uint64_t nameAddress{};
-                if (!read(
-                        reinterpret_cast<uintptr_t>(record.header) + pool.at("name_offset").get<size_t>(),
-                        &nameAddress,
-                        8
-                    ))
-                    throw std::runtime_error("Cannot read asset name pointer");
-                auto name = ReadString(read, nameAddress);
-                item["name"] = name;
-                if (!state.names.Contains(hash::HashIWAsset(name.c_str()), true)) {
-                    --state.sampled[record.type];
-                    return;
+                if (!named) {
+                    // The checked path: it reports why the name cannot be read.
+                    if (!read(
+                            reinterpret_cast<uintptr_t>(record.header) + pool.at("name_offset").get<size_t>(),
+                            &nameAddress,
+                            8
+                        ))
+                        throw std::runtime_error("Cannot read asset name pointer");
+                    name = ReadString(read, nameAddress);
+                    if (!state.names.Contains(hash::HashIWAsset(name.c_str()), true)) {
+                        --state.sampled[record.type];
+                        return;
+                    }
                 }
+                item["name"] = name;
                 if (!name.empty() && name[0] == ',') {
                     state.report["references"] = state.report.at("references").get<size_t>() + 1;
                     --state.sampled[record.type];
@@ -623,7 +762,7 @@ namespace fastfile::handlers::mw19_replay {
                         const char* value = std::getenv("ACTS_REPLAY_STRUCTURED");
                         return value && *value == '1';
                     }();
-                    if (HasPayloadExporter(type) && !structuredOnly) {
+                    if (info.payloadExporter && !structuredOnly) {
                         payload = ExportPayload(
                             read,
                             type,
@@ -640,11 +779,11 @@ namespace fastfile::handlers::mw19_replay {
                         limits.maxDepth = 64;
                         limits.compactArrays = true;
                         Inspector inspector(*state.database, read, limits, "replay-1.20");
-                        const std::string rootType = record.type == 24 && state.opt->replayFileVersion == 0xfda
+                        const std::string rootType = record.type == 24 && state.zone->fileVersion == 0xfda
                             ? "ReplayFDA::ComWorld" : pool.at("root_type").get<std::string>();
                         auto inspection = inspector.Inspect(rootType, reinterpret_cast<uintptr_t>(record.header));
-                        auto original = state.serializedLayouts.find(record.header);
-                        if (original != state.serializedLayouts.end()) inspection["serialized_layout"] = original->second;
+                        auto original = state.zone->serializedLayouts.find(record.header);
+                        if (original != state.zone->serializedLayouts.end()) inspection["serialized_layout"] = original->second;
                         item["field_issues"] = inspection.at("issues");
                         item["field_nodes"] = inspection.at("nodes");
                         item["field_bytes_read"] = inspection.at("bytes_read");
@@ -720,7 +859,11 @@ namespace fastfile::handlers::mw19_replay {
             }
             state.report["tested"] = state.report.at("tested").get<size_t>() + 1;
             state.journal << item.dump(-1, ' ', false, Json::error_handler_t::replace) << '\n';
-            state.journal.flush();
+            // The journal is flushed a few times per second (and when the export ends), not once per asset.
+            if (const auto now = Clock::now(); now - state.journalFlushed >= std::chrono::milliseconds(200)) {
+                state.journalFlushed = now;
+                state.journal.flush();
+            }
             if (!state.journal)
                 throw std::runtime_error("Cannot write Replay asset report");
         }
@@ -737,7 +880,9 @@ namespace fastfile::handlers::mw19_replay {
                     strings.push_back(nullptr);
                     continue;
                 }
-                auto value = ReadString(read, reinterpret_cast<uintptr_t>(list.strings[i]));
+                std::string value;
+                if (!state.ReadCString(reinterpret_cast<uintptr_t>(list.strings[i]), value))
+                    value = ReadString(read, reinterpret_cast<uintptr_t>(list.strings[i]));
                 if (value.size() > 32 * 1024 * 1024 - total)
                     throw std::runtime_error("Replay script strings exceed 32 MiB");
                 total += value.size();
@@ -757,11 +902,335 @@ namespace fastfile::handlers::mw19_replay {
             auto encoded = strings.dump();
             state.report["script_strings_crc32"] =
                 crc32(0, reinterpret_cast<const Bytef*>(encoded.data()), static_cast<uInt>(encoded.size()));
-            if (!state.opt->replayTest) {
+            if (!state.opt->replayTest && state.writeScriptStrings) {
                 WriteJsonAtomic(state.out / "script_strings.json", strings);
                 state.report["script_strings_file"] = "script_strings.json";
             }
         }
+        // Stream reservations run from megabytes to gigabytes. They are reserved and committed here and
+        // zero-filled by the system on first touch, so nothing is cleared (or made resident) up front.
+        // Streams::Align pads from the absolute cursor: every base is aligned to the largest stream alignment.
+        uint8_t* AllocateBlock(core::memory_allocator::MemoryAllocator& memory, size_t size) {
+            constexpr size_t alignment = 0x100000, slack = 0x10000;
+            const size_t bytes = std::max<size_t>(size, 1) + slack;
+            void* base = VirtualAlloc(nullptr, bytes + alignment, MEM_RESERVE, PAGE_NOACCESS);
+            if (!base)
+                throw std::runtime_error("Cannot reserve Replay stream memory");
+            memory.AddCustom(base, [](void* ptr) { VirtualFree(ptr, 0, MEM_RELEASE); }, bytes);
+            auto aligned =
+                reinterpret_cast<uint8_t*>((reinterpret_cast<uintptr_t>(base) + alignment - 1) & ~(alignment - 1));
+            if (!VirtualAlloc(aligned, bytes, MEM_COMMIT, PAGE_READWRITE))
+                throw std::runtime_error("Cannot commit Replay stream memory");
+            return aligned;
+        }
+
+        double Tenths(double ms) { return std::round(ms * 10) / 10; }
+
+        // Identity of a fastfile on disk (with its delta patches) for the serve cache.
+        std::string ZoneKey(const std::filesystem::path& file) {
+            std::error_code ec;
+            auto full = std::filesystem::weakly_canonical(file, ec);
+            if (ec)
+                full = std::filesystem::absolute(file, ec);
+            std::string key = full.generic_string();
+            std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+            });
+            for (const char* extension : { ".ff", ".fp", ".fc" }) {
+                auto part = full;
+                part.replace_extension(extension);
+                const auto size = std::filesystem::file_size(part, ec);
+                const auto time = ec ? std::filesystem::file_time_type{} : std::filesystem::last_write_time(part, ec);
+                key += std::format("|{}:{}", ec ? 0 : size, ec ? 0 : time.time_since_epoch().count());
+            }
+            return key;
+        }
+
+        // -a / -n (or the fields of a serve request) to the per-pool selection and the name filter.
+        void ConfigureSelection(FastFileOption& opt) {
+            state.names.LoadConfig(opt.assets);
+            std::set<std::string> selected;
+            if (opt.assetTypes) {
+                std::string selection{ opt.assetTypes };
+                std::replace(selection.begin(), selection.end(), ',', ' ');
+                std::istringstream tokens(selection);
+                for (std::string type; tokens >> type;) {
+                    state.database->Pool(state.database->Profile("replay-1.20"), type);
+                    selected.insert(type);
+                }
+            }
+            for (PoolInfo& info : state.pools)
+                info.selected = selected.empty() || selected.contains(info.name);
+        }
+
+        // Output folder, manifest skeleton and journal of one export. An empty output path (serve "load")
+        // writes nothing.
+        void BeginOutput(FastFileOption& opt, const std::string& name, const std::string& file) {
+            state.streamTrace.close();
+            state.streamTrace.clear();
+            state.streamTraceEvents = 0;
+            state.traceOn = false;
+            state.planDepth = 0;
+            state.planEntries = state.planBlockZero = 0;
+            state.plan.close();
+            state.plan.clear();
+            state.journal.close();
+            state.journal.clear();
+            state.exportIndex = 0;
+            state.lastProgress = {};
+            state.journalFlushed = Clock::now();
+            state.report =
+                Json{ { "profile", "replay-1.20" }, { "fastfile", file },            { "complete", false },
+                      { "success", false },         { "test_only", opt.replayTest }, { "tested", size_t(0) },
+                      { "failed", size_t(0) },      { "unavailable", size_t(0) },    { "references", size_t(0) },
+                      { "journal", "assets.jsonl" } };
+            if (opt.m_output.empty()) {
+                state.out.clear();
+                return;
+            }
+            state.out = opt.m_output / "mw19replay" / name;
+            std::filesystem::create_directories(state.out);
+            if (opt.replayStreamTrace) {
+                state.streamTrace.open(state.out / "stream-trace.jsonl", std::ios::binary | std::ios::trunc);
+                if (!state.streamTrace) throw std::runtime_error("Cannot create Replay stream trace");
+                state.traceOn = true;
+            }
+            if (state.preload) {
+                state.plan.open(state.out / "preload-plan.jsonl", std::ios::binary | std::ios::trunc);
+                state.report["preload_plan"] = "preload-plan.jsonl";
+            }
+            state.journal.open(state.out / "assets.jsonl", std::ios::binary | std::ios::trunc);
+            if (!state.journal)
+                throw std::runtime_error("Cannot create Replay asset report");
+        }
+
+        void CloseTrace() {
+            if (state.streamTrace.is_open()) {
+                state.streamTrace.flush();
+                state.streamTrace.close();
+                state.report["stream_trace_events"] = state.streamTraceEvents;
+            }
+            state.traceOn = false;
+        }
+
+        // Runs the native loaders over the decompressed stream. Throws on the first asset that cannot be loaded;
+        // the records linked until then stay readable.
+        void LoadZone(FastFileOption& opt, core::bytebuffer::ByteBuffer& reader, FastFileContext& ctx) {
+            if (ctx.blocksCount != 11 || !FastFileOption::IsReplayFileVersion(opt.replayFileVersion))
+                throw std::runtime_error("Expected a supported Replay revision with eleven header reservations");
+            std::array<std::span<uint8_t>, 8> blocks;
+            size_t total{};
+            for (size_t i = 0; i < blocks.size(); ++i) {
+                size_t size = ctx.blockSizes[i].size;
+                if (size > 2ull * 1024 * 1024 * 1024 - total)
+                    throw std::runtime_error("Replay stream reservations exceed 2 GiB");
+                total += size;
+                auto data = AllocateBlock(ctx.zoneMemory, size);
+                blocks[i] = { data, size };
+                state.zone->blocks[i] = { reinterpret_cast<uintptr_t>(data), size };
+            }
+            state.streams = std::make_unique<replay::Streams>(
+                blocks,
+                std::span<const uint8_t>(reader.Ptr<byte>(), reader.Remaining()),
+                *state.cursor
+            );
+            if (opt.replayStreamTrace) {
+                state.streams->SetTrace([](const replay::StreamTraceEvent& event) {
+                    TraceEvent(Json{{"kind", "stream_operation"}, {"operation", event.operation},
+                                    {"block_before", event.blockBefore},
+                                    {"offset_before", event.offsetBefore},
+                                    {"input_before", event.inputBefore},
+                                    {"block_after", event.blockAfter},
+                                    {"offset_after", event.offsetAfter},
+                                    {"input_after", event.inputAfter},
+                                    {"value", event.value}, {"size", event.size},
+                                    {"physical_input_bytes", event.inputAfter - event.inputBefore}});
+                });
+            }
+            state.Progress();
+            AssetList list;
+            auto header = state.streams->Take(sizeof(list));
+            std::memcpy(&list, header.data(), sizeof(list));
+            if (list.count > 1000000 || list.stringsCount > 1000000)
+                throw std::runtime_error("Replay asset/string count exceeds limit");
+            if (list.count && !list.assets)
+                throw std::runtime_error("Replay asset list has null storage");
+            state.streams->Push(5);
+            if (list.strings) {
+                state.streams->Align(7);
+                list.strings = reinterpret_cast<char**>(*state.cursor);
+                state.streams->Load(true, list.strings, size_t(list.stringsCount) * 8);
+                auto global = reinterpret_cast<char***>((*state.module)[0x5d417c0]);
+                for (size_t i = 0; i < list.stringsCount; ++i) {
+                    *global = &list.strings[i];
+                    uintptr_t fault{};
+                    int code =
+                        CallNative(reinterpret_cast<void (*)(int)>((*state.module)[0xdd3400]), 1, &fault);
+                    if (code)
+                        throw std::runtime_error(
+                            std::format(
+                                "Replay script-string loader fault 0x{:x} at 0x{:x}",
+                                uint32_t(code),
+                                fault
+                            )
+                        );
+                }
+            } else if (list.stringsCount)
+                throw std::runtime_error("Replay script-string list has null storage");
+            ctx.scrStrings = const_cast<const char**>(list.strings);
+            ctx.scrStringsCount = list.stringsCount;
+            state.streams->Align(7);
+            list.assets = reinterpret_cast<Asset*>(*state.cursor);
+            state.streams->Load(true, list.assets, size_t(list.count) * sizeof(Asset));
+            state.zone->list = list;
+            for (; state.current < list.count; ++state.current) {
+                auto& asset = list.assets[state.current];
+                state.currentType = asset.type;
+                state.currentAssetActive = true;
+                state.loading = { true, asset.type, 0, state.streams->Consumed() };
+                REPLAY_TRACE(Json{{"kind", "xasset_begin"}, {"xasset_index", state.current},
+                                 {"asset_type", asset.type}, {"pointer_token", reinterpret_cast<uintptr_t>(asset.header)},
+                                 {"table_entry_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(&asset))},
+                                 {"serialized_input_cursor", state.streams->Consumed()}});
+                NativeLoad(asset.type, &asset.header);
+                REPLAY_TRACE(Json{{"kind", "xasset_end"}, {"xasset_index", state.current},
+                                 {"asset_type", asset.type},
+                                 {"resolved_header_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(asset.header))},
+                                 {"serialized_input_cursor", state.streams->Consumed()}});
+                state.currentAssetActive = false;
+                state.previous = { true, asset.type, 0, state.loading.offset };
+                if (!(state.current % 256))
+                    state.Progress(false);
+            }
+            state.streams->Pop();
+            state.streams->Finish();
+            if (state.preload) {
+                state.report["preload_plan_entries"] = state.planEntries;
+                state.report["preload_plan_block0_entries"] = state.planBlockZero;
+                state.plan.close();
+            }
+            std::sort(state.zone->owned.begin(), state.zone->owned.end());
+        }
+
+        // What manifest.json says about the load itself, kept with the zone so that an export from the serve
+        // cache reports the same fields as the run that loaded it.
+        void SaveLoadReport() {
+            state.SyncProgressFields();
+            size_t reserved{}, used{};
+            for (size_t bytes : state.streams->Reserved())
+                reserved += bytes;
+            for (size_t bytes : state.streams->Peaks())
+                used += bytes;
+            state.report["stream_bytes"] = Json{ { "reserved", reserved },
+                                                 { "used", used },
+                                                 { "retained", state.ownedBytes + state.retainedPixelBytes } };
+            for (const char* key :
+                 { "xfile_version", "input_xfile_version", "applied_patches", "loaded_assets", "serialized_bytes_read",
+                   "top_level_index", "loading_type_id", "loading_serialized_offset", "last_asset_load",
+                   "previous_type_id", "previous_serialized_offset", "preload_plan_entries",
+                   "preload_plan_block0_entries", "stream_bytes" })
+                if (state.report.contains(key))
+                    state.zone->loadReport[key] = state.report.at(key);
+        }
+
+        // --serve: the cache takes the zone and its memory; the least recently used zones beyond the budget go.
+        void Retain(FastFileContext& ctx) {
+            CachedZone entry;
+            entry.key = state.requestKey.empty() ? ZoneKey(ctx.file) : state.requestKey;
+            entry.name = ctx.ffname;
+            entry.file = ctx.file;
+            entry.data = std::move(state.scratch);
+            state.scratch = ZoneData{};
+            entry.memory.Adopt(ctx.zoneMemory);
+            entry.bytes = state.ownedBytes + state.retainedPixelBytes;
+            for (size_t used : state.streams->Peaks())
+                entry.bytes += used;
+            state.cache.remove_if([&](const CachedZone& zone) { return zone.key == entry.key; });
+            state.cache.push_front(std::move(entry));
+            state.zone = &state.cache.front().data;
+            size_t total{};
+            for (const CachedZone& zone : state.cache)
+                total += zone.bytes;
+            while (state.cache.size() > 1 && total > state.cacheBudget) {
+                const CachedZone& oldest = state.cache.back();
+                total -= oldest.bytes;
+                LOG_INFO("Replay serve: releasing {} ({} MiB)", oldest.name, oldest.bytes >> 20);
+                state.cache.pop_back();
+            }
+        }
+
+        // Script strings, coverage and the selected records of the current zone; closes the journal and the
+        // manifest. Throws when an asset failed or a payload was unavailable, after everything is written.
+        void ExportZone(FastFileOption& opt) {
+            const auto start = Clock::now();
+            state.sampled.fill(0);
+            state.exportIndex = 0;
+            ExportScriptStrings(state.zone->list);
+            {
+                // Keys in order of first appearance, as a per-record insert would give.
+                std::array<size_t, kPoolCount> counts{};
+                std::vector<uint32_t> order;
+                for (const auto& record : state.zone->records)
+                    if (!counts.at(record.type)++)
+                        order.push_back(record.type);
+                auto& coverage = state.report["loaded_by_type"] = Json::object();
+                for (uint32_t type : order)
+                    coverage[state.pools[type].name] = counts[type];
+            }
+            state.Progress();
+            const auto& records = state.zone->records;
+            for (size_t i = 0; i < records.size(); ++i) {
+                ExportRecord(records[i]);
+                state.exportIndex = i + 1;
+                if (!((i + 1) % 128))
+                    state.Progress(false);
+            }
+            state.report["complete"] = true;
+            state.report["success"] =
+                !state.report.at("failed").get<size_t>() && !state.report.at("unavailable").get<size_t>();
+            state.journal.flush();
+            if (!state.journal)
+                throw std::runtime_error("Cannot write Replay asset report");
+            state.journal.close();
+            CloseTrace();
+            state.exportMs = MsSince(start);
+            const bool cached = !state.streams;
+            Json timing{ { "init", Tenths(state.initMs) },
+                         { "init_schema", Tenths(state.initSchemaMs) },
+                         { "init_module", Tenths(state.initModuleMs) },
+                         { "init_packages", Tenths(state.initPackagesMs) } };
+            if (!cached) {
+                timing["read"] = Tenths(opt.perfReadMs);
+                timing["decompress"] = Tenths(opt.perfDecompressMs);
+                timing["patch"] = Tenths(opt.perfPatchMs);
+                timing["load"] = Tenths(state.loadMs);
+            }
+            timing["export"] = Tenths(state.exportMs);
+            state.report["timing_ms"] = std::move(timing);
+            if (state.serving)
+                state.report["cached"] = cached;
+            state.lastComplete = true;
+            state.Progress();
+            if (state.preload)
+                LOG_INFO("Replay preload: {} postload plan entries, {} move block 0", state.planEntries,
+                         state.planBlockZero);
+            LOG_INFO(
+                "Replay: {} assets loaded, {} tested, {} failed, {} unavailable",
+                state.zone->records.size(),
+                state.report.at("tested").get<size_t>(),
+                state.report.at("failed").get<size_t>(),
+                state.report.at("unavailable").get<size_t>()
+            );
+            if (state.report.at("failed").get<size_t>() || state.report.at("unavailable").get<size_t>())
+                throw std::runtime_error(
+                    "Replay asset export has failures or unavailable payloads; see manifest.json"
+                );
+        }
+
+        void Respond(const Json& message) {
+            std::cout << "@acts " << message.dump(-1, ' ', false, Json::error_handler_t::replace) << std::endl;
+        }
+
 
         class Handler : public FFHandler {
           public:
@@ -771,14 +1240,18 @@ namespace fastfile::handlers::mw19_replay {
                       compatibility::scobalula::csi::CordycepGame::CG_MW4, true
                   ) {}
             void Init(FastFileOption& opt) override {
+                const auto initStart = Clock::now();
                 state.opt = &opt;
                 state.packages.clear();
                 state.decode = {};
                 state.database = std::make_unique<Database>(utils::GetProgDir() / "data/mw19/schema.json");
+                state.initSchemaMs = MsSince(initStart);
                 if (!opt.game)
                     throw std::runtime_error("mw19replay requires -g with the 1.20 Replay executable");
+                const auto moduleStart = Clock::now();
                 if (!state.module.Load(opt.game, false))
                     throw std::runtime_error("Cannot map Replay executable");
+                state.initModuleMs = MsSince(moduleStart);
                 auto& mod = *state.module;
                 if (mod.ModuleInformation().SizeOfImage() != 0x1324b000)
                     throw std::runtime_error("Executable image size does not match Replay 1.20");
@@ -793,6 +1266,31 @@ namespace fastfile::handlers::mw19_replay {
                     reinterpret_cast<uintptr_t>(mod[size_t(0)]),
                     state.database->Profile("replay-1.20")
                 );
+                {
+                    const auto& pools = state.database->Profile("replay-1.20").at("pools");
+                    if (pools.size() > kPoolCount)
+                        throw std::runtime_error("Replay profile has more pools than the handler supports");
+                    state.pools = {};
+                    for (size_t i = 0; i < pools.size(); ++i) {
+                        const auto& pool = pools[i];
+                        PoolInfo& info = state.pools[i];
+                        info.known = true;
+                        info.name = pool.at("name").get<std::string>();
+                        info.size = pool.at("size").get<size_t>();
+                        if (pool.contains("name_offset") && pool.at("name_offset").is_number_unsigned()) {
+                            info.nameOffset = pool.at("name_offset").get<size_t>();
+                            info.hasNameOffset = true;
+                        }
+                        info.payloadExporter = HasPayloadExporter(info.name);
+                    }
+                    state.bindingByType.fill(nullptr);
+                    for (const auto& binding : replay::bindings) {
+                        if (binding.type >= kPoolCount || !state.pools[binding.type].known)
+                            throw std::runtime_error("Replay loader binding names an unknown pool");
+                        if (!state.bindingByType[binding.type])
+                            state.bindingByType[binding.type] = &binding;
+                    }
+                }
                 state.cursor = reinterpret_cast<uint8_t**>(mod[0xd120c00]);
                 std::memcpy(state.frustumLoaderPrologue.data(), mod[size_t(0xd91900)], state.frustumLoaderPrologue.size());
                 mod.Redirect(size_t(0x11b2a20), LoadStream);
@@ -820,25 +1318,44 @@ namespace fastfile::handlers::mw19_replay {
                     mod.Redirect(size_t(0x11b2540), PlanBegin);
                     mod.Redirect(size_t(0x11b24b0), PlanEnd);
                 }
+                if (state.preload && opt.replayServe)
+                    throw std::runtime_error("--serve cannot be combined with ACTS_REPLAY_PRELOAD");
                 InstallLinks(std::make_index_sequence<std::size(replay::bindings)>{});
-                state.selected.clear();
-                state.names.LoadConfig(opt.assets);
-                if (opt.assetTypes) {
-                    std::string selection{ opt.assetTypes };
-                    std::replace(selection.begin(), selection.end(), ',', ' ');
-                    std::istringstream tokens(selection);
-                    for (std::string type; tokens >> type;) {
-                        state.database->Pool(state.database->Profile("replay-1.20"), type);
-                        state.selected.insert(type);
+                ConfigureSelection(opt);
+                const auto packagesStart = Clock::now();
+                {
+                    // Each archive index (up to a few hundred thousand entries) is read and checked on its own
+                    // thread; errors and the budget are then applied in command-line order.
+                    const size_t count = opt.replayPackages.size();
+                    std::vector<std::optional<xpak::Archive>> opened(count);
+                    std::vector<std::exception_ptr> errors(count);
+                    std::atomic<size_t> next{ 0 };
+                    auto open = [&] {
+                        for (size_t i; (i = next.fetch_add(1)) < count;) {
+                            try {
+                                opened[i].emplace(xpak::Archive::Open(opt.replayPackages[i]));
+                            } catch (...) {
+                                errors[i] = std::current_exception();
+                            }
+                        }
+                    };
+                    {
+                        std::vector<std::thread> pool;
+                        for (size_t t = 1; t < std::min<size_t>(count, 8); ++t)
+                            pool.emplace_back(open);
+                        open();
+                        for (std::thread& t : pool)
+                            t.join();
                     }
-                }
-                size_t indexBytes{};
-                for (auto& path : opt.replayPackages) {
-                    auto archive = xpak::Archive::Open(path);
-                    indexBytes += archive.Entries().size() * sizeof(xpak::Entry);
-                    if (indexBytes > 128 * 1024 * 1024)
-                        throw std::runtime_error("Replay XPak index budget exceeded");
-                    state.packages.push_back(std::move(archive));
+                    size_t indexBytes{};
+                    for (size_t i = 0; i < count; ++i) {
+                        if (errors[i])
+                            std::rethrow_exception(errors[i]);
+                        indexBytes += opened[i]->Entries().size() * sizeof(xpak::Entry);
+                        if (indexBytes > 128 * 1024 * 1024)
+                            throw std::runtime_error("Replay XPak index budget exceeded");
+                        state.packages.push_back(std::move(*opened[i]));
+                    }
                 }
                 if (!opt.replayOodle.empty()) {
                     if (!opt.replayOodle.is_absolute() || !state.oodle.LoadOodle(opt.replayOodle.string().c_str()))
@@ -853,11 +1370,17 @@ namespace fastfile::handlers::mw19_replay {
                                ) == static_cast<int32_t>(output.size());
                     };
                 }
+                state.initPackagesMs = MsSince(packagesStart);
+                state.serving = opt.replayServe;
+                state.cacheBudget = opt.replayServeCacheMb * 1024 * 1024;
+                state.writeScriptStrings = true;
+                state.initMs = MsSince(initStart);
             }
             void Cleanup() override {
                 state.streams.reset();
-                state.records.clear();
-                state.owned.clear();
+                state.zone = &state.scratch;
+                state.scratch = ZoneData{};
+                state.cache.clear();
                 state.packages.clear();
                 state.journal.close();
                 state.streamTrace.close();
@@ -867,210 +1390,236 @@ namespace fastfile::handlers::mw19_replay {
             void Handle(FastFileOption& opt, core::bytebuffer::ByteBuffer& reader, FastFileContext& ctx) override {
                 state.streams.reset();
                 state.ctx = &ctx;
+                state.zone = &state.scratch;
+                state.scratch = ZoneData{};
                 state.lastAssetRoot = nullptr;
                 state.legacyFrustumMeshes = 0;
                 state.legacyViewStart = 0; state.legacyViewBytes = 0;
-                state.serializedLayouts.clear(); state.pendingLegacyWorld = nullptr;
+                state.pendingLegacyWorld = nullptr;
                 hook::process::WriteMemSafe((*state.module)[size_t(0xd91900)], state.frustumLoaderPrologue.data(), state.frustumLoaderPrologue.size());
                 if (opt.replayFileVersion == 0xfda) state.module->Redirect(size_t(0xd91900), LegacyFrustumLights);
-                state.records.clear();
-                state.owned.clear();
                 state.ownedBytes = 0;
                 state.retainedPixelBytes = 0;
                 state.sampled.fill(0);
                 state.current = 0;
                 state.currentType = 0;
                 state.currentAssetActive = false;
-                state.out = opt.m_output / "mw19replay" / ctx.ffname;
-                std::filesystem::create_directories(state.out);
-                state.streamTrace.close();
-                state.streamTrace.clear();
-                state.streamTraceEvents = 0;
-                if (opt.replayStreamTrace) {
-                    state.streamTrace.open(state.out / "stream-trace.jsonl", std::ios::binary | std::ios::trunc);
-                    if (!state.streamTrace) throw std::runtime_error("Cannot create Replay stream trace");
-                }
-                state.report =
-                    Json{ { "profile", "replay-1.20" }, { "fastfile", ctx.file },        { "complete", false },
-                          { "success", false },         { "test_only", opt.replayTest }, { "tested", size_t(0) },
-                          { "failed", size_t(0) },      { "unavailable", size_t(0) },    { "references", size_t(0) },
-                          { "journal", "assets.jsonl" } };
-                state.planDepth = 0;
-                state.planEntries = state.planBlockZero = 0;
-                state.plan.close();
-                state.plan.clear();
-                if (state.preload) {
-                    state.plan.open(state.out / "preload-plan.jsonl", std::ios::binary | std::ios::trunc);
-                    state.report["preload_plan"] = "preload-plan.jsonl";
-                }
-                state.journal.close();
-                state.journal.clear();
-                state.journal.open(state.out / "assets.jsonl", std::ios::binary | std::ios::trunc);
-                if (!state.journal)
-                    throw std::runtime_error("Cannot create Replay asset report");
+                state.lastLoad = state.loading = state.previous = {};
+                state.loadMs = state.exportMs = 0;
+                state.lastComplete = false;
+                state.lastError.clear();
+                state.zone->fileVersion = opt.replayFileVersion;
+                BeginOutput(opt, ctx.ffname, ctx.file);
                 try {
                     state.report["xfile_version"] = opt.replayFileVersion;
                     state.report["input_xfile_version"] = opt.replayInputVersion;
                     state.report["applied_patches"] = opt.replayAppliedPatches;
                     if (opt.replayStreamTrace) state.report["stream_trace"] = "stream-trace.jsonl";
-                    if (ctx.blocksCount != 11 || !FastFileOption::IsReplayFileVersion(opt.replayFileVersion))
-                        throw std::runtime_error("Expected a supported Replay revision with eleven header reservations");
-                    std::array<std::span<uint8_t>, 8> blocks;
-                    size_t total{};
-                    for (size_t i = 0; i < blocks.size(); ++i) {
-                        size_t size = ctx.blockSizes[i].size;
-                        if (size > 2ull * 1024 * 1024 * 1024 - total)
-                            throw std::runtime_error("Replay stream reservations exceed 2 GiB");
-                        total += size;
-                        auto data = ctx.zoneMemory.AllocAligned<byte>(std::max<size_t>(size, 1), 0x100000);
-                        std::memset(data, 0, size);
-                        blocks[i] = { data, size };
+                    const auto loadStart = Clock::now();
+                    LoadZone(opt, reader, ctx);
+                    state.loadMs = MsSince(loadStart);
+                    SaveLoadReport();
+                    if (state.serving)
+                        Retain(ctx);
+                    if (state.out.empty()) {
+                        // Serve "load": the zone is in memory, nothing is exported.
+                        LOG_INFO("Replay: {} assets loaded", state.zone->records.size());
+                        state.lastComplete = true;
+                    } else {
+                        ExportZone(opt);
                     }
-                    state.streams = std::make_unique<replay::Streams>(
-                        blocks,
-                        std::span<const uint8_t>(reader.Ptr<byte>(), reader.Remaining()),
-                        *state.cursor
-                    );
-                    if (opt.replayStreamTrace) {
-                        state.streams->SetTrace([](const replay::StreamTraceEvent& event) {
-                            TraceEvent(Json{{"kind", "stream_operation"}, {"operation", event.operation},
-                                            {"block_before", event.blockBefore},
-                                            {"offset_before", event.offsetBefore},
-                                            {"input_before", event.inputBefore},
-                                            {"block_after", event.blockAfter},
-                                            {"offset_after", event.offsetAfter},
-                                            {"input_after", event.inputAfter},
-                                            {"value", event.value}, {"size", event.size},
-                                            {"physical_input_bytes", event.inputAfter - event.inputBefore}});
-                        });
-                    }
-                    state.Progress();
-                    AssetList list;
-                    auto header = state.streams->Take(sizeof(list));
-                    std::memcpy(&list, header.data(), sizeof(list));
-                    if (list.count > 1000000 || list.stringsCount > 1000000)
-                        throw std::runtime_error("Replay asset/string count exceeds limit");
-                    if (list.count && !list.assets)
-                        throw std::runtime_error("Replay asset list has null storage");
-                    state.streams->Push(5);
-                    if (list.strings) {
-                        state.streams->Align(7);
-                        list.strings = reinterpret_cast<char**>(*state.cursor);
-                        state.streams->Load(true, list.strings, size_t(list.stringsCount) * 8);
-                        auto global = reinterpret_cast<char***>((*state.module)[0x5d417c0]);
-                        for (size_t i = 0; i < list.stringsCount; ++i) {
-                            *global = &list.strings[i];
-                            uintptr_t fault{};
-                            int code =
-                                CallNative(reinterpret_cast<void (*)(int)>((*state.module)[0xdd3400]), 1, &fault);
-                            if (code)
-                                throw std::runtime_error(
-                                    std::format(
-                                        "Replay script-string loader fault 0x{:x} at 0x{:x}",
-                                        uint32_t(code),
-                                        fault
-                                    )
-                                );
-                        }
-                    } else if (list.stringsCount)
-                        throw std::runtime_error("Replay script-string list has null storage");
-                    ctx.scrStrings = const_cast<const char**>(list.strings);
-                    ctx.scrStringsCount = list.stringsCount;
-                    state.streams->Align(7);
-                    list.assets = reinterpret_cast<Asset*>(*state.cursor);
-                    state.streams->Load(true, list.assets, size_t(list.count) * sizeof(Asset));
-                    for (; state.current < list.count; ++state.current) {
-                        auto& asset = list.assets[state.current];
-                        state.currentType = asset.type;
-                        state.currentAssetActive = true;
-                        state.report["loading_type_id"] = asset.type;
-                        state.report["loading_serialized_offset"] = state.streams->Consumed();
-                        TraceEvent(Json{{"kind", "xasset_begin"}, {"xasset_index", state.current},
-                                         {"asset_type", asset.type}, {"pointer_token", reinterpret_cast<uintptr_t>(asset.header)},
-                                         {"table_entry_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(&asset))},
-                                         {"serialized_input_cursor", state.streams->Consumed()}});
-                        NativeLoad(asset.type, &asset.header);
-                        TraceEvent(Json{{"kind", "xasset_end"}, {"xasset_index", state.current},
-                                         {"asset_type", asset.type},
-                                         {"resolved_header_stream_location", StreamLocation(reinterpret_cast<uintptr_t>(asset.header))},
-                                         {"serialized_input_cursor", state.streams->Consumed()}});
-                        state.currentAssetActive = false;
-                        state.report["previous_type_id"] = asset.type;
-                        state.report["previous_serialized_offset"] = state.report["loading_serialized_offset"];
-                        if (!(state.current % 256))
-                            state.Progress();
-                    }
-                    state.streams->Pop();
-                    state.streams->Finish();
-                    if (state.preload) {
-                        state.report["preload_plan_entries"] = state.planEntries;
-                        state.report["preload_plan_block0_entries"] = state.planBlockZero;
-                        state.plan.close();
-                    }
-                    std::sort(state.owned.begin(), state.owned.end());
-                    ExportScriptStrings(list);
-                    auto& coverage = state.report["loaded_by_type"] = Json::object();
-                    for (const auto& record : state.records) {
-                        std::string type =
-                            state.database->Profile("replay-1.20").at("pools").at(record.type).at("name");
-                        coverage[type] = coverage.value(type, size_t(0)) + 1;
-                    }
-                    state.Progress();
-                    for (size_t i = 0; i < state.records.size(); ++i) {
-                        ExportRecord(state.records[i]);
-                        state.report["export_record_index"] = i + 1;
-                        if (!((i + 1) % 128))
-                            state.Progress();
-                    }
-                    state.report["complete"] = true;
-                    state.report["success"] =
-                        !state.report.at("failed").get<size_t>() && !state.report.at("unavailable").get<size_t>();
-                    state.Progress();
-                    state.journal.close();
-                    if (state.streamTrace.is_open()) {
-                        state.streamTrace.flush();
-                        state.streamTrace.close();
-                        state.report["stream_trace_events"] = state.streamTraceEvents;
-                    }
-                    state.Progress();
-                    if (state.preload)
-                        LOG_INFO("Replay preload: {} postload plan entries, {} move block 0", state.planEntries,
-                                 state.planBlockZero);
-                    LOG_INFO(
-                        "Replay: {} assets loaded, {} tested, {} failed, {} unavailable",
-                        state.records.size(),
-                        state.report.at("tested").get<size_t>(),
-                        state.report.at("failed").get<size_t>(),
-                        state.report.at("unavailable").get<size_t>()
-                    );
-                    if (state.report.at("failed").get<size_t>() || state.report.at("unavailable").get<size_t>())
-                        throw std::runtime_error(
-                            "Replay asset export has failures or unavailable payloads; see manifest.json"
-                        );
                 } catch (const std::exception& error) {
+                    state.lastError = error.what();
                     state.report["error"] = error.what();
-                    if (state.streamTrace.is_open()) {
-                        state.streamTrace.flush();
-                        state.streamTrace.close();
-                        state.report["stream_trace_events"] = state.streamTraceEvents;
-                    }
+                    CloseTrace();
                     // Each Link record has completed its native load and owns
                     // a retained root. Preserve those readable assets if a later
                     // asset fails, keeping the zone explicitly incomplete.
-                    if (!state.report.at("complete").get<bool>() && !state.records.empty()) {
+                    if (!state.out.empty() && !state.report.at("complete").get<bool>() &&
+                        !state.zone->records.empty()) {
                         state.report["partial_load"] = true;
-                        std::sort(state.owned.begin(), state.owned.end());
-                        for (size_t i = 0; i < state.records.size(); ++i) {
-                            ExportRecord(state.records[i]);
-                            state.report["export_record_index"] = i + 1;
-                            if (!((i + 1) % 128)) state.Progress();
+                        std::sort(state.zone->owned.begin(), state.zone->owned.end());
+                        for (size_t i = 0; i < state.zone->records.size(); ++i) {
+                            ExportRecord(state.zone->records[i]);
+                            state.exportIndex = i + 1;
+                            if (!((i + 1) % 128)) state.Progress(false);
                         }
                     }
                     state.Progress();
                     state.journal.close();
+                    state.streams.reset();
+                    if (state.zone == &state.scratch)
+                        state.scratch = ZoneData{}; // its memory goes with the load context
                     throw;
                 }
                 state.streams.reset();
+                if (state.zone == &state.scratch)
+                    state.scratch = ZoneData{};
+            }
+
+            // --serve. One JSON request per line on stdin, one "@acts {json}" answer per request on stdout
+            // (docs/mw19/fastfile.md, "Serve mode"). Any other output line is ordinary log text.
+            bool Serve(FastFileOption& opt, const std::function<bool(const char* file)>& load) override {
+                const auto setRequest = [&](const Json& request) {
+                    state.requestTypes = request.value("types", std::string{});
+                    state.requestNames.clear();
+                    if (request.contains("names")) {
+                        const Json& names = request.at("names");
+                        if (names.is_string())
+                            state.requestNames = names.get<std::string>();
+                        else
+                            for (const auto& name : names) {
+                                const auto text = name.get<std::string>();
+                                if (text.empty() || text.find(',') != std::string::npos)
+                                    throw std::runtime_error("Invalid asset name in request");
+                                if (!state.requestNames.empty())
+                                    state.requestNames += ',';
+                                state.requestNames += text;
+                            }
+                    }
+                    opt.assetTypes = state.requestTypes.empty() ? nullptr : state.requestTypes.c_str();
+                    opt.assets = state.requestNames.empty() ? nullptr : state.requestNames.c_str();
+                    opt.replayGeometry = request.value("geometry", false);
+                    opt.noAssetDump = request.value("inventory", false);
+                    opt.replayTest = request.value("test", false);
+                    opt.replayLimit = request.value("limit", size_t{ 1 });
+                    if (!opt.replayLimit || opt.replayLimit > 32 || (opt.replayGeometry && opt.noAssetDump))
+                        throw std::runtime_error("Invalid request options");
+                    state.writeScriptStrings = request.value("script_strings", false);
+                    ConfigureSelection(opt);
+                };
+                const auto summary = [&](Json& response) {
+                    for (const char* key : { "tested", "failed", "unavailable", "references" })
+                        response[key] = state.report.value(key, size_t(0));
+                    response["loaded"] = state.zone->records.size();
+                    if (!state.out.empty())
+                        response["dir"] = state.out.generic_string();
+                    // What is in memory now, most recently used first: a client with several servers sends a
+                    // request to the one that already holds its zone.
+                    Json zones = Json::array();
+                    for (const CachedZone& zone : state.cache)
+                        zones.push_back(zone.name);
+                    response["zones"] = std::move(zones);
+                };
+                Respond(Json{ { "ready", true },
+                              { "protocol", 1 },
+                              { "pid", static_cast<uint64_t>(GetCurrentProcessId()) },
+                              { "cache_mb", opt.replayServeCacheMb },
+                              { "init_ms", Tenths(state.initMs) } });
+                // Fastfiles named on the command line are loaded up front and kept; nothing is exported for them.
+                for (const char* file : opt.files) {
+                    const auto output = opt.m_output;
+                    opt.m_output.clear();
+                    state.requestKey = ZoneKey(file);
+                    load(file);
+                    opt.m_output = output;
+                    state.requestKey.clear();
+                    state.zone = &state.scratch;
+                }
+                std::string line;
+                while (std::getline(std::cin, line)) {
+                    while (!line.empty() && (line.back() == '\r' || line.back() == ' '))
+                        line.pop_back();
+                    if (line.empty())
+                        continue;
+                    const auto start = Clock::now();
+                    Json response = Json::object();
+                    bool quit = false;
+                    try {
+                        const Json request = Json::parse(line);
+                        if (!request.is_object())
+                            throw std::runtime_error("A request is one JSON object per line");
+                        response["id"] = request.value("id", Json(nullptr));
+                        const auto command = request.value("cmd", std::string{ "export" });
+                        if (command == "quit") {
+                            quit = true;
+                            response["ok"] = true;
+                        } else if (command == "ping") {
+                            response["ok"] = true;
+                        } else if (command == "trim") {
+                            state.zone = &state.scratch;
+                            state.cache.clear();
+                            response["ok"] = true;
+                        } else if (command == "stats") {
+                            Json zones = Json::array();
+                            size_t total{};
+                            for (const CachedZone& zone : state.cache) {
+                                total += zone.bytes;
+                                zones.push_back(Json{ { "zone", zone.name },
+                                                      { "file", zone.file },
+                                                      { "bytes", zone.bytes },
+                                                      { "assets", zone.data.records.size() } });
+                            }
+                            response["ok"] = true;
+                            response["zones"] = std::move(zones);
+                            response["bytes"] = total;
+                            response["budget"] = state.cacheBudget;
+                        } else if (command == "export" || command == "load") {
+                            const bool loadOnly = command == "load";
+                            const auto file = request.at("zone").get<std::string>();
+                            opt.m_output = loadOnly ? std::filesystem::path{} : std::filesystem::path{ request.at("out").get<std::string>() };
+                            if (!loadOnly && opt.m_output.empty())
+                                throw std::runtime_error("An export request needs an output folder");
+                            setRequest(request);
+                            state.requestKey = ZoneKey(file);
+                            state.lastComplete = false;
+                            state.lastError.clear();
+                            auto hit = std::find_if(state.cache.begin(), state.cache.end(), [&](const CachedZone& zone) {
+                                return zone.key == state.requestKey;
+                            });
+                            const bool cached = hit != state.cache.end();
+                            response["cached"] = cached;
+                            if (cached) {
+                                state.cache.splice(state.cache.begin(), state.cache, hit);
+                                CachedZone& entry = state.cache.front();
+                                state.zone = &entry.data;
+                                state.streams.reset();
+                                if (!loadOnly) {
+                                    opt.perfReadMs = opt.perfDecompressMs = opt.perfPatchMs = 0;
+                                    // The load position in the manifest is the zone's own (from its load report),
+                                    // not that of the zone loaded last.
+                                    state.lastLoad = state.loading = state.previous = {};
+                                    state.loadMs = state.exportMs = 0;
+                                    BeginOutput(opt, entry.name, entry.file);
+                                    try {
+                                        for (const auto& [key, value] : entry.data.loadReport.items())
+                                            state.report[key] = value;
+                                        ExportZone(opt);
+                                    } catch (const std::exception& error) {
+                                        state.lastError = error.what();
+                                        state.report["error"] = error.what();
+                                        state.Progress();
+                                        state.journal.close();
+                                    }
+                                } else {
+                                    state.lastComplete = true;
+                                }
+                                summary(response);
+                            } else {
+                                const bool handled = load(file.c_str());
+                                if (!handled && state.lastError.empty())
+                                    state.lastError = "The fastfile could not be read or decompressed; see the log";
+                                summary(response);
+                            }
+                            response["ok"] = state.lastComplete;
+                            if (!state.lastError.empty())
+                                response["error"] = state.lastError;
+                            state.zone = &state.scratch;
+                        } else {
+                            throw std::runtime_error("Unknown command: " + command);
+                        }
+                    } catch (const std::exception& error) {
+                        response["ok"] = false;
+                        response["error"] = error.what();
+                    }
+                    state.zone = &state.scratch;
+                    state.requestKey.clear();
+                    response["ms"] = Tenths(MsSince(start));
+                    Respond(response);
+                    if (quit)
+                        break;
+                }
+                return true;
             }
         };
         utils::ArrayAdder<Handler, FFHandler> registration{ GetHandlers() };

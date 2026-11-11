@@ -53,6 +53,49 @@ Structured exports contain the field graph, named references to other assets, ow
 
 The manifest distinguishes `complete` (the load/export pass finished) from `success` (no attempted export failed or lacked required data). The journal records per-asset status, format, length and CRC32. Structured failures include field paths and reasons. A failed loader leaves `complete: false` with the last top-level index and consumed byte count. Missing required resident data is reported as unavailable. A shader with both a null program and zero program length is a valid declaration: its name, type, flags and `empty_shader` status are exported as JSON. A nonzero program length with no program bytes is still unavailable. Atomic manifest replacement retries brief Windows reader-sharing conflicts; a persistent failure preserves the previous manifest and includes the Windows error code.
 
+## Serve mode
+
+A one-shot run maps the executable, reads the schema, then reads, decompresses, patches and loads the whole zone before it exports anything, and it does all of that again for the next request on the same zone. A tool that asks for a few assets at a time (an editor filling its texture and model caches) should start one process with `--serve` instead:
+
+```powershell
+acts.exe --noUpdater fastfile -r mw19replay `
+  -g "D:/Replay/game_dx12_ship_replay.exe" `
+  --oodle "D:/Replay/oo2core_7_win64.dll" `
+  --xpak "D:/Replay/zone/pak_launch.xpak" `
+  --serve --serve-cache-mb 2048 -l
+```
+
+The process answers requests until its standard input closes. It reads **one JSON object per line** and writes **one line starting with `@acts ` followed by a JSON object** for each request, after a first `@acts {"ready":true,"protocol":1,...}` line. Every other output line is ordinary log text. `-g`, `--oodle` and `--xpak` are given once on the command line; a fastfile named on the command line is loaded and kept before the first request, and nothing is exported for it.
+
+| Request | Fields | Effect |
+| --- | --- | --- |
+| `export` (default `cmd`) | `zone` (fastfile path), `out` (output folder), optional `types` (as `-a`), `names` (array, or a string as `-n`), `geometry`, `inventory` (as `--noAssetDump`), `test`, `limit`, `script_strings` | Exports the selection under `<out>/mw19replay/<zone>/`, with the same files, journal and manifest as a one-shot run |
+| `load` | `zone` | Loads and keeps the zone; writes nothing |
+| `stats` | | Lists the zones in memory with their sizes |
+| `trim` | | Releases every zone |
+| `ping`, `quit` | | Liveness check; orderly exit |
+
+Every request may carry an `id` of any JSON type; the answer repeats it. An `export` or `load` answer holds `ok` (the pass completed: the manifest's `complete`), `cached` (the zone was already in memory), `loaded`, `tested`, `failed`, `unavailable`, `references`, `dir`, `zones` (what is in memory now, most recently used first), `ms`, and `error` when something went wrong. An export with unavailable payloads answers `ok: true` with the same `error` text a one-shot run logs; the journal has the per-asset reasons. A request that cannot be parsed, names an unknown pool or a file that cannot be read answers `ok: false` and the process continues.
+
+`script_strings.json` is only written when a request sets `script_strings: true` (a one-shot run always writes it). Names are passed as a JSON array, so a name never needs shell quoting; a name that contains a comma is refused, as `-n` cannot express it either.
+
+Loaded zones stay in memory, most recently used first, until their total exceeds `--serve-cache-mb` (default 2048 MiB; the bytes counted are the stream bytes the loader wrote plus the retained roots and pixels). The least recently used zones are then released; the zone just used is always kept, also when it alone is larger than the budget. A zone is identified by its path, size and modification time and those of its `.fp` / `.fc` patches, so a rebuilt file is loaded again. `--serve` cannot be combined with `--trace-replay-streams`, decompressed dumps, asset-pool mode or `ACTS_REPLAY_PRELOAD`.
+
+`scripts/mw19/test_serve.py` exports the same selection by a one-shot run, a first serve request and a repeated one, compares the three trees and exercises the commands above.
+
+## Speed
+
+Measured on Replay 1.20 (i7-12700F, NVMe, files in the system cache, 14 XPaks on the command line). "Before" is the same build without the changes listed below.
+
+| Run | Before | One-shot | Serve, zone loaded |
+| --- | ---: | ---: | ---: |
+| 3 material bodies, `techsets_mp_backlot2` (2 MB) | 0.85 s | 0.20 s | 4 ms |
+| 6 streamed images, `mp_backlot2` (156 MB, patched) | 3.2 s | 0.44 s | 60 ms |
+| 3 xmodels, `common_base_mp` (127 MB, patched) | 5.3 s | 0.40 s | 12 ms |
+| Load only, `common_mp` (712 MB, patched) | 9.4 s | 1.5 s | 4 ms |
+
+What changed: the stream hooks no longer build a trace event unless a trace is written; `manifest.json` is rewritten a few times per second instead of every 256 assets; loader memory is read directly instead of through `ReadProcessMemory`; fastfile blocks and patch windows are decoded on several threads into buffers that are not cleared first; the schema is indexed by name. `manifest.json` records where a run spent its time in `timing_ms` (`init`, `read`, `decompress`, `patch`, `load`, `export`, in milliseconds) and the stream memory in `stream_bytes`.
+
 ## Version and format boundaries
 
 Use `--geometry -a xmodelsurfs` to create GLB sidecars for a 3D viewer. Keep `--test` to encode and validate them only in memory. The journal records geometry status, surface/vertex/triangle counts, length, CRC32 and, for a disk export, `geometry_file`. This is base surface geometry; it does not assemble XModel LODs, assign game materials/textures, or implement skinning, morphs or subdivision. The matching XPak is still required for a streamed shared buffer.

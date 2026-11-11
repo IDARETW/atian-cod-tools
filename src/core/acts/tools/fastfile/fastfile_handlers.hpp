@@ -81,6 +81,11 @@ namespace fastfile {
     struct FastFileContext : ActsAPIFastFile_FastFileContext {
         core::memory_allocator::MemoryAllocator& zoneMemory;
         fastfile::flexible::FlexibleFastFileReader flexibleHeaderData{};
+        // A decompressor may hand over the decompressed stream here instead of in the ffdata vector: a vector
+        // zero-fills hundreds of megabytes that are overwritten at once (decodedSize is meaningful when decoded is
+        // set).
+        std::unique_ptr<byte[]> decoded{};
+        size_t decodedSize{};
         const char* GetFFType();
     };
 
@@ -133,6 +138,13 @@ namespace fastfile {
         uint32_t replayFileVersion{};
         uint32_t replayInputVersion{};
         std::vector<std::string> replayAppliedPatches;
+        // Wall-clock phase timings (ms) of the file being handled: file read, block decompression, delta patches.
+        // Filled by the loader and the decompressor; mw19replay publishes them as manifest.json "timing_ms".
+        double perfReadMs{}, perfDecompressMs{}, perfPatchMs{};
+        // mw19replay --serve: stay alive and answer export requests read from stdin, keeping loaded zones in memory
+        // (docs/mw19/fastfile.md, "Serve mode"). replayServeCacheMb bounds the memory of the retained zones.
+        bool replayServe{};
+        size_t replayServeCacheMb{ 2048 };
         // Revisions present in the 1.20 Replay install, including unchanged
         // transient zones retained from earlier builds. Native stream bounds
         // and complete-consumption checks still validate each serialized zone.
@@ -163,6 +175,9 @@ namespace fastfile {
         hook::module_mapper::Module& GetGameModule();
         std::vector<std::string> GetFileRecurse(const char* path);
         bool ReadFile(const char* path, std::vector<byte>& buff);
+        // Whole file into a buffer allocated without a fill pass; large files on a drive without seek penalty are
+        // read in parallel ranges.
+        bool ReadFile(const char* path, std::unique_ptr<byte[]>& buff, size_t& size);
         const char* GetTranslation(uint64_t key);
         const char* GetTranslation(const char* key);
         void LoadTranslationKeys();
@@ -298,6 +313,10 @@ namespace fastfile {
         virtual void Cleanup() {}
 
         virtual void Handle(FastFileOption& opt, core::bytebuffer::ByteBuffer& reader, FastFileContext& ctx) = 0;
+
+        // Request loop of a long-lived process (--serve). `load` runs the normal read / decompress / Handle path for
+        // one fastfile and returns true when Handle completed. Returns false when the handler has no serve mode.
+        virtual bool Serve(FastFileOption& opt, const std::function<bool(const char* file)>& load) { return false; }
     };
     const char* GetFastFilePlatformName(FastFilePlatform comp);
     const char* GetGameIdName(GameId id);

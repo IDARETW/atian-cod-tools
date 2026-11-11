@@ -3,6 +3,8 @@
 #include <xxhash.h>
 #include <acts_api_impl/api_impl.hpp>
 #include <hook/error.hpp>
+#include <atomic>
+#include <thread>
 
 namespace fastfile::bdiff {
     namespace {
@@ -651,6 +653,260 @@ namespace fastfile::bdiff {
 
         LOG_TRACE("bdiff end size: 0x{:x}", destdata.size());
         return destdata;
+    }
+
+    namespace {
+        // Bounded readers for the parallel path: a patch that runs out of bytes is left to the reference decoder.
+        struct PatchCursor {
+            const byte* at;
+            const byte* end;
+            bool ok{ true };
+
+            byte Byte() {
+                if (at >= end) {
+                    ok = false;
+                    return 0;
+                }
+                return *at++;
+            }
+            size_t ULEB128() {
+                size_t output{};
+                for (size_t i = 0; i < 10; i++) {
+                    if (at >= end)
+                        break;
+                    const byte c{ *at++ };
+                    output = (output << 7) | (c & 0x7F);
+                    if (!(c & 0x80))
+                        return output;
+                }
+                ok = false;
+                return 0;
+            }
+        };
+
+        struct PatchWindow {
+            const byte* segment; // source segment (null when the window has none)
+            size_t segmentLen;
+            const byte* data; // ADD / RUN bytes
+            const byte* inst; // instructions
+            const byte* addr; // COPY addresses, ends at check
+            const byte* check;
+            size_t destLen;
+            size_t destOffset;
+            uint32_t seed; // stored checksum of the previous window
+            uint32_t stored;
+            bool hasChecksum;
+        };
+
+        bool DecodeWindow(const PatchWindow& w, const byte* source, size_t sourceLen, byte* out, BDiffType type) {
+            VcdState vcd{};
+            PatchCursor inst{ w.inst, w.addr };
+            PatchCursor addr{ w.addr, w.check };
+            const byte* data{ w.data };
+            const byte* const dataEnd{ w.inst };
+            byte* const destStart{ out + w.destOffset };
+            byte* const destEnd{ destStart + w.destLen };
+            byte* dest{ destStart };
+            const byte* const sourceEnd{ source + sourceLen };
+
+            while (inst.at < inst.end) {
+                const DoubleInstruction* dinst{ &instructions[inst.Byte()] };
+                for (size_t i = 0; i < 2; i++) {
+                    const Instruction in{ dinst->instruction[i] };
+                    size_t ilen{ in.size };
+                    if (!ilen && in.op != VCDI_NOOP)
+                        ilen = inst.ULEB128();
+                    if (!inst.ok)
+                        return false;
+
+                    switch (in.op) {
+                    case VCDI_NOOP:
+                        break;
+                    case VCDI_ADD:
+                        if (ilen > (size_t)(dataEnd - data) || ilen > (size_t)(destEnd - dest))
+                            return false;
+                        std::memcpy(dest, data, ilen);
+                        data += ilen;
+                        dest += ilen;
+                        break;
+                    case VCDI_RUN:
+                        if (data >= dataEnd || ilen > (size_t)(destEnd - dest))
+                            return false;
+                        std::memset(dest, *(data++), ilen);
+                        dest += ilen;
+                        break;
+                    case VCDI_COPY: {
+                        const size_t here{ w.segmentLen + (size_t)(dest - destStart) };
+                        size_t address;
+                        if (in.mode == VCD_SELF) {
+                            address = addr.ULEB128();
+                        } else if (in.mode == VCD_HERE) {
+                            address = here - addr.ULEB128();
+                        } else if (in.mode >= 6) {
+                            address = vcd.asame[((size_t)(in.mode - 6) << 8) + addr.Byte()];
+                        } else {
+                            address = vcd.anear[in.mode - 2] + addr.ULEB128();
+                        }
+                        if (!addr.ok || ilen > (size_t)(destEnd - dest))
+                            return false;
+                        vcd.anear[vcd.next_slot] = address;
+                        vcd.next_slot = (vcd.next_slot + 1) & 3;
+                        vcd.asame[address % 0x300] = address;
+
+                        if (address < w.segmentLen) {
+                            // From the source segment (the reference decoder lets a copy run on into the source).
+                            if (!w.segment || ilen > (size_t)(sourceEnd - (w.segment + address)))
+                                return false;
+                            std::memcpy(dest, w.segment + address, ilen);
+                        } else {
+                            // From this window's own output; an overlapping copy repeats what it just wrote.
+                            const size_t back{ address - w.segmentLen };
+                            if (back >= (size_t)(dest - destStart))
+                                return false;
+                            const byte* from{ destStart + back };
+                            if (from + ilen <= dest) {
+                                std::memcpy(dest, from, ilen);
+                            } else {
+                                for (size_t k = 0; k < ilen; k++)
+                                    dest[k] = from[k];
+                            }
+                        }
+                        dest += ilen;
+                        break;
+                    }
+                    default:
+                        return false;
+                    }
+                }
+            }
+            if (dest != destEnd)
+                return false;
+
+            if (w.hasChecksum) {
+                switch (type) {
+                case BDT_TREYARCH:
+                    if (XXH32(destStart, w.destLen, 0) != w.stored)
+                        return false;
+                    break;
+                case BDT_IW: {
+                    const uint64_t xxh64{ XXH64(destStart, w.destLen, w.seed) };
+                    if ((uint32_t)(xxh64 ^ (xxh64 >> 32)) != w.stored)
+                        return false;
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+            return true;
+        }
+    } // namespace
+
+    bool bdiffParallel(
+        const byte* source, size_t sourceLen, const byte* patch, size_t patchLen, BDiffType type,
+        std::unique_ptr<byte[]>& out, size_t& outLen
+    ) {
+        out.reset();
+        outLen = 0;
+        if (patchLen < 5 || patch[0] != 0xD6 || patch[1] != 0xC3 || patch[2] != 0xC4 || (patch[4] & 0xF3) != 0)
+            return false;
+        const byte* const patchEnd{ patch + patchLen };
+
+        // Window headers, in file order.
+        std::vector<PatchWindow> windows;
+        size_t total{};
+        uint32_t lastChecksum{};
+        const byte* at{ patch + 5 };
+        while (at < patchEnd) {
+            PatchCursor header{ at, patchEnd };
+            const byte flags{ header.Byte() };
+            if ((flags & VCDF_MASK12) == VCDF_MASK12)
+                return false;
+            PatchWindow w{};
+            if (flags & VCDF_MASK12) {
+                w.segmentLen = header.ULEB128();
+                const size_t locationEx{ header.ULEB128() };
+                const size_t location{ flags & VCDF_SOURCE_SEGMENT_RELATIVE ? header.ULEB128() : locationEx };
+                if (!header.ok || location > locationEx || location > sourceLen)
+                    return false;
+                const size_t start{ locationEx - location };
+                if (start > sourceLen - location || w.segmentLen > sourceLen - location - start)
+                    return false;
+                w.segment = source + locationEx;
+            }
+            const size_t deltaLen{ header.ULEB128() };
+            const size_t checkLen{ flags & VCDF_CHECKSUM ? sizeof(uint32_t) : size_t{} };
+            if (!header.ok || deltaLen > (size_t)(patchEnd - header.at) ||
+                checkLen > (size_t)(patchEnd - header.at) - deltaLen)
+                return false;
+            PatchCursor delta{ header.at, header.at + deltaLen };
+            w.destLen = delta.ULEB128();
+            if (delta.Byte() != 0) // compressed sections are not used by the fastfile patches
+                return false;
+            const size_t dataLen{ delta.ULEB128() };
+            const size_t instLen{ delta.ULEB128() };
+            const size_t addrLen{ delta.ULEB128() };
+            if (!delta.ok)
+                return false;
+            const size_t sections{ (size_t)(delta.end - delta.at) };
+            if (dataLen > sections || instLen > sections - dataLen || addrLen != sections - dataLen - instLen)
+                return false;
+            w.data = delta.at;
+            w.inst = w.data + dataLen;
+            w.addr = w.inst + instLen;
+            w.check = w.addr + addrLen;
+            w.hasChecksum = checkLen != 0;
+            w.seed = lastChecksum;
+            if (w.hasChecksum) {
+                std::memcpy(&w.stored, w.check, sizeof(w.stored));
+                lastChecksum = w.stored;
+            }
+            if (w.destLen > (size_t{ 1 } << 40) || total > (size_t{ 1 } << 40))
+                return false;
+            w.destOffset = total;
+            total += w.destLen;
+            at = w.check + checkLen;
+            if (!w.destLen)
+                break; // the reference decoder stops at an empty window
+            windows.push_back(w);
+        }
+
+        std::unique_ptr<byte[]> data{ std::make_unique_for_overwrite<byte[]>(std::max<size_t>(total, 1)) };
+        std::atomic<size_t> next{ 0 };
+        std::atomic<bool> failed{ false };
+        auto worker = [&] {
+            while (!failed.load(std::memory_order_relaxed)) {
+                const size_t i{ next.fetch_add(1, std::memory_order_relaxed) };
+                if (i >= windows.size())
+                    return;
+                if (!DecodeWindow(windows[i], source, sourceLen, data.get(), type))
+                    failed.store(true);
+            }
+        };
+        const size_t threads{ std::max<size_t>(
+            1,
+            std::min({ (size_t)std::thread::hardware_concurrency(), size_t{ 12 }, windows.size(),
+                       total / (4 * 1024 * 1024) + 1 })
+        ) };
+        {
+            std::vector<std::thread> pool;
+            pool.reserve(threads - 1);
+            for (size_t t = 1; t < threads; t++)
+                pool.emplace_back(worker);
+            worker();
+            for (std::thread& t : pool)
+                t.join();
+        }
+        LOG_DEBUG(
+            "bdiff: {} window(s), 0x{:x} byte(s), {} thread(s){}", windows.size(), total, threads,
+            failed.load() ? ", failed a check" : ""
+        );
+        if (failed.load())
+            return false;
+
+        out = std::move(data);
+        outLen = total;
+        return true;
     }
 } // namespace fastfile::bdiff
 

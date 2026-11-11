@@ -1,4 +1,7 @@
 #include <includes.hpp>
+#include <atomic>
+#include <chrono>
+#include <thread>
 #include "fastfile_handlers.hpp"
 #include <decryptutils.hpp>
 #pragma warning(push)
@@ -450,6 +453,15 @@ namespace fastfile {
                 if (i + 1 == endIndex)
                     return false;
                 replayOodle = args[++i];
+            } else if (!_strcmpi("--serve", arg)) {
+                replayServe = true;
+            } else if (!_strcmpi("--serve-cache-mb", arg)) {
+                if (i + 1 == endIndex)
+                    return false;
+                std::string value{ args[++i] };
+                if (value.empty() || value.find_first_not_of("0123456789") != std::string::npos || value.size() > 6)
+                    return false;
+                replayServeCacheMb = std::stoul(value);
             } else if (!_strcmpi("--alpha", arg)) {
                 alpha = true;
             } else if (!_strcmpi("--assertContainer", arg)) {
@@ -546,6 +558,8 @@ namespace fastfile {
         LOG_INFO("--xpak [file]             : Replay streamed payload archive (repeatable)");
         LOG_INFO("--geometry                : Replay XModelSurfs base geometry GLB sidecars");
         LOG_INFO("--oodle [absolute DLL]    : Replay XPak Oodle decoder");
+        LOG_INFO("--serve                   : Replay request loop on stdin, loaded zones stay in memory");
+        LOG_INFO("--serve-cache-mb [MiB]    : Replay --serve memory budget for retained zones (default 2048)");
         LOG_INFO("--dumpBinaryAssets        : Dump binary assets");
         LOG_INFO("--dumpBinaryAssetsMap     : Dump binary assets map");
         LOG_INFO("--dumpAssetNames          : Dump binary assets");
@@ -693,6 +707,103 @@ namespace fastfile {
         }
 
         return utils::ReadFile(path, buff) && !buff.empty();
+    }
+
+    namespace {
+        // True when the volume of the file reports no seek penalty (SSD): only then are parallel ranges a gain.
+        bool HasNoSeekPenalty(const std::filesystem::path& file) {
+            std::error_code ec;
+            const std::wstring root{ std::filesystem::absolute(file, ec).root_name().wstring() };
+            if (ec || root.size() != 2 || root[1] != L':')
+                return false;
+            const std::wstring volume{ L"\\\\.\\" + root };
+            HANDLE h{ CreateFileW(
+                volume.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr
+            ) };
+            if (h == INVALID_HANDLE_VALUE)
+                return false;
+            STORAGE_PROPERTY_QUERY query{};
+            query.PropertyId = StorageDeviceSeekPenaltyProperty;
+            query.QueryType = PropertyStandardQuery;
+            DEVICE_SEEK_PENALTY_DESCRIPTOR result{};
+            DWORD bytes{};
+            const bool ok{ DeviceIoControl(
+                               h, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &result, sizeof(result),
+                               &bytes, nullptr
+                           ) &&
+                           bytes >= sizeof(result) };
+            CloseHandle(h);
+            return ok && !result.IncursSeekPenalty;
+        }
+
+        bool ReadRange(const wchar_t* path, byte* dest, uint64_t offset, uint64_t length) {
+            HANDLE h{ CreateFileW(
+                path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr
+            ) };
+            if (h == INVALID_HANDLE_VALUE)
+                return false;
+            bool ok{ true };
+            while (ok && length) {
+                OVERLAPPED at{};
+                at.Offset = (DWORD)offset;
+                at.OffsetHigh = (DWORD)(offset >> 32);
+                const DWORD want{ (DWORD)std::min<uint64_t>(length, 16ull << 20) };
+                DWORD got{};
+                ok = ::ReadFile(h, dest, want, &got, &at) && got;
+                dest += got;
+                offset += got;
+                length -= got;
+            }
+            CloseHandle(h);
+            return ok;
+        }
+    } // namespace
+
+    bool FastFileOption::ReadFile(const char* path, std::unique_ptr<byte[]>& buff, size_t& size) {
+        buff.reset();
+        size = 0;
+        if (cascStorage) {
+            std::vector<byte> data;
+            if (!ReadFile(path, data))
+                return false;
+            buff = std::make_unique_for_overwrite<byte[]>(data.size());
+            std::memcpy(buff.get(), data.data(), data.size());
+            size = data.size();
+            return true;
+        }
+        const std::filesystem::path file{ path };
+        std::error_code ec;
+        const uint64_t length{ std::filesystem::file_size(file, ec) };
+        if (ec || !length)
+            return false;
+        std::unique_ptr<byte[]> data{ std::make_unique_for_overwrite<byte[]>(length) };
+        constexpr uint64_t minRange = 8ull << 20;
+        size_t threads{ 1 };
+        if (length >= 2 * minRange && HasNoSeekPenalty(file))
+            threads = (size_t)std::min<uint64_t>({ length / minRange, 8, std::max(2u, std::thread::hardware_concurrency()) });
+        const std::wstring wide{ file.wstring() };
+        std::atomic<bool> ok{ true };
+        const uint64_t part{ (length / threads + 0xFFFF) & ~uint64_t{ 0xFFFF } };
+        auto readPart = [&](size_t i) {
+            const uint64_t begin{ std::min<uint64_t>(part * i, length) };
+            const uint64_t end{ i + 1 == threads ? length : std::min<uint64_t>(part * (i + 1), length) };
+            if (end > begin && !ReadRange(wide.c_str(), data.get() + begin, begin, end - begin))
+                ok.store(false);
+        };
+        {
+            std::vector<std::thread> pool;
+            pool.reserve(threads - 1);
+            for (size_t i = 1; i < threads; i++)
+                pool.emplace_back(readPart, i);
+            readPart(0);
+            for (std::thread& t : pool)
+                t.join();
+        }
+        if (!ok.load())
+            return false;
+        buff = std::move(data);
+        size = length;
+        return true;
     }
     const char* FastFileOption::GetTranslation(uint64_t key) {
         if (!(key & hash::MASK60)) {
@@ -956,7 +1067,8 @@ namespace fastfile {
       public:
         FastFileOption& opt;
         AssetPool assetPool;
-        std::vector<byte> buff{};
+        std::unique_ptr<byte[]> buff{};
+        size_t buffSize{};
         std::vector<byte> ffdata{};
         size_t count{}, completed{};
         FFDecompressor* lastDecompressor{};
@@ -1029,6 +1141,10 @@ namespace fastfile {
                 throw std::runtime_error("Replay test and package options require the mw19replay fastfile handler");
             if (opt.replayLimit != 1 && !opt.replayTest)
                 throw std::runtime_error("--limit-per-pool requires --test");
+            if (opt.replayServe && (!opt.handler || std::strcmp(opt.handler->name, "mw19replay")))
+                throw std::runtime_error("--serve requires the mw19replay fastfile handler");
+            if (opt.replayServe && (opt.replayStreamTrace || opt.dump_decompressed || opt.workflow != FFW_READER))
+                throw std::runtime_error("--serve cannot be combined with stream traces, dumps or asset-pool mode");
             if (opt.replayGeometry && opt.noAssetDump)
                 throw std::runtime_error("--geometry requires asset export; remove --noAssetDump");
             if (opt.replayTest && (opt.dump_decompressed || opt.m_header || opt.headerDump || opt.dumpBinaryAssets ||
@@ -1150,12 +1266,16 @@ namespace fastfile {
                 count++;
                 anyLoaded = true;
 
-                if (!opt.ReadFile(filename.data(), buff)) {
+                const auto readStart{ std::chrono::steady_clock::now() };
+                if (!opt.ReadFile(filename.data(), buff, buffSize)) {
                     LOG_ERROR("Can't read file {}", filename);
                     continue;
                 }
+                opt.perfReadMs =
+                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - readStart).count();
+                opt.perfDecompressMs = opt.perfPatchMs = 0;
 
-                core::bytebuffer::ByteBuffer reader{ buff };
+                core::bytebuffer::ByteBuffer reader{ buff.get(), buffSize };
 
                 if (!reader.CanRead(sizeof(uint64_t))) {
                     LOG_ERROR("Can't read file {}: too small", filename);
@@ -1193,7 +1313,14 @@ namespace fastfile {
 
                     decompressor->LoadFastFile(opt, reader, ctx, ffdata);
 
-                    LOG_TRACE("Decompressed 0x{:x} byte(s)", ffdata.size());
+                    // The decompressed stream: the context's buffer when the decompressor filled it, else the vector.
+                    byte* const streamData{ ctx.decoded ? ctx.decoded.get() : ffdata.data() };
+                    const size_t streamSize{ ctx.decoded ? ctx.decodedSize : ffdata.size() };
+                    // The file image is not read again once the stream is decompressed.
+                    buff.reset();
+                    buffSize = 0;
+
+                    LOG_TRACE("Decompressed 0x{:x} byte(s)", streamSize);
 
                     if (opt.dump_decompressed) {
                         std::filesystem::path of{ ctx.file };
@@ -1202,7 +1329,7 @@ namespace fastfile {
                         decfile.replace_extension(".ff.dec");
 
                         std::filesystem::create_directories(decfile.parent_path());
-                        if (!utils::WriteFile(decfile, ffdata.data(), ffdata.size())) {
+                        if (!utils::WriteFile(decfile, streamData, streamSize)) {
                             LOG_ERROR("Can't dump {}", decfile.string());
                         } else {
                             LOG_INFO("Dump into {}", decfile.string());
@@ -1210,7 +1337,7 @@ namespace fastfile {
                     }
 
                     if (opt.handler) {
-                        core::bytebuffer::ByteBuffer ffreader{ ffdata };
+                        core::bytebuffer::ByteBuffer ffreader{ streamData, streamSize };
                         LOG_TRACE("Reading using {}", opt.handler->name);
                         opt.handler->Handle(opt, ffreader, ctx);
                     }
@@ -1324,7 +1451,8 @@ namespace fastfile {
             opt.PrintHelp();
             return tool::BASIC_ERROR;
         }
-        if (opt.m_help || (opt.files.empty() && !((anyPrint = PrintAny(opt)) || workflow == FFW_ASSET_POOL))) {
+        if (opt.m_help ||
+            (opt.files.empty() && !opt.replayServe && !((anyPrint = PrintAny(opt)) || workflow == FFW_ASSET_POOL))) {
             opt.PrintHelp();
             if (opt.files.empty() && !opt.handler) {
                 LOG_ERROR("Missing entry");
@@ -1339,6 +1467,25 @@ namespace fastfile {
         FFLoadContext cc{ opt };
 
         cc.Init();
+
+        if (opt.replayServe) {
+            // Requests name their own fastfile; files given on the command line are loaded (and retained) first.
+            const bool served{ opt.handler->Serve(opt, [&cc](const char* file) {
+                const size_t before{ cc.completed };
+                cc.LoadFastFile(file);
+                // The file image and the decompressed stream are only needed while loading.
+                cc.buff.reset();
+                cc.buffSize = 0;
+                std::vector<byte>{}.swap(cc.ffdata);
+                return cc.completed != before;
+            }) };
+            currentOpt = nullptr;
+            if (!served) {
+                LOG_ERROR("The {} handler has no --serve mode", opt.handler->name);
+                return tool::BASIC_ERROR;
+            }
+            return tool::OK;
+        }
 
         for (const char* f : opt.files) {
             cc.LoadFastFile(f, opt.wildcard, opt.ignoreWildcard);

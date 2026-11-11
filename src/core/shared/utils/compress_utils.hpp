@@ -72,6 +72,20 @@ namespace utils::compress {
         return Decompress2(alg, dest, destSize, src, srcSize) >= 0;
     }
 
+    struct DecompressJob {
+        const void* src;
+        size_t srcSize;
+        void* dest;
+        size_t destSize;
+    };
+    // Decompress independent blocks, each into its own destination, on several threads (maxThreads 0 = automatic).
+    // Returns the index of the first job that failed with its Decompress2 result in *result, or jobCount when every
+    // job decoded. An exception thrown by a decoder is rethrown on the calling thread.
+    size_t DecompressBlocks(
+        CompressionAlgorithm alg, const DecompressJob* jobs, size_t jobCount, int* result = nullptr,
+        size_t maxThreads = 0
+    );
+
     std::vector<byte> Decompress(CompressionAlgorithm alg, const void* src, size_t srcSize, float increaseFactor = 1.5);
     int Decompress(
         CompressionAlgorithm alg, std::vector<byte>& vec, const void* src, size_t srcSize, float increaseFactor = 1.5

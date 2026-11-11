@@ -24,10 +24,18 @@ namespace tool::mw19::schema {
                 throw std::runtime_error("address overflow");
             return a + b;
         }
+        // "0x" and lowercase digits without padding (what a hex stream insertion prints).
         std::string Hex(uint64_t n) {
-            std::ostringstream out;
-            out << "0x" << std::hex << n;
-            return out.str();
+            constexpr char digits[] = "0123456789abcdef";
+            char text[18];
+            char* at = text + sizeof(text);
+            do {
+                *--at = digits[n & 15];
+                n >>= 4;
+            } while (n);
+            *--at = 'x';
+            *--at = '0';
+            return std::string(at, text + sizeof(text));
         }
         std::string HexBytes(const std::vector<uint8_t>& data) {
             constexpr char hex[] = "0123456789abcdef";
@@ -48,6 +56,87 @@ namespace tool::mw19::schema {
                 result[key + "_bytes"] = HexBytes({ value.begin(), value.end() });
             }
         }
+        // Builds the document of a JSON text. The library's own DOM parser inserts every object member through
+        // the ordered map's lookup, a linear search per member: quadratic for the schema's "types" object, which
+        // has thousands of entries, and most of the start-up time of a run. This handler appends members as they
+        // come and reports duplicate keys instead of resolving them, so that the caller can use the library
+        // parser (which keeps the first position and the last value) for such a document.
+        class DocumentBuilder final : public nlohmann::json_sax<Json> {
+            Json& root;
+            std::vector<Json*> open;
+            std::string pending;
+            bool hasRoot{};
+
+            Json* Put(Json&& value) {
+                if (open.empty()) {
+                    if (hasRoot)
+                        return nullptr;
+                    hasRoot = true;
+                    root = std::move(value);
+                    return &root;
+                }
+                Json* parent = open.back();
+                if (parent->is_array()) {
+                    auto& items = parent->get_ref<Json::array_t&>();
+                    items.push_back(std::move(value));
+                    return &items.back();
+                }
+                // The ordered map is a vector of pairs: the vector's own emplace_back skips the key search.
+                auto& members = parent->get_ref<Json::object_t&>();
+                members.emplace_back(std::move(pending), std::move(value));
+                return &members.back().second;
+            }
+
+          public:
+            bool duplicateKeys{};
+            std::string error;
+            explicit DocumentBuilder(Json& document) : root(document) {}
+            bool null() override { return Put(Json(nullptr)) != nullptr; }
+            bool boolean(bool value) override { return Put(Json(value)) != nullptr; }
+            bool number_integer(number_integer_t value) override { return Put(Json(value)) != nullptr; }
+            bool number_unsigned(number_unsigned_t value) override { return Put(Json(value)) != nullptr; }
+            bool number_float(number_float_t value, const string_t&) override { return Put(Json(value)) != nullptr; }
+            bool string(string_t& value) override { return Put(Json(std::move(value))) != nullptr; }
+            bool binary(binary_t&) override { return false; }
+            bool start_object(std::size_t) override {
+                Json* object = Put(Json::object());
+                if (object)
+                    open.push_back(object);
+                return object != nullptr;
+            }
+            bool key(string_t& value) override {
+                pending = std::move(value);
+                return true;
+            }
+            bool end_object() override {
+                const auto& members = open.back()->get_ref<const Json::object_t&>();
+                if (members.size() > 1) {
+                    std::vector<std::string_view> keys;
+                    keys.reserve(members.size());
+                    for (const auto& member : members)
+                        keys.emplace_back(member.first);
+                    std::sort(keys.begin(), keys.end());
+                    if (std::adjacent_find(keys.begin(), keys.end()) != keys.end())
+                        duplicateKeys = true;
+                }
+                open.pop_back();
+                return true;
+            }
+            bool start_array(std::size_t) override {
+                Json* array = Put(Json::array());
+                if (array)
+                    open.push_back(array);
+                return array != nullptr;
+            }
+            bool end_array() override {
+                open.pop_back();
+                return true;
+            }
+            bool parse_error(std::size_t, const std::string&, const nlohmann::detail::exception& problem) override {
+                error = problem.what();
+                return false;
+            }
+        };
         template<typename T>
         T ReadExact(const MemoryReader& read, uint64_t address) {
             T result{};
@@ -58,15 +147,78 @@ namespace tool::mw19::schema {
     } // namespace
 
     Database::Database(const std::filesystem::path& path) {
-        std::ifstream in(path);
+        // Parsed from memory: reading a few megabytes of JSON through a text stream costs several times the parse.
+        std::ifstream in(path, std::ios::binary | std::ios::ate);
         if (!in)
             throw std::runtime_error("Cannot open MW2019 schema: " + path.string());
-        in >> document;
+        std::string text(static_cast<size_t>(in.tellg()), '\0');
+        in.seekg(0);
+        in.read(text.data(), static_cast<std::streamsize>(text.size()));
+        if (!in)
+            throw std::runtime_error("Cannot read MW2019 schema: " + path.string());
+        DocumentBuilder builder(document);
+        if (!Json::sax_parse(text, &builder) || builder.duplicateKeys)
+            document = Json::parse(text); // the library's result, or its error
+        BuildIndex();
         Validate();
     }
-    Database::Database(Json value) : document(std::move(value)) { Validate(); }
+    Database::Database(Json value) : document(std::move(value)) {
+        BuildIndex();
+        Validate();
+    }
+    void Database::BuildIndex() {
+        const auto index = [&](const char* section, Index& out) {
+            out.clear();
+            if (!document.contains(section) || !document.at(section).is_object())
+                return;
+            const auto& object = document.at(section);
+            out.reserve(object.size());
+            for (auto it = object.begin(); it != object.end(); ++it)
+                out.emplace(it.key(), &it.value());
+        };
+        index("types", typeIndex);
+        index("pointer_rules", pointerRuleIndex);
+        index("union_rules", unionRuleIndex);
+        profileTypes.clear();
+        profileRootPools.clear();
+    }
     const Json& Database::Profile(const std::string& id) const { return document.at("profiles").at(id); }
-    const Json& Database::Type(const std::string& name) const { return document.at("types").at(name); }
+    const Json& Database::Type(const std::string& name) const {
+        if (const auto it = typeIndex.find(name); it != typeIndex.end())
+            return *it->second;
+        return document.at("types").at(name); // reports the missing key
+    }
+    const Json& Database::ProfileType(const std::string& profileId, const std::string& name) const {
+        Index& cache = profileTypes[profileId];
+        if (const auto it = cache.find(name); it != cache.end())
+            return *it->second;
+        const auto& profile = Profile(profileId);
+        const Json* type = profile.contains("type_overrides") && profile.at("type_overrides").contains(name)
+                               ? &Type(profile.at("type_overrides").at(name).get<std::string>())
+                               : &Type(name);
+        cache.emplace(name, type);
+        return *type;
+    }
+    const Json* Database::PoolByRootType(const std::string& profileId, const std::string& rootType) const {
+        auto found = profileRootPools.find(profileId);
+        if (found == profileRootPools.end()) {
+            Index pools;
+            for (const auto& pool : Profile(profileId).at("pools"))
+                if (pool.at("root_type").is_string())
+                    pools.emplace(pool.at("root_type").get<std::string>(), &pool);
+            found = profileRootPools.emplace(profileId, std::move(pools)).first;
+        }
+        const auto it = found->second.find(rootType);
+        return it == found->second.end() ? nullptr : it->second;
+    }
+    const Json* Database::PointerRules(const std::string& structName) const {
+        const auto it = pointerRuleIndex.find(structName);
+        return it == pointerRuleIndex.end() ? nullptr : it->second;
+    }
+    const Json* Database::UnionRule(const std::string& unionName) const {
+        const auto it = unionRuleIndex.find(unionName);
+        return it == unionRuleIndex.end() ? nullptr : it->second;
+    }
     const Json& Database::Pool(const Json& profile, const std::string& name) const {
         for (const auto& pool : profile.at("pools")) {
             if (pool.at("name") == name || std::to_string(pool.at("id").get<unsigned>()) == name)
@@ -293,13 +445,7 @@ namespace tool::mw19::schema {
 
     Inspector::Inspector(const Database& db, MemoryReader reader, Limits lim, std::string profile)
         : database(db), read(std::move(reader)), limits(lim), profileId(std::move(profile)) {}
-    const Json& Inspector::Type(const std::string& name) const {
-        const auto& profile = database.Profile(profileId);
-        if (profile.contains("type_overrides") && profile.at("type_overrides").contains(name)) {
-            return database.Type(profile.at("type_overrides").at(name));
-        }
-        return database.Type(name);
-    }
+    const Json& Inspector::Type(const std::string& name) const { return database.ProfileType(profileId, name); }
     uint64_t Inspector::Count(const Json& expr, size_t depth) {
         if (depth > 32)
             throw std::runtime_error("Count expression depth exceeded");
@@ -483,8 +629,8 @@ namespace tool::mw19::schema {
     Json Inspector::Union(const std::string& name, const Json& type, uint64_t address, size_t depth) {
         const auto bytes = Read(address, type.at("size"));
         Json result{ { "bytes", HexBytes(bytes) } };
-        if (database.document.contains("union_rules") && database.document.at("union_rules").contains(name)) {
-            const auto& rule = database.document.at("union_rules").at(name);
+        if (const Json* unionRule = database.UnionRule(name)) {
+            const auto& rule = *unionRule;
             const auto selector = Count(rule.at("selector"));
             result["selector"] = selector;
             result["selector_evidence"] = rule.at("evidence");
@@ -572,28 +718,15 @@ namespace tool::mw19::schema {
         // Assets are named references. Each asset's own entry is the unit of
         // export, so a weapon's image reference must not duplicate an image
         // and its GPU state inside every weapon JSON document.
-        for (const auto& pool : database.Profile(profileId).at("pools")) {
-            if (pool.at("root_type") != target)
-                continue;
-            if (rule && Count(rule->at("count")) != 1)
-                break;
+        if (const Json* pool = database.PoolByRootType(profileId, target);
+            pool && !(rule && Count(rule->at("count")) != 1)) {
             result["asset_reference"] = true;
-            auto namePointer = Unsigned(Add(ptr, pool.at("name_offset").get<uint64_t>()), 8);
-            MemoryReader bounded = [this](uint64_t a, void* b, size_t n) {
-                auto data = Read(a, n);
-                std::memcpy(b, data.data(), n);
-                return true;
-            };
-            StoreString(result, "name", ReadString(bounded, namePointer, limits.maxString));
+            auto namePointer = Unsigned(Add(ptr, pool->at("name_offset").get<uint64_t>()), 8);
+            StoreString(result, "name", String(namePointer));
             return result;
         }
         if (!rule && (target == "char" || target == "const char")) {
-            MemoryReader bounded = [this](uint64_t a, void* b, size_t n) {
-                auto data = Read(a, n);
-                std::memcpy(b, data.data(), n);
-                return true;
-            };
-            StoreString(result, "string", ReadString(bounded, ptr, limits.maxString));
+            StoreString(result, "string", String(ptr));
         } else if (rule) {
             const auto count = Count(rule->at("count"));
             const auto stride = Type(target).at("size").get<uint64_t>();
@@ -652,13 +785,38 @@ namespace tool::mw19::schema {
             throw std::runtime_error("Unreadable memory at " + Hex(address));
         return data;
     }
+    // Read() without the vector: scalars are most of what an inspection reads.
     uint64_t Inspector::Unsigned(uint64_t address, size_t size) {
         if (size > 8)
             throw std::runtime_error("Invalid integer width");
-        auto data = Read(address, size);
+        if (size > limits.maxBytes - bytes)
+            throw std::runtime_error("Byte budget exceeded");
+        Add(address, size);
+        bytes += size;
         uint64_t value{};
-        std::memcpy(&value, data.data(), size);
+        if (size && (!address || !read(address, &value, size)))
+            throw std::runtime_error("Unreadable memory at " + Hex(address));
         return value;
+    }
+    // ReadString() over Read(): the same checks, byte accounting and errors, one character at a time.
+    std::string Inspector::String(uint64_t address) {
+        if (!address)
+            throw std::runtime_error("null string");
+        std::string result;
+        for (size_t i = 0; i < limits.maxString; i++) {
+            const uint64_t at = Add(address, i);
+            if (!(limits.maxBytes - bytes))
+                throw std::runtime_error("Byte budget exceeded");
+            Add(at, 1);
+            bytes += 1;
+            char c{};
+            if (!at || !read(at, &c, 1))
+                throw std::runtime_error("Unreadable memory at " + Hex(at));
+            if (!c)
+                return result;
+            result.push_back(c);
+        }
+        throw std::runtime_error("unterminated string at " + Hex(address));
     }
     Json Inspector::Value(const std::string& name, uint64_t address, size_t depth, const Json* rule) {
         try {
@@ -708,14 +866,20 @@ namespace tool::mw19::schema {
                     ~PopContext() { stack.pop_back(); }
                 } pop{ contexts };
                 if (kind == "union") {
-                    if (ContainsPointers(name) || (database.document.contains("union_rules") &&
-                                                   database.document.at("union_rules").contains(name))) {
+                    if (ContainsPointers(name) || database.UnionRule(name)) {
                         return Union(name, type, address, depth);
                     }
                     // Value-only unions have no external data to lose. Export
                     // each explicitly labelled bitwise view, including vectors
                     // and packed flags, without pretending one view is active.
                     result["$union_views"] = true;
+                }
+                // Pointer rules of this struct: by its native name first, then by the name it was reached with.
+                const Json* nativeRules{};
+                const Json* namedRules{};
+                if (kind != "union") {
+                    nativeRules = database.PointerRules(type.at("name").get<std::string>());
+                    namedRules = database.PointerRules(name);
                 }
                 for (const auto& member : type.at("members")) {
                     auto offset = member.at("offset_bits").get<uint64_t>();
@@ -729,14 +893,10 @@ namespace tool::mw19::schema {
                         result[memberName] = bits == 64 ? value : value & ((uint64_t{ 1 } << bits) - 1);
                     } else {
                         const Json* rule{};
-                        if (kind != "union" && database.document.contains("pointer_rules")) {
-                            const auto& rules = database.document.at("pointer_rules");
-                            const auto nativeName = type.at("name").get<std::string>();
-                            if (rules.contains(nativeName) && rules.at(nativeName).contains(memberName))
-                                rule = &rules.at(nativeName).at(memberName);
-                            else if (rules.contains(name) && rules.at(name).contains(memberName))
-                                rule = &rules.at(name).at(memberName);
-                        }
+                        if (nativeRules && nativeRules->contains(memberName))
+                            rule = &nativeRules->at(memberName);
+                        else if (namedRules && namedRules->contains(memberName))
+                            rule = &namedRules->at(memberName);
                         result[memberName] = Value(memberType, Add(address, offset / 8), depth + 1, rule);
                     }
                 }

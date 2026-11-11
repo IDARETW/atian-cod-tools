@@ -7,6 +7,7 @@
 #include <set>
 #include <tuple>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace tool::mw19::schema {
@@ -23,6 +24,14 @@ namespace tool::mw19::schema {
     };
 
     class Database {
+        // The document is an ordered JSON object: a lookup by key walks its entries. Types and rules are resolved
+        // by name for every member of every node an inspection visits, so they are indexed once (first entry of a
+        // name wins, as a document lookup would give). The document must not change after construction.
+        using Index = std::unordered_map<std::string, const Json*>;
+        Index typeIndex, pointerRuleIndex, unionRuleIndex;
+        mutable std::unordered_map<std::string, Index> profileTypes, profileRootPools;
+        void BuildIndex();
+
       public:
         Json document;
         explicit Database(const std::filesystem::path& path);
@@ -31,6 +40,13 @@ namespace tool::mw19::schema {
         const Json& Type(const std::string& name) const;
         const Json& Pool(const Json& profile, const std::string& name) const;
         void Validate() const;
+        // Type(name) after the profile's type_overrides.
+        const Json& ProfileType(const std::string& profileId, const std::string& name) const;
+        // First pool of the profile whose root_type is the given type, or null.
+        const Json* PoolByRootType(const std::string& profileId, const std::string& rootType) const;
+        // document["pointer_rules"][structName] / document["union_rules"][unionName], or null.
+        const Json* PointerRules(const std::string& structName) const;
+        const Json* UnionRule(const std::string& unionName) const;
     };
 
     struct AssetEntry {
@@ -73,6 +89,7 @@ namespace tool::mw19::schema {
         std::vector<uint8_t> Read(uint64_t address, size_t length);
         Json Value(const std::string& type, uint64_t address, size_t depth, const Json* rule = nullptr);
         uint64_t Unsigned(uint64_t address, size_t size);
+        std::string String(uint64_t address);
 
       public:
         Inspector(const Database& database, MemoryReader read, Limits limits = {}, std::string profileId = "game-test");

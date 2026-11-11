@@ -24,6 +24,10 @@
 #endif
 
 #include <utils/compress_utils.hpp>
+#include <atomic>
+#include <exception>
+#include <mutex>
+#include <thread>
 
 namespace utils::compress {
     namespace {
@@ -140,6 +144,82 @@ namespace utils::compress {
             throw std::runtime_error(std::format("Can't decompress {}", alg));
             return DecompressResult::DCOMP_BAD_ALGORITHM;
         }
+    }
+
+    size_t DecompressBlocks(
+        CompressionAlgorithm alg, const DecompressJob* jobs, size_t jobCount, int* result, size_t maxThreads
+    ) {
+        if (!jobCount)
+            return 0;
+        auto run = [alg, jobs](size_t i) {
+            const DecompressJob& job{ jobs[i] };
+            return Decompress2(alg, job.dest, job.destSize, job.src, job.srcSize);
+        };
+        // The first block runs here: it loads the decoder library once, and its error or exception needs no thread.
+        const int first{ run(0) };
+        if (first < 0) {
+            if (result)
+                *result = first;
+            return 0;
+        }
+        if (jobCount == 1)
+            return 1;
+
+        size_t input{};
+        for (size_t i = 1; i < jobCount; i++)
+            input += jobs[i].srcSize;
+        size_t threads{ maxThreads ? maxThreads : std::min<size_t>(std::thread::hardware_concurrency(), 12) };
+        // A thread is only worth starting for a few megabytes of input.
+        threads = std::max<size_t>(1, std::min({ threads, jobCount - 1, input / (2 * 1024 * 1024) + 1 }));
+
+        std::atomic<size_t> next{ 1 };
+        std::atomic<bool> stop{ false };
+        std::mutex failLock;
+        size_t failIndex{ jobCount };
+        int failCode{};
+        std::exception_ptr failure;
+        auto worker = [&] {
+            try {
+                while (!stop.load(std::memory_order_relaxed)) {
+                    // Blocks are small (tens to hundreds of KiB): take them in runs to keep the counter quiet.
+                    const size_t begin{ next.fetch_add(8, std::memory_order_relaxed) };
+                    if (begin >= jobCount)
+                        return;
+                    const size_t end{ std::min(begin + 8, jobCount) };
+                    for (size_t i = begin; i < end; i++) {
+                        const int r{ run(i) };
+                        if (r >= 0)
+                            continue;
+                        std::lock_guard lock{ failLock };
+                        if (i < failIndex) {
+                            failIndex = i;
+                            failCode = r;
+                        }
+                        stop.store(true);
+                        return;
+                    }
+                }
+            } catch (...) {
+                std::lock_guard lock{ failLock };
+                if (!failure)
+                    failure = std::current_exception();
+                stop.store(true);
+            }
+        };
+        {
+            std::vector<std::thread> pool;
+            pool.reserve(threads - 1);
+            for (size_t t = 1; t < threads; t++)
+                pool.emplace_back(worker);
+            worker();
+            for (std::thread& t : pool)
+                t.join();
+        }
+        if (failure)
+            std::rethrow_exception(failure);
+        if (failIndex < jobCount && result)
+            *result = failCode;
+        return failIndex;
     }
 
     int Decompress(

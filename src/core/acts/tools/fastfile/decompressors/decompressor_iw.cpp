@@ -8,6 +8,7 @@
 #include <utils/compress_utils.hpp>
 #include <utils/data_utils.hpp>
 #include <tools/fastfile/fastfile_bdiff.hpp>
+#include <chrono>
 
 namespace {
     constexpr uint64_t IW_FF_MAGIC_MASK = 0xFFFFFF00FFFFFFFF;
@@ -401,6 +402,60 @@ namespace {
         }
     }
 
+    double MsSince(std::chrono::steady_clock::time_point start) {
+        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    }
+
+    // One compressed block of a fastfile stream and where its bytes go in the decompressed stream.
+    struct PendingBlock {
+        const byte* src;
+        uint32_t compressedSize;
+        uint32_t uncompressedSize;
+        size_t dest;
+        size_t loc;
+    };
+
+    // A decompressed stream. The buffer is allocated without a fill pass: the decoder threads are the first to
+    // touch its pages.
+    struct Stream {
+        std::unique_ptr<byte[]> data{};
+        size_t size{};
+
+        void Allocate(size_t bytes) {
+            data = std::make_unique_for_overwrite<byte[]>(std::max<size_t>(bytes, 1));
+            size = bytes;
+        }
+        void Clear() {
+            data.reset();
+            size = 0;
+        }
+    };
+
+    // Blocks are compressed independently: decode them on several threads into one buffer sized up front.
+    void DecompressPendingBlocks(
+        utils::compress::CompressionAlgorithm alg, const std::vector<PendingBlock>& blocks, Stream& out, size_t total
+    ) {
+        out.Allocate(total);
+        if (blocks.empty())
+            return;
+        std::vector<utils::compress::DecompressJob> jobs;
+        jobs.reserve(blocks.size());
+        for (const PendingBlock& block : blocks)
+            jobs.push_back({ block.src, block.compressedSize, out.data.get() + block.dest, block.uncompressedSize });
+        int r{};
+        const size_t failed{ utils::compress::DecompressBlocks(alg, jobs.data(), jobs.size(), &r) };
+        if (failed < jobs.size()) {
+            throw std::runtime_error(
+                std::format(
+                    "Can't decompress block 0x{:x}: {} ({})",
+                    blocks[failed].loc,
+                    utils::compress::DecompressResultName(r),
+                    r
+                )
+            );
+        }
+    }
+
     struct DBUnpackHeaderCtxLoadData {
         // uint64_t unk0;
         // char** unk8;
@@ -712,10 +767,16 @@ namespace {
             size_t offset{};
             size_t count{};
             ffdata.clear();
+            ctx.decoded.reset();
+            ctx.decodedSize = 0;
+            Stream stream{};
+            const auto decompressStart{ std::chrono::steady_clock::now() };
+            std::vector<PendingBlock> pending;
 
             if (storedIwc) {
                 const byte* begin{ reader.ReadPtr<byte>(endSize) };
-                ffdata.assign(begin, begin + endSize);
+                stream.Allocate(endSize);
+                std::memcpy(stream.data.get(), begin, endSize);
                 offset = endSize;
             }
 
@@ -759,30 +820,16 @@ namespace {
 
                 byte* blockBuff{ reader.ReadPtr<byte>(alignedSize) };
 
-                // allc data
-                ffdata.resize(offset + block->uncompressedSize);
-
-                byte* decompressed{ &ffdata[offset] };
+                pending.push_back({ blockBuff, block->compressedSize, block->uncompressedSize, offset, loc });
                 offset += block->uncompressedSize;
-
-                int r{ utils::compress::Decompress2(
-                    alg,
-                    decompressed,
-                    block->uncompressedSize,
-                    blockBuff,
-                    block->compressedSize
-                ) };
-                if (r < 0) {
-                    throw std::runtime_error(
-                        std::format(
-                            "Can't decompress block 0x{:x}: {} ({})",
-                            loc,
-                            utils::compress::DecompressResultName(r),
-                            r
-                        )
-                    );
-                }
             }
+            if (!storedIwc)
+                DecompressPendingBlocks(alg, pending, stream, offset);
+            opt.perfDecompressMs += MsSince(decompressStart);
+            LOG_DEBUG(
+                "{} block(s), 0x{:x} byte(s) decompressed in {:.1f} ms", pending.size(), stream.size,
+                MsSince(decompressStart)
+            );
 
             if (opt.dump_decompressed) {
                 std::filesystem::path of{ ctx.file };
@@ -791,7 +838,7 @@ namespace {
                 decfile.replace_extension(".ff.dec");
 
                 std::filesystem::create_directories(decfile.parent_path());
-                if (!utils::WriteFile(decfile, ffdata)) {
+                if (!utils::WriteFile(decfile, stream.data.get(), stream.size)) {
                     LOG_ERROR("Can't dump {}", decfile.string());
                 } else {
                     LOG_INFO("Dump ff into {}", decfile.string());
@@ -799,11 +846,11 @@ namespace {
             }
 
             if (opt.m_header) {
-                WriteHeaderFile("Decompressed size: 0x{:x}", ffdata.size());
+                WriteHeaderFile("Decompressed size: 0x{:x}", stream.size);
             }
 
             auto ApplyDeltaFile =
-                [&ffdata, &ffHeader, &header, &opt, &ctx, &hos, &secure, &compressDataHeader, &secureType](
+                [&stream, &ffHeader, &header, &opt, &ctx, &hos, &secure, &compressDataHeader, &secureType](
                     std::vector<byte>& deltaFile,
                     const std::filesystem::path& path,
                     const char* deltaType
@@ -925,15 +972,15 @@ namespace {
                             // revision while retaining the entire base payload.
                             auto expected = prevHeader.mw19;
                             expected.xfileVersion = newHeader.mw19.xfileVersion;
-                            if (newHeader.mw19.size == ffdata.size() &&
+                            if (newHeader.mw19.size == stream.size &&
                                 !std::memcmp(&expected, &newHeader.mw19, sizeof(expected))) {
-                                LOG_OPT_INFO("Replay header-only patch: retaining {} serialized bytes", ffdata.size());
+                                LOG_OPT_INFO("Replay header-only patch: retaining {} serialized bytes", stream.size);
                                 return;
                             }
                             if (newHeader.mw19.size)
                                 throw std::runtime_error("Replay patch changes payload metadata but has no delta data");
                         }
-                        ffdata = {};
+                        stream.Clear();
                         return;
                     }
 
@@ -1046,10 +1093,11 @@ namespace {
                         fpreader.Loc()
                     );
                     // load fp data
-                    std::vector<byte> fpdata{};
+                    Stream fpdata{};
 
                     size_t countfp{};
                     size_t offsetpatch{};
+                    std::vector<PendingBlock> pendingfp;
                     while (fpreader.CanRead(sizeof(uint32_t) * 3)) {
                         size_t id{ countfp++ };
 
@@ -1089,30 +1137,17 @@ namespace {
 
                         byte* blockBuff{ fpreader.ReadPtr<byte>(alignedSize) };
 
-                        // allc data
-                        fpdata.resize(offsetpatch + block->uncompressedSize);
-
-                        byte* decompressed{ &fpdata[offsetpatch] };
+                        pendingfp.push_back(
+                            { blockBuff, block->compressedSize, block->uncompressedSize, offsetpatch, loc }
+                        );
                         offsetpatch += block->uncompressedSize;
-
-                        int r{ utils::compress::Decompress2(
-                            alg,
-                            decompressed,
-                            block->uncompressedSize,
-                            blockBuff,
-                            block->compressedSize
-                        ) };
-                        if (r < 0) {
-                            throw std::runtime_error(
-                                std::format(
-                                    "Can't decompress block 0x{:x}: {} ({})",
-                                    loc,
-                                    utils::compress::DecompressResultName(r),
-                                    r
-                                )
-                            );
-                        }
                     }
+                    const auto patchDecodeStart{ std::chrono::steady_clock::now() };
+                    DecompressPendingBlocks(alg, pendingfp, fpdata, offsetpatch);
+                    LOG_DEBUG(
+                        "{} patch: {} block(s), 0x{:x} byte(s) decompressed in {:.1f} ms", deltaType, pendingfp.size(),
+                        fpdata.size, MsSince(patchDecodeStart)
+                    );
 
                     if (opt.dump_decompressed) {
                         std::filesystem::path of{ ctx.file };
@@ -1121,20 +1156,35 @@ namespace {
                         decfile.replace_extension(std::format(".{}.dec", deltaType));
 
                         std::filesystem::create_directories(decfile.parent_path());
-                        if (!utils::WriteFile(decfile, fpdata)) {
+                        if (!utils::WriteFile(decfile, fpdata.data.get(), fpdata.size)) {
                             LOG_ERROR("Can't dump {}", decfile.string());
                         } else {
                             LOG_INFO("Dump fp patch into {}", decfile.string());
                         }
                     }
 
-                    LOG_TRACE("Loaded {} 0x{:x} bytes", fpdata.size(), fpdata.size());
+                    LOG_TRACE("Loaded {} 0x{:x} bytes", fpdata.size, fpdata.size);
                     LOG_TRACE("rem: pd:0x{:x}", fpreader.Remaining());
 
-                    core::bytebuffer::ByteBuffer ffbb{ ffdata };
-                    core::bytebuffer::ByteBuffer fdbb{ fpdata };
-
-                    ffdata = fastfile::bdiff::bdiff(&ffbb, &fdbb, fastfile::bdiff::BDiffType::BDT_IW);
+                    const auto bdiffStart{ std::chrono::steady_clock::now() };
+                    Stream patched{};
+                    if (!fastfile::bdiff::bdiffParallel(
+                            stream.data.get(), stream.size, fpdata.data.get(), fpdata.size,
+                            fastfile::bdiff::BDiffType::BDT_IW, patched.data, patched.size
+                        )) {
+                        // Not the plain window layout (or a window failed a check): the reference decoder gives
+                        // the result, or the error.
+                        LOG_DEBUG("bdiff: using the sequential decoder");
+                        core::bytebuffer::ByteBuffer ffbb{ stream.data.get(), stream.size };
+                        core::bytebuffer::ByteBuffer fdbb{ fpdata.data.get(), fpdata.size };
+                        const std::vector<byte> sequential{
+                            fastfile::bdiff::bdiff(&ffbb, &fdbb, fastfile::bdiff::BDiffType::BDT_IW)
+                        };
+                        patched.Allocate(sequential.size());
+                        std::memcpy(patched.data.get(), sequential.data(), sequential.size());
+                    }
+                    stream = std::move(patched);
+                    LOG_DEBUG("{} patch: 0x{:x} byte(s) patched in {:.1f} ms", deltaType, stream.size, MsSince(bdiffStart));
 
                     if (opt.dump_decompressed) {
                         std::filesystem::path of{ ctx.file };
@@ -1143,7 +1193,7 @@ namespace {
                         decfile.replace_extension(std::format(".{}.patched.dec", deltaType));
 
                         std::filesystem::create_directories(decfile.parent_path());
-                        if (!utils::WriteFile(decfile, ffdata)) {
+                        if (!utils::WriteFile(decfile, stream.data.get(), stream.size)) {
                             LOG_ERROR("Can't dump {}", decfile.string());
                         } else {
                             LOG_INFO("Dump patched data into {}", decfile.string());
@@ -1151,6 +1201,7 @@ namespace {
                     }
                 };
 
+            const auto patchStart{ std::chrono::steady_clock::now() };
             if (hasFdFile) {
                 ApplyDeltaFile(fileFPBuff, fpfile, "fp");
                 opt.replayAppliedPatches.push_back(fpfile.string());
@@ -1159,14 +1210,20 @@ namespace {
                 ApplyDeltaFile(fileFCBuff, fcfile, "fc");
                 opt.replayAppliedPatches.push_back(fcfile.string());
             }
+            opt.perfPatchMs += MsSince(patchStart);
             if (opt.handler && !std::strcmp(opt.handler->name, "mw19replay") &&
                 (header->headerVersion != IWFV_MW19 || !fastfile::FastFileOption::IsReplayFileVersion(opt.replayFileVersion)))
                 throw std::runtime_error(
                     "mw19replay does not support this XFile revision (apply matching patches with -p/--fc when available)"
                 );
             if (opt.m_header) {
-                WriteHeaderFile("Decompressed size: 0x{:x}", ffdata.size());
+                WriteHeaderFile("Decompressed size: 0x{:x}", stream.size);
             }
+            // Handed over without a copy; ffdata stays empty.
+            if (!stream.data)
+                stream.Allocate(0);
+            ctx.decodedSize = stream.size;
+            ctx.decoded = std::move(stream.data);
         }
     };
     utils::ArrayAdder<IWFFDecompressor, fastfile::FFDecompressor> arr{ fastfile::GetDecompressors() };

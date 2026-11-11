@@ -28,6 +28,8 @@ namespace tool::mw19::replay {
         };
         std::array<std::span<uint8_t>, 8> memory;
         std::array<size_t, 8> offsets{};
+        // Highest offset seen per stream: the rewindable stream 1 returns to its frame start on Pop.
+        std::array<size_t, 8> peaks{};
         std::vector<Frame> stack;
         std::vector<std::array<size_t, 8>> assets;
         std::span<const uint8_t> input;
@@ -48,6 +50,8 @@ namespace tool::mw19::replay {
             if (ptr < begin || ptr - begin > memory[block].size())
                 throw std::runtime_error("Replay native stream cursor escaped its reservation");
             offsets[block] = ptr - begin;
+            if (offsets[block] > peaks[block])
+                peaks[block] = offsets[block];
         }
         void Publish() { cursor = memory[block].data() + offsets[block]; }
 
@@ -64,6 +68,17 @@ namespace tool::mw19::replay {
         std::array<size_t, 8> Offsets() {
             Sync();
             return offsets;
+        }
+        // Bytes of each reservation that loading has written to so far.
+        std::array<size_t, 8> Peaks() {
+            Sync();
+            return peaks;
+        }
+        std::array<size_t, 8> Reserved() const {
+            std::array<size_t, 8> sizes{};
+            for (size_t i = 0; i < memory.size(); ++i)
+                sizes[i] = memory[i].size();
+            return sizes;
         }
         void SetTrace(std::function<void(const StreamTraceEvent&)> sink) { trace = std::move(sink); }
         std::span<const uint8_t> Take(size_t size) {
@@ -85,6 +100,8 @@ namespace tool::mw19::replay {
         void Advance(size_t size) {
             Check(size);
             offsets[block] += size;
+            if (offsets[block] > peaks[block])
+                peaks[block] = offsets[block];
             Publish();
         }
         void Align(size_t mask) {
