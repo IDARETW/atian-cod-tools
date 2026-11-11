@@ -1,11 +1,15 @@
 #ifndef MW19_SCHEMA_STANDALONE
 #include <includes.hpp>
+#elif defined(_WIN32)
+#define NOMINMAX
+#include <Windows.h>
 #endif
 #include "mw19_xpak.hpp"
 #include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <lz4.h>
 
@@ -134,14 +138,80 @@ namespace tool::mw19::xpak {
             entries.push_back({ key, dataOffset + offset, length, bool(packed >> 63) });
         }
     }
+#ifdef _WIN32
+    namespace {
+        // A read-only view of a whole archive. A payload read is a copy out of the view: there is no file
+        // position to share, so the export threads read one archive at the same time, and on a cold file their
+        // page-ins run side by side instead of one after the other.
+        struct MappedFile {
+            HANDLE file{ INVALID_HANDLE_VALUE };
+            HANDLE mapping{};
+            const uint8_t* view{};
+            uint64_t size{};
+
+            MappedFile() = default;
+            MappedFile(const MappedFile&) = delete;
+            MappedFile& operator=(const MappedFile&) = delete;
+            ~MappedFile() {
+                if (view)
+                    UnmapViewOfFile(view);
+                if (mapping)
+                    CloseHandle(mapping);
+                if (file != INVALID_HANDLE_VALUE)
+                    CloseHandle(file);
+            }
+        };
+        // A failed page-in (a truncated or unreadable file) is an exception in a mapped view: report it as a
+        // failed read.
+        bool CopyFromView(const uint8_t* source, void* target, size_t length) {
+            __try {
+                std::memcpy(target, source, length);
+                return true;
+            } __except (
+                GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH
+            ) {
+                return false;
+            }
+        }
+    } // namespace
+#endif
     Archive Archive::Open(const std::filesystem::path& path, Limits limits) {
+#ifdef _WIN32
+        auto mapped = std::make_shared<MappedFile>();
+        mapped->file = CreateFileW(
+            path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
+        );
+        LARGE_INTEGER size{};
+        if (mapped->file == INVALID_HANDLE_VALUE || !GetFileSizeEx(mapped->file, &size))
+            throw std::runtime_error("Cannot open XPak archive");
+        mapped->size = static_cast<uint64_t>(size.QuadPart);
+        if (mapped->size) {
+            mapped->mapping = CreateFileMappingW(mapped->file, nullptr, PAGE_READONLY, 0, 0, nullptr);
+            if (mapped->mapping)
+                mapped->view = static_cast<const uint8_t*>(MapViewOfFile(mapped->mapping, FILE_MAP_READ, 0, 0, 0));
+            if (!mapped->view)
+                throw std::runtime_error("Cannot open XPak archive");
+        }
+        return Archive(
+            [mapped](uint64_t offset, void* target, size_t length) {
+                if (offset > mapped->size || length > mapped->size - offset)
+                    return false;
+                return !length || CopyFromView(mapped->view + offset, target, length);
+            },
+            mapped->size,
+            limits
+        );
+#else
         auto file = std::make_shared<std::ifstream>(path, std::ios::binary);
         if (!*file)
             throw std::runtime_error("Cannot open XPak archive");
+        // Payloads are extracted from several export threads: seek and read are one step under this lock.
+        auto lock = std::make_shared<std::mutex>();
         return Archive(
-            [file](uint64_t offset, void* target, size_t length) {
+            [file, lock](uint64_t offset, void* target, size_t length) {
                 if (offset > INT64_MAX || length > INT64_MAX)
                     return false;
+                const std::lock_guard guard{ *lock };
                 file->clear();
                 file->seekg(static_cast<std::streamoff>(offset));
                 file->read(static_cast<char*>(target), static_cast<std::streamsize>(length));
@@ -150,6 +220,7 @@ namespace tool::mw19::xpak {
             std::filesystem::file_size(path),
             limits
         );
+#endif
     }
     std::optional<Entry> Archive::Find(uint64_t key) const {
         const auto at =

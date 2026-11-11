@@ -6,44 +6,122 @@
 #include "mw19_image.hpp"
 #include "mw19_sound.hpp"
 #include <algorithm>
+#include <charconv>
+#include <cmath>
 #include <cstring>
 #include <sstream>
-#include <streambuf>
 #include <stdexcept>
 #include <zlib.h>
 
 namespace tool::mw19::schema {
     namespace {
-        class BoundedJsonBuffer final : public std::streambuf {
+        // Compact JSON text of a document, byte for byte what the library's dump() writes (no indentation, UTF-8
+        // kept, the library's own number formatting), into a buffer with a byte budget. The library escapes every
+        // string one code point at a time; the large pointer-free arrays of a world or collision map are single
+        // strings of hundreds of megabytes of hex digits, and a string of printable ASCII without a quote or
+        // backslash needs no escaping at all: it is copied. Any other string goes through the library.
+        class CompactJsonWriter {
+            std::vector<uint8_t>& out;
             size_t limit;
 
+            void Put(const char* text, size_t length) {
+                if (length > limit - out.size())
+                    throw std::runtime_error("Structured asset exceeds output budget");
+                out.insert(out.end(), text, text + length);
+            }
+            void Put(char c) { Put(&c, 1); }
+            void String(const std::string& text) {
+                bool plain = true;
+                for (const unsigned char c : text) {
+                    if (c < 0x20 || c > 0x7e || c == '"' || c == '\\') {
+                        plain = false;
+                        break;
+                    }
+                }
+                if (!plain) {
+                    const std::string escaped = Json(text).dump();
+                    Put(escaped.data(), escaped.size());
+                    return;
+                }
+                Put('"');
+                Put(text.data(), text.size());
+                Put('"');
+            }
+
           public:
-            std::vector<uint8_t> data;
-            bool exceeded{};
-            explicit BoundedJsonBuffer(size_t maxBytes) : limit(maxBytes) {
-                data.reserve(std::min(maxBytes, size_t{ 65536 }));
-            }
-            std::streamsize xsputn(const char* source, std::streamsize count) override {
-                if (count <= 0)
-                    return 0;
-                const auto length = static_cast<size_t>(count);
-                if (length > limit - data.size()) {
-                    exceeded = true;
-                    return 0;
+            CompactJsonWriter(std::vector<uint8_t>& buffer, size_t maxBytes) : out(buffer), limit(maxBytes) {}
+            void Write(const Json& value) {
+                switch (value.type()) {
+                case Json::value_t::null:
+                    Put("null", 4);
+                    break;
+                case Json::value_t::boolean:
+                    if (value.get<bool>())
+                        Put("true", 4);
+                    else
+                        Put("false", 5);
+                    break;
+                case Json::value_t::number_integer: {
+                    char text[24];
+                    const auto end = std::to_chars(text, text + sizeof(text), value.get<int64_t>());
+                    Put(text, static_cast<size_t>(end.ptr - text));
+                    break;
                 }
-                data.insert(data.end(), source, source + length);
-                return count;
-            }
-            int_type overflow(int_type value) override {
-                if (traits_type::eq_int_type(value, traits_type::eof()))
-                    return traits_type::not_eof(value);
-                if (data.size() == limit) {
-                    exceeded = true;
-                    return traits_type::eof();
+                case Json::value_t::number_unsigned: {
+                    char text[24];
+                    const auto end = std::to_chars(text, text + sizeof(text), value.get<uint64_t>());
+                    Put(text, static_cast<size_t>(end.ptr - text));
+                    break;
                 }
-                data.push_back(static_cast<uint8_t>(traits_type::to_char_type(value)));
-                return value;
+                case Json::value_t::number_float: {
+                    // As the library's serializer: "null" for a non-finite value, else its shortest round-trip text.
+                    const double number = value.get<double>();
+                    if (!std::isfinite(number)) {
+                        Put("null", 4);
+                        break;
+                    }
+                    char text[64];
+                    const char* end = nlohmann::detail::to_chars(text, text + sizeof(text), number);
+                    Put(text, static_cast<size_t>(end - text));
+                    break;
+                }
+                case Json::value_t::string:
+                    String(value.get_ref<const std::string&>());
+                    break;
+                case Json::value_t::array: {
+                    Put('[');
+                    bool first = true;
+                    for (const Json& element : value.get_ref<const Json::array_t&>()) {
+                        if (!first)
+                            Put(',');
+                        first = false;
+                        Write(element);
+                    }
+                    Put(']');
+                    break;
+                }
+                case Json::value_t::object: {
+                    Put('{');
+                    bool first = true;
+                    for (const auto& member : value.get_ref<const Json::object_t&>()) {
+                        if (!first)
+                            Put(',');
+                        first = false;
+                        String(member.first);
+                        Put(':');
+                        Write(member.second);
+                    }
+                    Put('}');
+                    break;
+                }
+                default: {
+                    const std::string text = value.dump();
+                    Put(text.data(), text.size());
+                    break;
+                }
+                }
             }
+            void Newline() { Put('\n'); }
         };
         template<typename T>
         T Value(const std::vector<uint8_t>& bytes, size_t offset) {
@@ -118,17 +196,12 @@ namespace tool::mw19::schema {
                        { "profile", profile.at("id") }, { "pool", pool.at("name") },
                        { "pool_id", pool.at("id") },    { "root_type", pool.at("root_type") } };
         document["asset"] = std::move(inspection);
-        BoundedJsonBuffer buffer(maxBytes);
-        std::ostream output(&buffer);
-        output.exceptions(std::ios::failbit | std::ios::badbit);
-        try {
-            output << document << '\n';
-        } catch (...) {
-            if (buffer.exceeded)
-                throw std::runtime_error("Structured asset exceeds output budget");
-            throw;
-        }
-        return { ".asset.json", std::move(buffer.data), "mw19-asset-json-v1" };
+        std::vector<uint8_t> text;
+        text.reserve(std::min(maxBytes, size_t{ 65536 }));
+        CompactJsonWriter writer(text, maxBytes);
+        writer.Write(document);
+        writer.Newline();
+        return { ".asset.json", std::move(text), "mw19-asset-json-v1" };
     }
 
     bool HasPayloadExporter(const std::string& pool) {

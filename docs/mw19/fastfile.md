@@ -85,7 +85,7 @@ Loaded zones stay in memory, most recently used first, until their total exceeds
 
 ## Speed
 
-Measured on Replay 1.20 (i7-12700F, NVMe, files in the system cache, 14 XPaks on the command line). "Before" is the same build without the changes listed below.
+Measured on Replay 1.20 (i7-12700F, NVMe, files in the system cache, 14 XPaks on the command line where streamed payloads are needed). "Before" is the same build without the changes listed below. The machine was in use during the runs; times vary by tens of percent.
 
 | Run | Before | One-shot | Serve, zone loaded |
 | --- | ---: | ---: | ---: |
@@ -93,8 +93,14 @@ Measured on Replay 1.20 (i7-12700F, NVMe, files in the system cache, 14 XPaks on
 | 6 streamed images, `mp_backlot2` (156 MB, patched) | 3.2 s | 0.44 s | 60 ms |
 | 3 xmodels, `common_base_mp` (127 MB, patched) | 5.3 s | 0.40 s | 12 ms |
 | Load only, `common_mp` (712 MB, patched) | 9.4 s | 1.5 s | 4 ms |
+| `gfx_map` + `gfx_map_trzone`, `mp_shipment` (370 MB of JSON) | 9.3 s | 2.0 to 2.8 s | |
+| Every asset of `code_post_gfx` (6,013 files) | 20.0 s | 4.2 s | |
+| `material` + `techset`, `techsets_mp_shipment` (1,320 files) | 3.8 s | 0.43 s | |
+| Images, models, surfaces, raw files of `mp_backlot2` (6,957 files, 4.7 GB) | 66.9 s | 37.4 s | |
 
-What changed: the stream hooks no longer build a trace event unless a trace is written; `manifest.json` is rewritten a few times per second instead of every 256 assets; loader memory is read directly instead of through `ReadProcessMemory`; fastfile blocks and patch windows are decoded on several threads into buffers that are not cleared first; the schema is indexed by name. `manifest.json` records where a run spent its time in `timing_ms` (`init`, `read`, `decompress`, `patch`, `load`, `export`, in milliseconds) and the stream memory in `stream_bytes`.
+What changed: the stream hooks no longer build a trace event unless a trace is written; `manifest.json` is rewritten a few times per second instead of every 256 assets; loader memory is read directly instead of through `ReadProcessMemory`; fastfile blocks and patch windows are decoded on several threads into buffers that are not cleared first; the schema is indexed by name; the selected records are built and written on up to eight threads, with journal lines, counters and file names in record order as before; structured JSON is written by a compact writer that copies strings which need no escaping (the hex text of a world map's arrays); XPak payloads are read through a file mapping, without a shared file position. The last table row is bound by the disk: 4.7 GB are read from the XPaks and written again.
+
+`manifest.json` records where a run spent its time in `timing_ms`, in milliseconds: `init` (with `init_schema`, `init_module`, `init_packages`), `read`, `decompress`, `patch`, `load` and `export`. `export_encode` and `export_write` are summed over the export threads, so they can exceed `export`. `stream_bytes` gives the stream reservations, the bytes loading wrote and the retained copies.
 
 ## Version and format boundaries
 

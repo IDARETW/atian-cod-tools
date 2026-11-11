@@ -12,7 +12,9 @@
 #include <zlib.h>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <list>
+#include <mutex>
 #include <optional>
 #include <thread>
 
@@ -105,6 +107,7 @@ namespace fastfile::handlers::mw19_replay {
             size_t exportIndex{};
             Clock::time_point lastProgress{};
             double initMs{}, initSchemaMs{}, initModuleMs{}, initPackagesMs{}, loadMs{}, exportMs{};
+            double exportEncodeMs{}, exportWriteMs{}; // parts of exportMs: building payloads, writing files
             uint64_t legacyFrustumMeshes{};
             std::array<uint8_t, 16> frustumLoaderPrologue{};
             uintptr_t legacyViewStart{};
@@ -686,52 +689,99 @@ namespace fastfile::handlers::mw19_replay {
                 );
         }
 
-        void ExportRecord(const Record& record) {
-            const PoolInfo& info = state.pools.at(record.type);
-            if (!info.selected)
-                return;
-            if (state.opt->replayTest && state.sampled[record.type] >= state.opt->replayLimit)
-                return;
-            ++state.sampled[record.type];
-            // A name filter skips most records: read the name before anything is built for the journal.
+        // One record chosen for export, on its way to the journal.
+        struct ExportTask {
+            const Record* record{};
+            size_t recordIndex{}; // position in the zone's record list
+            size_t number{};      // records exported before this one: the suffix of its file name
             std::string name;
-            uint64_t nameAddress{};
-            const bool named =
-                info.hasNameOffset &&
-                state.Read(reinterpret_cast<uintptr_t>(record.header) + info.nameOffset, &nameAddress, 8) &&
-                state.ReadCString(nameAddress, name);
-            if (named && !state.names.Contains(hash::HashIWAsset(name.c_str()), true)) {
-                --state.sampled[record.type];
-                return;
-            }
-            const auto& profile = state.database->Profile("replay-1.20");
-            const auto& pool = profile.at("pools").at(record.type);
-            const std::string& type = info.name;
-            Json item{ { "type", type }, { "type_id", record.type }, { "status", "pending" } };
-            MemoryReader read = [&](uint64_t a, void* b, size_t n) { return state.Read(a, b, n); };
-            try {
+            std::string nameError; // why the name cannot be read; nothing else is attempted then
+            Json item;             // the journal line
+            enum class Outcome { Done, Failed, Unavailable } outcome{ Outcome::Done };
+            double encodeMs{}, writeMs{};
+        };
+
+        // The records that the type selection, the name filter and the --test quota let through, in record
+        // order. Name-only dependencies (a leading comma) are counted and left out: they exercise no exporter.
+        std::vector<ExportTask> SelectRecords() {
+            std::vector<ExportTask> tasks;
+            const auto& records = state.zone->records;
+            const size_t exported = state.report.at("tested").get<size_t>();
+            size_t references{};
+            MemoryReader read = [](uint64_t a, void* b, size_t n) { return state.Read(a, b, n); };
+            for (size_t i = 0; i < records.size(); ++i) {
+                const Record& record = records[i];
+                const PoolInfo& info = state.pools.at(record.type);
+                if (!info.selected)
+                    continue;
+                if (state.opt->replayTest && state.sampled[record.type] >= state.opt->replayLimit)
+                    continue;
+                ++state.sampled[record.type];
+                ExportTask task;
+                task.record = &record;
+                task.recordIndex = i;
+                // A name filter skips most records: one scan of loader memory finds the name.
+                uint64_t nameAddress{};
+                bool named =
+                    info.hasNameOffset &&
+                    state.Read(reinterpret_cast<uintptr_t>(record.header) + info.nameOffset, &nameAddress, 8) &&
+                    state.ReadCString(nameAddress, task.name);
                 if (!named) {
                     // The checked path: it reports why the name cannot be read.
-                    if (!read(
-                            reinterpret_cast<uintptr_t>(record.header) + pool.at("name_offset").get<size_t>(),
-                            &nameAddress,
-                            8
-                        ))
-                        throw std::runtime_error("Cannot read asset name pointer");
-                    name = ReadString(read, nameAddress);
-                    if (!state.names.Contains(hash::HashIWAsset(name.c_str()), true)) {
-                        --state.sampled[record.type];
-                        return;
+                    try {
+                        const auto& pool = state.database->Profile("replay-1.20").at("pools").at(record.type);
+                        if (!read(
+                                reinterpret_cast<uintptr_t>(record.header) + pool.at("name_offset").get<size_t>(),
+                                &nameAddress,
+                                8
+                            ))
+                            throw std::runtime_error("Cannot read asset name pointer");
+                        task.name = ReadString(read, nameAddress);
+                        named = true;
+                    } catch (const std::exception& e) {
+                        task.nameError = e.what();
+                        if (task.nameError.empty())
+                            task.nameError = "Cannot read asset name";
                     }
                 }
+                if (named) {
+                    if (!state.names.Contains(hash::HashIWAsset(task.name.c_str()), true)) {
+                        --state.sampled[record.type];
+                        continue;
+                    }
+                    if (!task.name.empty() && task.name[0] == ',') {
+                        ++references;
+                        --state.sampled[record.type];
+                        continue;
+                    }
+                }
+                task.number = exported + tasks.size();
+                tasks.push_back(std::move(task));
+            }
+            if (references)
+                state.report["references"] = state.report.at("references").get<size_t>() + references;
+            return tasks;
+        }
+
+        // Builds the payload of one task and writes its files. This runs on the export threads: it reads the
+        // loaded zone, the schema and the XPaks, and changes nothing but the task.
+        void ProduceRecord(ExportTask& task) {
+            const Record& record = *task.record;
+            const PoolInfo& info = state.pools[record.type];
+            const std::string& type = info.name;
+            const std::string& name = task.name;
+            Json& item = task.item;
+            item = Json{ { "type", type }, { "type_id", record.type }, { "status", "pending" } };
+            MemoryReader read = [](uint64_t a, void* b, size_t n) { return state.Read(a, b, n); };
+            try {
+                if (!task.nameError.empty())
+                    throw std::runtime_error(task.nameError);
                 item["name"] = name;
-                if (!name.empty() && name[0] == ',') {
-                    state.report["references"] = state.report.at("references").get<size_t>() + 1;
-                    --state.sampled[record.type];
-                    return; // A name-only dependency does not exercise an exporter.
-                } else if (state.opt->noAssetDump) {
+                if (state.opt->noAssetDump) {
                     item["status"] = "inventory";
                 } else {
+                    const auto& profile = state.database->Profile("replay-1.20");
+                    const auto& pool = profile.at("pools").at(record.type);
                     PackageReader packages = [&](uint64_t key, size_t size) {
                         for (size_t i = state.packages.size(); i-- > 0;) {
                             if (!state.packages[i].Find(key))
@@ -755,6 +805,7 @@ namespace fastfile::handlers::mw19_replay {
                             "Required payload is absent from supplied XPaks"
                         );
                     };
+                    const auto encodeStart = Clock::now();
                     Payload payload;
                     // ACTS_REPLAY_STRUCTURED=1: export the structured asset (e.g. a sound
                     // bank's alias table) instead of its binary payload.
@@ -813,16 +864,18 @@ namespace fastfile::handlers::mw19_replay {
                             crc32(0, geometry.payload.data.data(), static_cast<uInt>(geometry.payload.data.size()));
                         item["geometry_status"] = "ok";
                     }
+                    task.encodeMs = MsSince(encodeStart);
                     if (!state.opt->replayTest) {
+                        const auto writeStart = Clock::now();
                         auto root = state.out / "assets" / type;
                         std::filesystem::path path;
                         try {
                             path = AssetPath(root, name);
                         } catch (const std::exception&) {
-                            path = root / "_encoded" / std::to_string(state.report.at("tested").get<size_t>());
+                            path = root / "_encoded" / std::to_string(task.number);
                             item["filename_encoded"] = true;
                         }
-                        path += "." + std::to_string(state.report.at("tested").get<size_t>()) + payload.extension;
+                        path += "." + std::to_string(task.number) + payload.extension;
                         std::filesystem::create_directories(path.parent_path());
                         if (!utils::WriteFile(path, payload.data.data(), payload.data.size()))
                             throw std::runtime_error("Cannot write Replay asset");
@@ -840,6 +893,7 @@ namespace fastfile::handlers::mw19_replay {
                             }
                             item["geometry_file"] = meshPath.lexically_relative(state.out).generic_string();
                         }
+                        task.writeMs = MsSince(writeStart);
                     }
                     item["status"] = "ok";
                 }
@@ -849,16 +903,28 @@ namespace fastfile::handlers::mw19_replay {
                 item["status"] = "unavailable";
                 item["reason"] = e.reason;
                 item["error"] = e.what();
-                state.report["unavailable"] = state.report.at("unavailable").get<size_t>() + 1;
+                task.outcome = ExportTask::Outcome::Unavailable;
             } catch (const std::exception& e) {
                 if (item.contains("geometry_status") && item["geometry_status"] == "pending")
                     item["geometry_status"] = "failed";
                 item["status"] = "failed";
                 item["error"] = e.what();
-                state.report["failed"] = state.report.at("failed").get<size_t>() + 1;
+                task.outcome = ExportTask::Outcome::Failed;
             }
+        }
+
+        // Counters and the journal line of a finished task. Tasks are committed in record order.
+        void CommitRecord(ExportTask& task) {
+            if (task.outcome == ExportTask::Outcome::Unavailable)
+                state.report["unavailable"] = state.report.at("unavailable").get<size_t>() + 1;
+            else if (task.outcome == ExportTask::Outcome::Failed)
+                state.report["failed"] = state.report.at("failed").get<size_t>() + 1;
+            state.exportEncodeMs += task.encodeMs;
+            state.exportWriteMs += task.writeMs;
+            state.exportIndex = task.recordIndex + 1;
             state.report["tested"] = state.report.at("tested").get<size_t>() + 1;
-            state.journal << item.dump(-1, ' ', false, Json::error_handler_t::replace) << '\n';
+            state.journal << task.item.dump(-1, ' ', false, Json::error_handler_t::replace) << '\n';
+            task.item = nullptr;
             // The journal is flushed a few times per second (and when the export ends), not once per asset.
             if (const auto now = Clock::now(); now - state.journalFlushed >= std::chrono::milliseconds(200)) {
                 state.journalFlushed = now;
@@ -866,6 +932,60 @@ namespace fastfile::handlers::mw19_replay {
             }
             if (!state.journal)
                 throw std::runtime_error("Cannot write Replay asset report");
+        }
+
+        // Exports the selected records of the current zone. Payloads are built and written on several threads
+        // (an asset costs milliseconds of inspection, encoding and file creation, a world or collision map
+        // seconds); counters and journal lines follow in record order, so the result does not depend on timing.
+        void ExportRecords() {
+            std::vector<ExportTask> tasks = SelectRecords();
+            const size_t threads =
+                std::min({ static_cast<size_t>(std::thread::hardware_concurrency()), size_t{ 8 }, tasks.size() });
+            if (threads <= 1) {
+                for (ExportTask& task : tasks) {
+                    ProduceRecord(task);
+                    CommitRecord(task);
+                    state.Progress(false);
+                }
+            } else {
+                std::atomic<size_t> next{ 0 };
+                std::atomic<bool> stop{ false };
+                std::mutex lock;
+                std::condition_variable ready;
+                std::vector<char> done(tasks.size(), 0);
+                std::vector<std::thread> pool;
+                // Joined on every way out, also when a commit throws.
+                struct Join {
+                    std::atomic<bool>& stop;
+                    std::vector<std::thread>& pool;
+                    ~Join() {
+                        stop.store(true);
+                        for (std::thread& thread : pool)
+                            thread.join();
+                    }
+                } join{ stop, pool };
+                pool.reserve(threads);
+                for (size_t t = 0; t < threads; ++t)
+                    pool.emplace_back([&] {
+                        for (size_t i; !stop.load() && (i = next.fetch_add(1)) < tasks.size();) {
+                            ProduceRecord(tasks[i]);
+                            {
+                                const std::lock_guard guard{ lock };
+                                done[i] = 1;
+                            }
+                            ready.notify_one();
+                        }
+                    });
+                for (size_t i = 0; i < tasks.size(); ++i) {
+                    {
+                        std::unique_lock guard{ lock };
+                        ready.wait(guard, [&] { return done[i] != 0; });
+                    }
+                    CommitRecord(tasks[i]);
+                    state.Progress(false);
+                }
+            }
+            state.exportIndex = state.zone->records.size();
         }
 
         void ExportScriptStrings(const AssetList& list) {
@@ -977,7 +1097,7 @@ namespace fastfile::handlers::mw19_replay {
             state.journal.close();
             state.journal.clear();
             state.exportIndex = 0;
-            state.lastProgress = {};
+            state.lastProgress = Clock::now(); // periodic manifest writes count from here
             state.journalFlushed = Clock::now();
             state.report =
                 Json{ { "profile", "replay-1.20" }, { "fastfile", file },            { "complete", false },
@@ -1165,6 +1285,7 @@ namespace fastfile::handlers::mw19_replay {
             const auto start = Clock::now();
             state.sampled.fill(0);
             state.exportIndex = 0;
+            state.exportEncodeMs = state.exportWriteMs = 0;
             ExportScriptStrings(state.zone->list);
             {
                 // Keys in order of first appearance, as a per-record insert would give.
@@ -1177,14 +1298,10 @@ namespace fastfile::handlers::mw19_replay {
                 for (uint32_t type : order)
                     coverage[state.pools[type].name] = counts[type];
             }
-            state.Progress();
-            const auto& records = state.zone->records;
-            for (size_t i = 0; i < records.size(); ++i) {
-                ExportRecord(records[i]);
-                state.exportIndex = i + 1;
-                if (!((i + 1) % 128))
-                    state.Progress(false);
-            }
+            // Not forced: a quick export writes its manifest once, at the end. Replacing a file that was
+            // written a moment ago can wait on a scanner that still holds it.
+            state.Progress(false);
+            ExportRecords();
             state.report["complete"] = true;
             state.report["success"] =
                 !state.report.at("failed").get<size_t>() && !state.report.at("unavailable").get<size_t>();
@@ -1206,6 +1323,8 @@ namespace fastfile::handlers::mw19_replay {
                 timing["load"] = Tenths(state.loadMs);
             }
             timing["export"] = Tenths(state.exportMs);
+            timing["export_encode"] = Tenths(state.exportEncodeMs);
+            timing["export_write"] = Tenths(state.exportWriteMs);
             state.report["timing_ms"] = std::move(timing);
             if (state.serving)
                 state.report["cached"] = cached;
@@ -1439,11 +1558,7 @@ namespace fastfile::handlers::mw19_replay {
                         !state.zone->records.empty()) {
                         state.report["partial_load"] = true;
                         std::sort(state.zone->owned.begin(), state.zone->owned.end());
-                        for (size_t i = 0; i < state.zone->records.size(); ++i) {
-                            ExportRecord(state.zone->records[i]);
-                            state.exportIndex = i + 1;
-                            if (!((i + 1) % 128)) state.Progress(false);
-                        }
+                        ExportRecords();
                     }
                     state.Progress();
                     state.journal.close();

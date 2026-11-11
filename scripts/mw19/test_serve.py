@@ -9,7 +9,9 @@ of such a payload is left out of the journal comparison. Timing fields of the ma
 Then the request protocol is exercised: an unknown pool, a missing file, a malformed line, a name that is absent,
 `load`, `stats`, `trim` and `quit`.
 
-The zones are read only. Everything is written under --out, which must be new or empty.
+The zones are read only. Everything is written under --out, which must be new or empty. Keep --out short: asset
+names are long, and an export that crosses the 260-character path limit fails that asset (the run folders have names
+of one length, so the three exports are affected alike).
 
     python scripts/mw19/test_serve.py --game D:/Replay/game_dx12_ship_replay.exe \
         --oodle D:/Replay/oo2core_7_win64.dll --out build/mw19-tests/serve-run \
@@ -127,7 +129,7 @@ def main():
 
     print("one-shot exports")
     for index, zone in enumerate(zones):
-        command = base + ["-a", args.types, "-l", "-o", str(args.out / "oneshot" / str(index))]
+        command = base + ["-a", args.types, "-l", "-o", str(args.out / "run-o" / str(index))]
         if names:
             command += ["-n", ",".join(names)]
         started = time.perf_counter()
@@ -139,7 +141,7 @@ def main():
         fail(f"unexpected greeting: {server.ready}")
     print("server:", server.ready)
 
-    for attempt, folder in (("first request (loads the zone)", "serve-first"), ("repeated request (from memory)", "serve-again")):
+    for attempt, folder in (("first request (loads the zone)", "run-1"), ("repeated request (from memory)", "run-2")):
         print(attempt)
         for index, zone in enumerate(zones):
             request = dict(id=index, zone=zone, types=args.types, out=str(args.out / folder / str(index)),
@@ -150,10 +152,10 @@ def main():
             print(f"  {pathlib.Path(zone).name}: complete={answer.get('ok')} cached={answer.get('cached')} "
                   f"loaded={answer.get('loaded')} tested={answer.get('tested')} failed={answer.get('failed')} "
                   f"unavailable={answer.get('unavailable')} server {answer.get('ms')} ms")
-            if answer.get("id") != index or answer.get("cached") is not (folder == "serve-again"):
+            if answer.get("id") != index or answer.get("cached") is not (folder == "run-2"):
                 ok = False
                 print("    unexpected answer:", answer)
-            ok &= same(args.out / "oneshot" / str(index), args.out / folder / str(index), "against the one-shot export")
+            ok &= same(args.out / "run-o" / str(index), args.out / folder / str(index), "against the one-shot export")
 
     print("protocol")
     first = zones[0]
@@ -179,9 +181,9 @@ def main():
     answer = server.ask(cmd="load", zone=first)
     print("  load ->", answer.get("ok"), "loaded", answer.get("loaded"), "zones", answer.get("zones"))
     ok &= answer.get("ok") is True and bool(answer.get("zones"))
-    answer = server.ask(id="after-load", zone=first, types=args.types, out=str(args.out / "serve-after-load"), **({"names": names} if names else {}))
+    answer = server.ask(id="after-load", zone=first, types=args.types, out=str(args.out / "run-3" / "0"), **({"names": names} if names else {}))
     ok &= answer.get("cached") is True
-    ok &= same(args.out / "oneshot" / "0", args.out / "serve-after-load", "export after load, against the one-shot export",
+    ok &= same(args.out / "run-o" / "0", args.out / "run-3" / "0", "export after load, against the one-shot export",
                without=("script_strings.json",))
     answer = server.ask(cmd="quit")
     code = server.proc.wait(timeout=60)

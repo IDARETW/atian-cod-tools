@@ -885,8 +885,12 @@ namespace fastfile::bdiff {
         };
         const size_t threads{ std::max<size_t>(
             1,
-            std::min({ (size_t)std::thread::hardware_concurrency(), size_t{ 12 }, windows.size(),
-                       total / (4 * 1024 * 1024) + 1 })
+            std::min(
+                { (size_t)std::thread::hardware_concurrency(),
+                  size_t{ 12 },
+                  windows.size(),
+                  total / (4 * 1024 * 1024) + 1 }
+            )
         ) };
         {
             std::vector<std::thread> pool;
@@ -898,7 +902,10 @@ namespace fastfile::bdiff {
                 t.join();
         }
         LOG_DEBUG(
-            "bdiff: {} window(s), 0x{:x} byte(s), {} thread(s){}", windows.size(), total, threads,
+            "bdiff: {} window(s), 0x{:x} byte(s), {} thread(s){}",
+            windows.size(),
+            total,
+            threads,
             failed.load() ? ", failed a check" : ""
         );
         if (failed.load())

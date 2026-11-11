@@ -3,6 +3,7 @@
 #endif
 #include "mw19_schema.hpp"
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cmath>
 #include <cctype>
@@ -37,12 +38,20 @@ namespace tool::mw19::schema {
             *--at = '0';
             return std::string(at, text + sizeof(text));
         }
+        // Two lowercase digits per byte, through a table of both digits: geometry arrays are hundreds of megabytes.
         std::string HexBytes(const std::vector<uint8_t>& data) {
-            constexpr char hex[] = "0123456789abcdef";
+            static const std::array<std::array<char, 2>, 256> digits = [] {
+                constexpr char hex[] = "0123456789abcdef";
+                std::array<std::array<char, 2>, 256> table{};
+                for (size_t i = 0; i < table.size(); i++)
+                    table[i] = { hex[i >> 4], hex[i & 15] };
+                return table;
+            }();
             std::string out(data.size() * 2, '0');
-            for (size_t i = 0; i < data.size(); i++) {
-                out[i * 2] = hex[data[i] >> 4];
-                out[i * 2 + 1] = hex[data[i] & 15];
+            char* at = out.data();
+            for (const uint8_t value : data) {
+                std::memcpy(at, digits[value].data(), 2);
+                at += 2;
             }
             return out;
         }
@@ -179,8 +188,35 @@ namespace tool::mw19::schema {
         index("types", typeIndex);
         index("pointer_rules", pointerRuleIndex);
         index("union_rules", unionRuleIndex);
+        // Per profile: every type name after the profile's overrides, and its pools by root type. A malformed
+        // document is left to Validate(), which names the problem.
         profileTypes.clear();
         profileRootPools.clear();
+        if (!document.contains("profiles") || !document.at("profiles").is_object())
+            return;
+        const auto& profiles = document.at("profiles");
+        for (auto it = profiles.begin(); it != profiles.end(); ++it) {
+            const Json& profile = it.value();
+            if (!profile.is_object())
+                continue;
+            Index& types = profileTypes[it.key()];
+            types = typeIndex;
+            if (profile.contains("type_overrides") && profile.at("type_overrides").is_object()) {
+                const auto& overrides = profile.at("type_overrides");
+                for (auto entry = overrides.begin(); entry != overrides.end(); ++entry) {
+                    types.erase(entry.key());
+                    if (!entry.value().is_string())
+                        continue;
+                    if (const auto target = typeIndex.find(entry.value().get<std::string>()); target != typeIndex.end())
+                        types.emplace(entry.key(), target->second);
+                }
+            }
+            Index& pools = profileRootPools[it.key()];
+            if (profile.contains("pools") && profile.at("pools").is_array())
+                for (const auto& pool : profile.at("pools"))
+                    if (pool.is_object() && pool.contains("root_type") && pool.at("root_type").is_string())
+                        pools.emplace(pool.at("root_type").get<std::string>(), &pool);
+        }
     }
     const Json& Database::Profile(const std::string& id) const { return document.at("profiles").at(id); }
     const Json& Database::Type(const std::string& name) const {
@@ -189,24 +225,20 @@ namespace tool::mw19::schema {
         return document.at("types").at(name); // reports the missing key
     }
     const Json& Database::ProfileType(const std::string& profileId, const std::string& name) const {
-        Index& cache = profileTypes[profileId];
-        if (const auto it = cache.find(name); it != cache.end())
-            return *it->second;
+        if (const auto types = profileTypes.find(profileId); types != profileTypes.end())
+            if (const auto it = types->second.find(name); it != types->second.end())
+                return *it->second;
+        // An unknown profile, type or override target: the document lookups report which.
         const auto& profile = Profile(profileId);
-        const Json* type = profile.contains("type_overrides") && profile.at("type_overrides").contains(name)
-                               ? &Type(profile.at("type_overrides").at(name).get<std::string>())
-                               : &Type(name);
-        cache.emplace(name, type);
-        return *type;
+        if (profile.contains("type_overrides") && profile.at("type_overrides").contains(name))
+            return Type(profile.at("type_overrides").at(name).get<std::string>());
+        return Type(name);
     }
     const Json* Database::PoolByRootType(const std::string& profileId, const std::string& rootType) const {
-        auto found = profileRootPools.find(profileId);
+        const auto found = profileRootPools.find(profileId);
         if (found == profileRootPools.end()) {
-            Index pools;
-            for (const auto& pool : Profile(profileId).at("pools"))
-                if (pool.at("root_type").is_string())
-                    pools.emplace(pool.at("root_type").get<std::string>(), &pool);
-            found = profileRootPools.emplace(profileId, std::move(pools)).first;
+            Profile(profileId); // reports the unknown profile
+            return nullptr;
         }
         const auto it = found->second.find(rootType);
         return it == found->second.end() ? nullptr : it->second;

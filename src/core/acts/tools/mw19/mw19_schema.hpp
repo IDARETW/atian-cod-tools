@@ -26,10 +26,11 @@ namespace tool::mw19::schema {
     class Database {
         // The document is an ordered JSON object: a lookup by key walks its entries. Types and rules are resolved
         // by name for every member of every node an inspection visits, so they are indexed once (first entry of a
-        // name wins, as a document lookup would give). The document must not change after construction.
+        // name wins, as a document lookup would give). The document must not change after construction; nothing
+        // here changes after it either, so one database serves inspections on several threads.
         using Index = std::unordered_map<std::string, const Json*>;
         Index typeIndex, pointerRuleIndex, unionRuleIndex;
-        mutable std::unordered_map<std::string, Index> profileTypes, profileRootPools;
+        std::unordered_map<std::string, Index> profileTypes, profileRootPools;
         void BuildIndex();
 
       public:
