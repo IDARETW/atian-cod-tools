@@ -825,7 +825,8 @@ namespace fastfile::handlers::mw19_replay {
                     } else {
                         Limits limits;
                         limits.maxBytes = structuredOnly ? size_t{ 2047 } * 1024 * 1024 : 256 * 1024 * 1024;
-                        limits.maxNodes = structuredOnly ? 60000000 : 4000000;
+                        // The largest stock world (mp_donetsk gfx_map) has 4.1 million nodes.
+                        limits.maxNodes = structuredOnly ? 60000000 : 8000000;
                         limits.maxArray = 32000000;
                         limits.maxDepth = 64;
                         limits.compactArrays = true;
@@ -846,7 +847,11 @@ namespace fastfile::handlers::mw19_replay {
                             item[key] = inspection.at(key);
                         auto outputPool = pool;
                         outputPool["root_type"] = rootType;
-                        payload = ExportStructuredAsset(profile, outputPool, std::move(inspection), limits.maxBytes);
+                        // The text of an asset is larger than the bytes read for it: a compact array takes two
+                        // hex digits per byte. With one budget for both, a world whose arrays fit the read budget
+                        // (mp_aniyah_tac gfx_map_trzone: 173 MB read, about 350 MB of text) failed on its output.
+                        const size_t outputBytes = structuredOnly ? limits.maxBytes : limits.maxBytes * 3;
+                        payload = ExportStructuredAsset(profile, outputPool, std::move(inspection), outputBytes);
                     }
                     item["payload_bytes"] = payload.data.size();
                     item["payload_crc32"] = crc32(0, payload.data.data(), static_cast<uInt>(payload.data.size()));
