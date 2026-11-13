@@ -34,4 +34,23 @@ def rules(types):
                                 evidence=TECHNIQUE + ': +0x83 * +0x0E records of 16 bytes at +0x28'),
             rootParameterMap=dict(count=16, evidence=TECHNIQUE + ': 16-byte map at +0x50'),
             stateBits=dict(count=field('pipelineStateCount'), evidence=TECHNIQUE + ': +0x83 records of 5 bytes at +0x88'))
+    # Super-terrain node meshes. Replay::StMesh embeds these records by their Replay:: names, so the game-test
+    # rules keyed StVertexData0 / StMeshLayerMaskData never match, and their game-test counts (4 * vertexCount for
+    # both) are not the Replay ones anyway. The owner is the enclosing StMesh (reached as 'StMesh' from
+    # StTerrainNode.mesh; the replay-1.20 type override maps it to Replay::StMesh).
+    def mesh(*path):
+        return dict(owner='StMesh', path=list(path))
+    if 'Replay::StVertexData0' in types:
+        out['Replay::StVertexData0'] = dict(data=dict(
+            count=dict(op='mul', args=[mesh('vertexCount'), dict(op='select', args=[
+                dict(op='and', args=[mesh('flags', 'packed'), 4]), 4, 8])]),
+            evidence='Load_StVertexData0 RVA 0xE1EB60: test byte [StMesh+0x126], 4; cmovne 4 else 8; '
+                     'imul by word [StMesh+0x120] (vertexCount) -> bytes at +0'))
+    if 'Replay::StMeshLayerMaskData' in types:
+        out['Replay::StMeshLayerMaskData'] = dict(data=dict(
+            count=dict(op='mul', args=[dict(op='select', args=[
+                dict(op='and', args=[mesh('flags', 'packed'), 16]),
+                dict(op='sub', args=[mesh('triCount'), mesh('cutoutTriCount')]), 0]), 4]),
+            evidence='Load_StMeshLayerMaskData RVA 0xE1E390: test byte [StMesh+0x126], 0x10; if set '
+                     '(word [+0x122] triCount - word [+0x124] cutoutTriCount) * 4 bytes, else 0'))
     return out

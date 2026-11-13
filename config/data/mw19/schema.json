@@ -107962,6 +107962,89 @@
         "evidence": "Load_MaterialTechnique RVA 0xE0CED0 (x64-zt iw8_layouts.txt, iw8_format.json op graph): +0x83 records of 5 bytes at +0x88"
       }
     },
+    "Replay::StVertexData0": {
+      "data": {
+        "count": {
+          "op": "mul",
+          "args": [
+            {
+              "owner": "StMesh",
+              "path": [
+                "vertexCount"
+              ]
+            },
+            {
+              "op": "select",
+              "args": [
+                {
+                  "op": "and",
+                  "args": [
+                    {
+                      "owner": "StMesh",
+                      "path": [
+                        "flags",
+                        "packed"
+                      ]
+                    },
+                    4
+                  ]
+                },
+                4,
+                8
+              ]
+            }
+          ]
+        },
+        "evidence": "Load_StVertexData0 RVA 0xE1EB60: test byte [StMesh+0x126], 4; cmovne 4 else 8; imul by word [StMesh+0x120] (vertexCount) -> bytes at +0"
+      }
+    },
+    "Replay::StMeshLayerMaskData": {
+      "data": {
+        "count": {
+          "op": "mul",
+          "args": [
+            {
+              "op": "select",
+              "args": [
+                {
+                  "op": "and",
+                  "args": [
+                    {
+                      "owner": "StMesh",
+                      "path": [
+                        "flags",
+                        "packed"
+                      ]
+                    },
+                    16
+                  ]
+                },
+                {
+                  "op": "sub",
+                  "args": [
+                    {
+                      "owner": "StMesh",
+                      "path": [
+                        "triCount"
+                      ]
+                    },
+                    {
+                      "owner": "StMesh",
+                      "path": [
+                        "cutoutTriCount"
+                      ]
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            4
+          ]
+        },
+        "evidence": "Load_StMeshLayerMaskData RVA 0xE1E390: test byte [StMesh+0x126], 0x10; if set (word [+0x122] triCount - word [+0x124] cutoutTriCount) * 4 bytes, else 0"
+      }
+    },
     "Replay::DDLMember": {
       "serializedByte": {
         "count": 1,
